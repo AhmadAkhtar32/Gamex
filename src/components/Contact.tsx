@@ -25,8 +25,8 @@ const inputCls =
 
 const INFO = [
   { icon: Mail, label: "Email", value: "hello@gamex.gg" },
-  { icon: Phone, label: "Phone", value: "+1 (555) 010-1234" },
-  { icon: MapPin, label: "HQ", value: "Neon District, Tech City" },
+  { icon: Phone, label: "Phone", value: "0303-6009123" },
+  { icon: MapPin, label: "HQ", value: "17-A Airport Road Divine Garden Lahore" },
   { icon: Clock, label: "Hours", value: "24/7 — we never sleep" },
 ];
 
