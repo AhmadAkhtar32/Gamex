@@ -1,19 +1,34 @@
 import Link from "next/link";
+
 import {
   ArrowLeft,
   Eye,
   EyeOff,
   PackagePlus,
+  Pencil,
+  Trash2,
 } from "lucide-react";
+
 import { asc } from "drizzle-orm";
 
 import { db } from "@/db";
 import { products } from "@/db/schema";
 import { requireAdmin } from "@/lib/admin-auth";
 
+import {
+  deleteProduct,
+  toggleProductVisibility,
+} from "./actions";
+
 export default async function AdminProductsPage() {
+  /*
+   * Protect admin page.
+   */
   await requireAdmin();
 
+  /*
+   * Load every product, including hidden products.
+   */
   const productList = await db
     .select()
     .from(products)
@@ -25,7 +40,7 @@ export default async function AdminProductsPage() {
   return (
     <main className="min-h-screen bg-[#f7f9fc]">
       {/* =====================================================
-          TOP BAR
+          HEADER
           ===================================================== */}
 
       <header className="border-b border-brand/10 bg-white">
@@ -92,7 +107,7 @@ export default async function AdminProductsPage() {
       </header>
 
       {/* =====================================================
-          CONTENT
+          PAGE
           ===================================================== */}
 
       <div
@@ -105,6 +120,10 @@ export default async function AdminProductsPage() {
           md:py-14
         "
       >
+        {/* ===================================================
+            PAGE HEADING
+            =================================================== */}
+
         <div
           className="
             flex
@@ -142,8 +161,14 @@ export default async function AdminProductsPage() {
               Products
             </h1>
 
-            <p className="mt-3 text-sm text-slate-500">
-              Add and manage products shown on the Gamex website.
+            <p
+              className="
+                mt-3
+                text-sm
+                text-slate-500
+              "
+            >
+              Add, edit, show, hide and delete products.
             </p>
           </div>
 
@@ -176,7 +201,7 @@ export default async function AdminProductsPage() {
         </div>
 
         {/* ===================================================
-            EMPTY DATABASE
+            EMPTY STATE
             =================================================== */}
 
         {productList.length === 0 ? (
@@ -231,8 +256,8 @@ export default async function AdminProductsPage() {
                 text-slate-500
               "
             >
-              Your products database is currently empty.
-              Add your first product using the button above.
+              Add your first product using the Add Product
+              button above.
             </p>
           </div>
         ) : (
@@ -252,7 +277,11 @@ export default async function AdminProductsPage() {
             "
           >
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[900px]">
+              <table className="w-full min-w-[1050px]">
+                {/* ===========================================
+                    TABLE HEADER
+                    =========================================== */}
+
                 <thead className="bg-[#f7f9fc]">
                   <tr
                     className="
@@ -290,6 +319,10 @@ export default async function AdminProductsPage() {
                   </tr>
                 </thead>
 
+                {/* ===========================================
+                    PRODUCTS
+                    =========================================== */}
+
                 <tbody>
                   {productList.map((product) => (
                     <tr
@@ -301,14 +334,16 @@ export default async function AdminProductsPage() {
                         hover:bg-[#fafbfd]
                       "
                     >
-                      {/* Product */}
+                      {/* =====================================
+                          PRODUCT
+                          ===================================== */}
 
                       <td className="px-5 py-5">
                         <div className="flex items-center gap-4">
                           <div
                             className="
-                              h-14
-                              w-14
+                              h-16
+                              w-16
                               shrink-0
                               overflow-hidden
                               rounded-xl
@@ -342,6 +377,8 @@ export default async function AdminProductsPage() {
                             <p
                               className="
                                 mt-1
+                                max-w-[220px]
+                                truncate
                                 text-xs
                                 text-slate-400
                               "
@@ -352,7 +389,9 @@ export default async function AdminProductsPage() {
                         </div>
                       </td>
 
-                      {/* Category */}
+                      {/* =====================================
+                          CATEGORY
+                          ===================================== */}
 
                       <td
                         className="
@@ -365,7 +404,9 @@ export default async function AdminProductsPage() {
                         {product.category}
                       </td>
 
-                      {/* Tag */}
+                      {/* =====================================
+                          TAG
+                          ===================================== */}
 
                       <td className="px-5 py-5">
                         <span
@@ -384,7 +425,9 @@ export default async function AdminProductsPage() {
                         </span>
                       </td>
 
-                      {/* Order */}
+                      {/* =====================================
+                          ORDER
+                          ===================================== */}
 
                       <td
                         className="
@@ -397,7 +440,9 @@ export default async function AdminProductsPage() {
                         {product.sortOrder}
                       </td>
 
-                      {/* Visibility */}
+                      {/* =====================================
+                          STATUS
+                          ===================================== */}
 
                       <td className="px-5 py-5">
                         {product.isVisible ? (
@@ -441,21 +486,143 @@ export default async function AdminProductsPage() {
                         )}
                       </td>
 
-                      {/* Actions */}
+                      {/* =====================================
+                          ACTIONS
+                          ===================================== */}
 
                       <td className="px-5 py-5">
-                        <Link
-                          href={`/admin/products/${product.id}/edit`}
+                        <div
                           className="
-                            text-sm
-                            font-bold
-                            text-brand
-                            transition-colors
-                            hover:text-brand-soft
+                            flex
+                            flex-wrap
+                            items-center
+                            gap-2
                           "
                         >
-                          Edit
-                        </Link>
+                          {/* EDIT */}
+
+                          <Link
+                            href={`/admin/products/${product.id}/edit`}
+                            className="
+                              inline-flex
+                              items-center
+                              gap-1.5
+                              rounded-lg
+                              border
+                              border-brand/15
+                              bg-white
+                              px-3
+                              py-2
+                              text-xs
+                              font-bold
+                              text-brand
+                              transition-all
+                              hover:border-brand
+                              hover:bg-brand/[0.05]
+                            "
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+
+                            Edit
+                          </Link>
+
+                          {/* SHOW / HIDE */}
+
+                          <form
+                            action={
+                              toggleProductVisibility
+                            }
+                          >
+                            <input
+                              type="hidden"
+                              name="productId"
+                              value={product.id}
+                            />
+
+                            <input
+                              type="hidden"
+                              name="nextVisibility"
+                              value={
+                                product.isVisible
+                                  ? "false"
+                                  : "true"
+                              }
+                            />
+
+                            <button
+                              type="submit"
+                              className="
+                                inline-flex
+                                items-center
+                                gap-1.5
+                                rounded-lg
+                                border
+                                border-brand/15
+                                bg-white
+                                px-3
+                                py-2
+                                text-xs
+                                font-bold
+                                text-brand
+                                transition-all
+                                hover:border-brand
+                                hover:bg-brand/[0.05]
+                              "
+                            >
+                              {product.isVisible ? (
+                                <>
+                                  <EyeOff className="h-3.5 w-3.5" />
+
+                                  Hide
+                                </>
+                              ) : (
+                                <>
+                                  <Eye className="h-3.5 w-3.5" />
+
+                                  Show
+                                </>
+                              )}
+                            </button>
+                          </form>
+
+                          {/* DELETE */}
+
+                          <form
+                            action={deleteProduct}
+                          >
+                            <input
+                              type="hidden"
+                              name="productId"
+                              value={product.id}
+                            />
+
+                            <button
+                              type="submit"
+                              className="
+                                inline-flex
+                                items-center
+                                gap-1.5
+                                rounded-lg
+                                border
+                                border-red-200
+                                bg-white
+                                px-3
+                                py-2
+                                text-xs
+                                font-bold
+                                text-red-600
+                                transition-all
+                                hover:border-red-600
+                                hover:bg-red-600
+                                hover:text-white
+                              "
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+
+                              Delete
+                            </button>
+                          </form>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -464,6 +631,10 @@ export default async function AdminProductsPage() {
             </div>
           </div>
         )}
+
+        {/* ===================================================
+            PRODUCT COUNT
+            =================================================== */}
 
         <p className="mt-4 text-xs text-slate-400">
           {productList.length}{" "}
