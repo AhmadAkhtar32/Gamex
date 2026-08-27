@@ -1,45 +1,116 @@
-import "dotenv/config";
+import { config } from "dotenv";
 import { hash } from "bcryptjs";
 import { eq } from "drizzle-orm";
-import { db } from "../src/db";
-import { admins } from "../src/db/schema";
+
+/*
+ * Load .env.local BEFORE importing the database connection.
+ *
+ * This is important because src/db/index.ts expects DATABASE_URL
+ * to already exist in process.env when it is imported.
+ */
+config({ path: ".env.local" });
 
 async function createAdmin() {
-  const email = "lahoreinstitute1@gmail.com";
-  const password = "List.com@0022";
-  const name = "Gamex Admin";
+  const name = process.env.ADMIN_NAME?.trim();
+  const email = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  const password = process.env.ADMIN_PASSWORD;
 
-  if (password === "List.com@0022") {
+  /* =========================================================
+     VALIDATION
+     ========================================================= */
+
+  if (!name) {
     throw new Error(
-      "Please change the password in scripts/create-admin.ts before running it."
+      "ADMIN_NAME is missing from .env.local"
     );
   }
 
-  const existingAdmin = await db
-    .select()
-    .from(admins)
-    .where(eq(admins.email, email))
-    .limit(1);
-
-  if (existingAdmin.length > 0) {
-    console.log(`Admin with email ${email} already exists.`);
-    process.exit(0);
+  if (!email) {
+    throw new Error(
+      "ADMIN_EMAIL is missing from .env.local"
+    );
   }
 
-  const passwordHash = await hash(password, 12);
+  if (!password) {
+    throw new Error(
+      "ADMIN_PASSWORD is missing from .env.local"
+    );
+  }
 
-  await db.insert(admins).values({
-    name,
-    email,
-    passwordHash,
-  });
+  if (password.length < 12) {
+    throw new Error(
+      "ADMIN_PASSWORD must be at least 12 characters long."
+    );
+  }
 
-  console.log(`Admin created successfully: ${email}`);
+  /*
+   * Import the database only AFTER .env.local has been loaded.
+   */
+  const [{ db, pool }, { admins }] = await Promise.all([
+    import("../src/db"),
+    import("../src/db/schema"),
+  ]);
 
-  process.exit(0);
+  try {
+    /* =======================================================
+       CHECK IF ADMIN ALREADY EXISTS
+       ======================================================= */
+
+    const existingAdmin = await db
+      .select({
+        id: admins.id,
+        email: admins.email,
+      })
+      .from(admins)
+      .where(eq(admins.email, email))
+      .limit(1);
+
+    if (existingAdmin.length > 0) {
+      console.log(
+        `Admin with email ${email} already exists.`
+      );
+
+      return;
+    }
+
+    /* =======================================================
+       HASH PASSWORD
+       ======================================================= */
+
+    const passwordHash = await hash(
+      password,
+      12
+    );
+
+    /* =======================================================
+       CREATE ADMIN
+       ======================================================= */
+
+    await db.insert(admins).values({
+      name,
+      email,
+      passwordHash,
+    });
+
+    console.log(
+      `Admin created successfully: ${email}`
+    );
+  } finally {
+    /*
+     * Close the database connection cleanly because this is
+     * a one-time command-line script.
+     */
+    await pool.end();
+  }
 }
 
 createAdmin().catch((error) => {
-  console.error("Failed to create admin:", error);
-  process.exit(1);
+  console.error(
+    "Failed to create admin:",
+    error instanceof Error
+      ? error.message
+      : error
+  );
+
+  process.exitCode = 1;
 });
