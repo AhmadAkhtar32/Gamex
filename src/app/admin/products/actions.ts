@@ -1,6 +1,9 @@
 "use server";
 
-import { randomUUID } from "node:crypto";
+import {
+  createHash,
+  randomUUID,
+} from "node:crypto";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -10,10 +13,39 @@ import { products } from "@/db/schema";
 import { requireAdmin } from "@/lib/admin-auth";
 
 /* =========================================================
-   HELPER — CREATE SAFE PRODUCT ID
+   SETTINGS
    ========================================================= */
 
-function makeProductId(name: string) {
+const MAX_IMAGE_SIZE =
+  5 * 1024 * 1024; // 5 MB
+
+const ALLOWED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+];
+
+/* =========================================================
+   ERROR REDIRECT
+   ========================================================= */
+
+function redirectWithError(
+  message: string
+): never {
+  redirect(
+    `/admin/products/new?error=${encodeURIComponent(
+      message
+    )}`
+  );
+}
+
+/* =========================================================
+   CREATE PRODUCT ID
+   ========================================================= */
+
+function makeProductId(
+  name: string
+) {
   const slug = name
     .toLowerCase()
     .trim()
@@ -21,23 +53,206 @@ function makeProductId(name: string) {
     .replace(/^-+|-+$/g, "")
     .slice(0, 60);
 
-  const suffix = randomUUID().slice(0, 8);
+  const suffix =
+    randomUUID().slice(0, 8);
 
-  return `${slug || "product"}-${suffix}`;
+  return `${
+    slug || "product"
+  }-${suffix}`;
+}
+
+/* =========================================================
+   CHECK EXTERNAL IMAGE URL
+   ========================================================= */
+
+function isValidImageUrl(
+  value: string
+) {
+  try {
+    const url = new URL(value);
+
+    return (
+      url.protocol === "http:" ||
+      url.protocol === "https:"
+    );
+  } catch {
+    return false;
+  }
+}
+
+/* =========================================================
+   CLOUDINARY SIGNATURE
+   ========================================================= */
+
+/*
+ * Cloudinary requires a signature for secure
+ * server-side uploads.
+ */
+function createCloudinarySignature({
+  timestamp,
+  folder,
+  apiSecret,
+}: {
+  timestamp: number;
+  folder: string;
+  apiSecret: string;
+}) {
+  const stringToSign =
+    `folder=${folder}&timestamp=${timestamp}${apiSecret}`;
+
+  return createHash("sha1")
+    .update(stringToSign)
+    .digest("hex");
+}
+
+/* =========================================================
+   UPLOAD IMAGE TO CLOUDINARY
+   ========================================================= */
+
+async function uploadProductImage(
+  imageFile: File
+) {
+  const cloudName =
+    process.env.CLOUDINARY_CLOUD_NAME;
+
+  const apiKey =
+    process.env.CLOUDINARY_API_KEY;
+
+  const apiSecret =
+    process.env.CLOUDINARY_API_SECRET;
+
+  if (
+    !cloudName ||
+    !apiKey ||
+    !apiSecret
+  ) {
+    throw new Error(
+      "Image upload is not configured. Add the Cloudinary environment variables first."
+    );
+  }
+
+  /* =======================================================
+     VALIDATE FILE SIZE
+     ======================================================= */
+
+  if (
+    imageFile.size >
+    MAX_IMAGE_SIZE
+  ) {
+    throw new Error(
+      "Image must be smaller than 5 MB."
+    );
+  }
+
+  /* =======================================================
+     VALIDATE IMAGE TYPE
+     ======================================================= */
+
+  if (
+    !ALLOWED_IMAGE_TYPES.includes(
+      imageFile.type
+    )
+  ) {
+    throw new Error(
+      "Only JPG, PNG and WebP images are allowed."
+    );
+  }
+
+  /* =======================================================
+     PREPARE CLOUDINARY REQUEST
+     ======================================================= */
+
+  const folder =
+    "gamex/products";
+
+  const timestamp =
+    Math.floor(Date.now() / 1000);
+
+  const signature =
+    createCloudinarySignature({
+      timestamp,
+      folder,
+      apiSecret,
+    });
+
+  const uploadForm =
+    new FormData();
+
+  uploadForm.append(
+    "file",
+    imageFile
+  );
+
+  uploadForm.append(
+    "api_key",
+    apiKey
+  );
+
+  uploadForm.append(
+    "timestamp",
+    String(timestamp)
+  );
+
+  uploadForm.append(
+    "folder",
+    folder
+  );
+
+  uploadForm.append(
+    "signature",
+    signature
+  );
+
+  /* =======================================================
+     SEND IMAGE TO CLOUDINARY
+     ======================================================= */
+
+  const response = await fetch(
+    `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+    {
+      method: "POST",
+      body: uploadForm,
+    }
+  );
+
+  const result =
+    (await response.json()) as {
+      secure_url?: string;
+      error?: {
+        message?: string;
+      };
+    };
+
+  if (
+    !response.ok ||
+    !result.secure_url
+  ) {
+    throw new Error(
+      result.error?.message ||
+        "Image upload failed."
+    );
+  }
+
+  return result.secure_url;
 }
 
 /* =========================================================
    CREATE PRODUCT
    ========================================================= */
 
-export async function createProduct(formData: FormData) {
+export async function createProduct(
+  formData: FormData
+) {
   /*
-   * Only a logged-in administrator may create products.
+   * Security check.
+   *
+   * Only a logged-in administrator
+   * can create a product.
    */
   await requireAdmin();
 
   /* =======================================================
-     READ FORM DATA
+     READ BASIC PRODUCT INFORMATION
      ======================================================= */
 
   const name = String(
@@ -53,11 +268,9 @@ export async function createProduct(formData: FormData) {
   ).trim();
 
   const description = String(
-    formData.get("description") ?? ""
-  ).trim();
-
-  const image = String(
-    formData.get("image") ?? ""
+    formData.get(
+      "description"
+    ) ?? ""
   ).trim();
 
   const specsText = String(
@@ -65,91 +278,161 @@ export async function createProduct(formData: FormData) {
   ).trim();
 
   const sortOrderRaw = String(
-    formData.get("sortOrder") ?? "0"
+    formData.get(
+      "sortOrder"
+    ) ?? "0"
   ).trim();
 
-  const isVisible =
-    formData.get("isVisible") === "on";
+  /* =======================================================
+     READ IMAGE INPUTS
+     ======================================================= */
+
+  const imageUrl = String(
+    formData.get(
+      "imageUrl"
+    ) ?? ""
+  ).trim();
+
+  const possibleImageFile =
+    formData.get("imageFile");
+
+  const imageFile =
+    possibleImageFile instanceof File
+      ? possibleImageFile
+      : null;
+
+  const hasImageFile =
+    imageFile !== null &&
+    imageFile.size > 0;
+
+  const hasImageUrl =
+    imageUrl.length > 0;
 
   /* =======================================================
-     VALIDATION
+     VISIBILITY
+     ======================================================= */
+
+  const isVisible =
+    formData.get(
+      "isVisible"
+    ) === "on";
+
+  /* =======================================================
+     REQUIRED FIELD VALIDATION
      ======================================================= */
 
   if (!name) {
-    redirect(
-      "/admin/products/new?error=Product name is required"
+    redirectWithError(
+      "Product name is required."
     );
   }
 
   if (!category) {
-    redirect(
-      "/admin/products/new?error=Category is required"
+    redirectWithError(
+      "Category is required."
     );
   }
 
   if (!description) {
-    redirect(
-      "/admin/products/new?error=Description is required"
-    );
-  }
-
-  if (!image) {
-    redirect(
-      "/admin/products/new?error=Image URL is required"
-    );
-  }
-
-  if (name.length > 255) {
-    redirect(
-      "/admin/products/new?error=Product name is too long"
-    );
-  }
-
-  if (category.length > 100) {
-    redirect(
-      "/admin/products/new?error=Category is too long"
-    );
-  }
-
-  if (tag.length > 120) {
-    redirect(
-      "/admin/products/new?error=Tag is too long"
-    );
-  }
-
-  if (image.length > 1000) {
-    redirect(
-      "/admin/products/new?error=Image URL is too long"
+    redirectWithError(
+      "Description is required."
     );
   }
 
   /* =======================================================
-     CONVERT SPECS
+     LENGTH VALIDATION
+     ======================================================= */
+
+  if (name.length > 255) {
+    redirectWithError(
+      "Product name is too long."
+    );
+  }
+
+  if (
+    category.length > 100
+  ) {
+    redirectWithError(
+      "Category is too long."
+    );
+  }
+
+  if (tag.length > 120) {
+    redirectWithError(
+      "Product tag is too long."
+    );
+  }
+
+  if (
+    imageUrl.length > 1000
+  ) {
+    redirectWithError(
+      "Image URL is too long."
+    );
+  }
+
+  /* =======================================================
+     IMAGE VALIDATION
+     ======================================================= */
+
+  if (
+    !hasImageFile &&
+    !hasImageUrl
+  ) {
+    redirectWithError(
+      "Please upload an image from your PC or enter an image URL."
+    );
+  }
+
+  /*
+   * If an uploaded image exists,
+   * we will use that image.
+   *
+   * Otherwise we use the URL.
+   */
+
+  if (
+    !hasImageFile &&
+    hasImageUrl &&
+    !isValidImageUrl(imageUrl)
+  ) {
+    redirectWithError(
+      "Please enter a valid image URL."
+    );
+  }
+
+  /* =======================================================
+     SPECIFICATIONS
      ======================================================= */
 
   /*
-   * The admin form will let you write:
+   * Admin writes:
    *
    * RTX 5090
-   * 32GB DDR5 RAM
-   * 2TB NVMe SSD
+   * Ryzen 9 9950X3D
+   * 64GB DDR5
    *
-   * We convert those lines into:
+   * We store:
    *
    * [
    *   "RTX 5090",
-   *   "32GB DDR5 RAM",
-   *   "2TB NVMe SSD"
+   *   "Ryzen 9 9950X3D",
+   *   "64GB DDR5"
    * ]
    */
+
   const specs = specsText
     .split("\n")
-    .map((spec) => spec.trim())
+    .map((spec) =>
+      spec.trim()
+    )
     .filter(Boolean);
 
-  if (specs.length === 0) {
-    redirect(
-      "/admin/products/new?error=Add at least one specification"
+  if (
+    specs.length === 0
+  ) {
+    redirectWithError(
+      "Add at least one specification."
     );
   }
 
@@ -157,47 +440,117 @@ export async function createProduct(formData: FormData) {
      SORT ORDER
      ======================================================= */
 
-  const sortOrder = Number.parseInt(
-    sortOrderRaw,
-    10
-  );
+  const sortOrder =
+    Number.parseInt(
+      sortOrderRaw,
+      10
+    );
 
   if (
-    !Number.isFinite(sortOrder) ||
+    !Number.isFinite(
+      sortOrder
+    ) ||
     sortOrder < 0
   ) {
-    redirect(
-      "/admin/products/new?error=Display order must be 0 or greater"
+    redirectWithError(
+      "Display order must be 0 or greater."
     );
   }
 
   /* =======================================================
-     INSERT INTO NEON
+     DETERMINE FINAL IMAGE
      ======================================================= */
 
-  const id = makeProductId(name);
+  let finalImageUrl =
+    imageUrl;
 
-  await db.insert(products).values({
-    id,
-    name,
-    category,
-    tag: tag || "FEATURED",
-    description,
-    specs,
-    image,
-    sortOrder,
-    isVisible,
-  });
+  /*
+   * If the administrator selected
+   * a local image, upload it first.
+   *
+   * Local upload takes priority if
+   * both a file and URL were supplied.
+   */
+  if (
+    hasImageFile &&
+    imageFile
+  ) {
+    try {
+      finalImageUrl =
+        await uploadProductImage(
+          imageFile
+        );
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Image upload failed.";
+
+      redirectWithError(
+        message
+      );
+    }
+  }
+
+  if (!finalImageUrl) {
+    redirectWithError(
+      "Product image could not be processed."
+    );
+  }
 
   /* =======================================================
-     REFRESH ADMIN PRODUCTS PAGE
+     CREATE PRODUCT ID
      ======================================================= */
 
-  revalidatePath("/admin/products");
+  const id =
+    makeProductId(name);
 
   /* =======================================================
-     GO BACK TO PRODUCTS
+     INSERT PRODUCT INTO NEON
      ======================================================= */
 
-  redirect("/admin/products");
+  await db
+    .insert(products)
+    .values({
+      id,
+      name,
+      category,
+
+      tag:
+        tag ||
+        "FEATURED",
+
+      description,
+
+      specs,
+
+      image:
+        finalImageUrl,
+
+      isVisible,
+
+      sortOrder,
+    });
+
+  /* =======================================================
+     REFRESH PAGES
+     ======================================================= */
+
+  revalidatePath(
+    "/admin/products"
+  );
+
+  /*
+   * Later our public Products component
+   * will also read from this database.
+   */
+  revalidatePath("/");
+
+  /* =======================================================
+     RETURN TO PRODUCT LIST
+     ======================================================= */
+
+  redirect(
+    "/admin/products"
+  );
 }
