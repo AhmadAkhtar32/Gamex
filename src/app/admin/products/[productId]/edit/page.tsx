@@ -19,7 +19,7 @@ import { db } from "@/db";
 import { products } from "@/db/schema";
 import { requireAdmin } from "@/lib/admin-auth";
 
-import { updateProduct } from "../../../actions";
+import { updateProduct } from "../../actions";
 
 /* =========================================================
    TYPES
