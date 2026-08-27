@@ -5,6 +5,10 @@ import {
   randomUUID,
 } from "node:crypto";
 
+import {
+  eq,
+} from "drizzle-orm";
+
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -17,7 +21,7 @@ import { requireAdmin } from "@/lib/admin-auth";
    ========================================================= */
 
 const MAX_IMAGE_SIZE =
-  5 * 1024 * 1024; // 5 MB
+  5 * 1024 * 1024;
 
 const ALLOWED_IMAGE_TYPES = [
   "image/jpeg",
@@ -62,7 +66,7 @@ function makeProductId(
 }
 
 /* =========================================================
-   CHECK EXTERNAL IMAGE URL
+   CHECK IMAGE URL
    ========================================================= */
 
 function isValidImageUrl(
@@ -84,10 +88,6 @@ function isValidImageUrl(
    CLOUDINARY SIGNATURE
    ========================================================= */
 
-/*
- * Cloudinary requires a signature for secure
- * server-side uploads.
- */
 function createCloudinarySignature({
   timestamp,
   folder,
@@ -106,7 +106,7 @@ function createCloudinarySignature({
 }
 
 /* =========================================================
-   UPLOAD IMAGE TO CLOUDINARY
+   UPLOAD PRODUCT IMAGE
    ========================================================= */
 
 async function uploadProductImage(
@@ -127,13 +127,13 @@ async function uploadProductImage(
     !apiSecret
   ) {
     throw new Error(
-      "Image upload is not configured. Add the Cloudinary environment variables first."
+      "Image upload is not configured."
     );
   }
 
-  /* =======================================================
-     VALIDATE FILE SIZE
-     ======================================================= */
+  /* ---------------------------------------------------------
+     File size
+     --------------------------------------------------------- */
 
   if (
     imageFile.size >
@@ -144,9 +144,9 @@ async function uploadProductImage(
     );
   }
 
-  /* =======================================================
-     VALIDATE IMAGE TYPE
-     ======================================================= */
+  /* ---------------------------------------------------------
+     File type
+     --------------------------------------------------------- */
 
   if (
     !ALLOWED_IMAGE_TYPES.includes(
@@ -158,9 +158,9 @@ async function uploadProductImage(
     );
   }
 
-  /* =======================================================
-     PREPARE CLOUDINARY REQUEST
-     ======================================================= */
+  /* ---------------------------------------------------------
+     Cloudinary request
+     --------------------------------------------------------- */
 
   const folder =
     "gamex/products";
@@ -203,10 +203,6 @@ async function uploadProductImage(
     signature
   );
 
-  /* =======================================================
-     SEND IMAGE TO CLOUDINARY
-     ======================================================= */
-
   const response = await fetch(
     `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
     {
@@ -218,6 +214,7 @@ async function uploadProductImage(
   const result =
     (await response.json()) as {
       secure_url?: string;
+
       error?: {
         message?: string;
       };
@@ -243,17 +240,11 @@ async function uploadProductImage(
 export async function createProduct(
   formData: FormData
 ) {
-  /*
-   * Security check.
-   *
-   * Only a logged-in administrator
-   * can create a product.
-   */
   await requireAdmin();
 
-  /* =======================================================
-     READ BASIC PRODUCT INFORMATION
-     ======================================================= */
+  /* ---------------------------------------------------------
+     Basic information
+     --------------------------------------------------------- */
 
   const name = String(
     formData.get("name") ?? ""
@@ -283,9 +274,9 @@ export async function createProduct(
     ) ?? "0"
   ).trim();
 
-  /* =======================================================
-     READ IMAGE INPUTS
-     ======================================================= */
+  /* ---------------------------------------------------------
+     Image inputs
+     --------------------------------------------------------- */
 
   const imageUrl = String(
     formData.get(
@@ -308,9 +299,9 @@ export async function createProduct(
   const hasImageUrl =
     imageUrl.length > 0;
 
-  /* =======================================================
-     VISIBILITY
-     ======================================================= */
+  /* ---------------------------------------------------------
+     Visibility
+     --------------------------------------------------------- */
 
   const isVisible =
     formData.get(
@@ -318,7 +309,7 @@ export async function createProduct(
     ) === "on";
 
   /* =======================================================
-     REQUIRED FIELD VALIDATION
+     VALIDATION
      ======================================================= */
 
   if (!name) {
@@ -338,10 +329,6 @@ export async function createProduct(
       "Description is required."
     );
   }
-
-  /* =======================================================
-     LENGTH VALIDATION
-     ======================================================= */
 
   if (name.length > 255) {
     redirectWithError(
@@ -380,16 +367,9 @@ export async function createProduct(
     !hasImageUrl
   ) {
     redirectWithError(
-      "Please upload an image from your PC or enter an image URL."
+      "Please upload an image or enter an image URL."
     );
   }
-
-  /*
-   * If an uploaded image exists,
-   * we will use that image.
-   *
-   * Otherwise we use the URL.
-   */
 
   if (
     !hasImageFile &&
@@ -404,22 +384,6 @@ export async function createProduct(
   /* =======================================================
      SPECIFICATIONS
      ======================================================= */
-
-  /*
-   * Admin writes:
-   *
-   * RTX 5090
-   * Ryzen 9 9950X3D
-   * 64GB DDR5
-   *
-   * We store:
-   *
-   * [
-   *   "RTX 5090",
-   *   "Ryzen 9 9950X3D",
-   *   "64GB DDR5"
-   * ]
-   */
 
   const specs = specsText
     .split("\n")
@@ -458,19 +422,12 @@ export async function createProduct(
   }
 
   /* =======================================================
-     DETERMINE FINAL IMAGE
+     FINAL IMAGE
      ======================================================= */
 
   let finalImageUrl =
     imageUrl;
 
-  /*
-   * If the administrator selected
-   * a local image, upload it first.
-   *
-   * Local upload takes priority if
-   * both a file and URL were supplied.
-   */
   if (
     hasImageFile &&
     imageFile
@@ -499,15 +456,11 @@ export async function createProduct(
   }
 
   /* =======================================================
-     CREATE PRODUCT ID
+     CREATE PRODUCT
      ======================================================= */
 
   const id =
     makeProductId(name);
-
-  /* =======================================================
-     INSERT PRODUCT INTO NEON
-     ======================================================= */
 
   await db
     .insert(products)
@@ -521,36 +474,129 @@ export async function createProduct(
         "FEATURED",
 
       description,
-
       specs,
 
       image:
         finalImageUrl,
 
       isVisible,
-
       sortOrder,
     });
 
   /* =======================================================
-     REFRESH PAGES
+     REFRESH
      ======================================================= */
 
   revalidatePath(
     "/admin/products"
   );
 
-  /*
-   * Later our public Products component
-   * will also read from this database.
-   */
   revalidatePath("/");
-
-  /* =======================================================
-     RETURN TO PRODUCT LIST
-     ======================================================= */
 
   redirect(
     "/admin/products"
   );
+}
+
+/* =========================================================
+   TOGGLE PRODUCT VISIBILITY
+   ========================================================= */
+
+export async function toggleProductVisibility(
+  formData: FormData
+) {
+  /*
+   * Security:
+   * anonymous visitors cannot run this action.
+   */
+  await requireAdmin();
+
+  const productId = String(
+    formData.get(
+      "productId"
+    ) ?? ""
+  ).trim();
+
+  const nextVisibility =
+    String(
+      formData.get(
+        "nextVisibility"
+      ) ?? ""
+    ) === "true";
+
+  if (!productId) {
+    return;
+  }
+
+  await db
+    .update(products)
+    .set({
+      isVisible:
+        nextVisibility,
+
+      updatedAt:
+        new Date(),
+    })
+    .where(
+      eq(
+        products.id,
+        productId
+      )
+    );
+
+  /*
+   * Refresh admin table.
+   */
+  revalidatePath(
+    "/admin/products"
+  );
+
+  /*
+   * Refresh public homepage.
+   *
+   * Hiding a product should remove it
+   * from the public cards immediately.
+   */
+  revalidatePath("/");
+}
+
+/* =========================================================
+   DELETE PRODUCT
+   ========================================================= */
+
+export async function deleteProduct(
+  formData: FormData
+) {
+  /*
+   * Only administrators can delete products.
+   */
+  await requireAdmin();
+
+  const productId = String(
+    formData.get(
+      "productId"
+    ) ?? ""
+  ).trim();
+
+  if (!productId) {
+    return;
+  }
+
+  await db
+    .delete(products)
+    .where(
+      eq(
+        products.id,
+        productId
+      )
+    );
+
+  /*
+   * Refresh both places.
+   */
+  revalidatePath(
+    "/admin/products"
+  );
+
+  revalidatePath("/");
 }
