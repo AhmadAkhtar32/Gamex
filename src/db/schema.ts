@@ -262,3 +262,131 @@ export const products = pgTable(
       .notNull(),
   }
 );
+/* =========================================================
+   CUSTOM BUILDS
+   ========================================================= */
+
+export const customBuilds = pgTable(
+  "custom_builds",
+  {
+    /*
+     * Stable string ID used by admin routes.
+     *
+     * Examples:
+     * titan
+     * vortex
+     * stealth
+     */
+    id: varchar("id", {
+      length: 100,
+    }).primaryKey(),
+
+    /*
+     * Public build name.
+     *
+     * Example:
+     * Titan
+     */
+    name: varchar("name", {
+      length: 255,
+    }).notNull(),
+
+    /*
+     * Short role/subtitle.
+     *
+     * Example:
+     * Ultimate 4K Gaming
+     */
+    role: varchar("role", {
+      length: 255,
+    }).notNull(),
+
+    /*
+     * Small image badge.
+     *
+     * Examples:
+     * FLAGSHIP
+     * PERFORMANCE
+     * STEALTH
+     */
+    badge: varchar("badge", {
+      length: 120,
+    }).notNull(),
+
+    /*
+     * Main build description.
+     */
+    description: text(
+      "description"
+    ).notNull(),
+
+    /*
+     * One specification per array item.
+     *
+     * Example:
+     *
+     * [
+     *   "RTX 5090",
+     *   "Ryzen 9 9950X3D",
+     *   "64GB DDR5",
+     *   "4TB NVMe SSD"
+     * ]
+     */
+    specs: text("specs")
+      .array()
+      .notNull(),
+
+    /*
+     * Either:
+     *
+     * - Cloudinary URL from PC upload
+     * - external image URL
+     */
+    image: varchar("image", {
+      length: 1000,
+    }).notNull(),
+
+    /*
+     * Hide a build from the public website
+     * without deleting it.
+     */
+    isVisible: boolean(
+      "is_visible"
+    )
+      .default(true)
+      .notNull(),
+
+    /*
+     * Determines card ordering.
+     *
+     * Example:
+     *
+     * Titan   = 1
+     * Vortex  = 2
+     * Stealth = 3
+     */
+    sortOrder: integer(
+      "sort_order"
+    )
+      .default(0)
+      .notNull(),
+
+    createdAt: timestamp(
+      "created_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+
+    updatedAt: timestamp(
+      "updated_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+  }
+);
