@@ -15,6 +15,13 @@
       "when": 1787862198365,
       "tag": "0001_add-products",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787867406520,
+      "tag": "0002_add-custom-builds",
+      "breakpoints": true
     }
   ]
 }
