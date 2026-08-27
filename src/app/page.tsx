@@ -1,14 +1,23 @@
-import { asc, eq } from "drizzle-orm";
+import {
+  asc,
+  eq,
+} from "drizzle-orm";
 
 import { db } from "@/db";
-import { products as productsTable } from "@/db/schema";
+
+import {
+  customBuilds as buildsTable,
+  products as productsTable,
+} from "@/db/schema";
 
 import { Navbar } from "@/components/Navbar";
 import { Hero } from "@/components/Hero";
+
 import {
   Marquee,
   ScrollProgress,
 } from "@/components/ui";
+
 import { Stats } from "@/components/Stats";
 import Products from "@/components/Products";
 import { Builds } from "@/components/Builds";
@@ -19,54 +28,81 @@ import { Footer } from "@/components/Footer";
 
 import { getBlogPosts } from "@/lib/blog";
 
-/*
- * Always fetch fresh database content.
- *
- * This is useful for the admin system because
- * newly added products should appear on the
- * public website without requiring a rebuild.
- */
-export const dynamic = "force-dynamic";
+export const dynamic =
+  "force-dynamic";
 
 export default async function HomePage() {
   /* =========================================================
      BLOG POSTS
      ========================================================= */
 
-  const posts = await getBlogPosts();
+  const posts =
+    await getBlogPosts();
 
   /* =========================================================
-     PUBLIC PRODUCTS
+     PRODUCTS
      ========================================================= */
 
-  /*
-   * Only products marked as visible in the admin panel
-   * are loaded onto the public website.
-   *
-   * Products are ordered first by sortOrder and then
-   * alphabetically by name.
-   */
-  const databaseProducts = await db
-    .select({
-      id: productsTable.id,
-      name: productsTable.name,
-      category: productsTable.category,
-      tag: productsTable.tag,
-      description: productsTable.description,
-      specs: productsTable.specs,
-      image: productsTable.image,
-    })
-    .from(productsTable)
-    .where(
-      eq(
-        productsTable.isVisible,
-        true
+  const databaseProducts =
+    await db
+      .select({
+        id: productsTable.id,
+        name: productsTable.name,
+        category:
+          productsTable.category,
+        tag: productsTable.tag,
+        description:
+          productsTable.description,
+        specs:
+          productsTable.specs,
+        image:
+          productsTable.image,
+      })
+      .from(productsTable)
+      .where(
+        eq(
+          productsTable.isVisible,
+          true
+        )
       )
-    )
-    .orderBy(
-      asc(productsTable.sortOrder),
-      asc(productsTable.name)
-    );
+      .orderBy(
+        asc(
+          productsTable.sortOrder
+        ),
+        asc(productsTable.name)
+      );
+
+  /* =========================================================
+     CUSTOM BUILDS
+     ========================================================= */
+
+  const databaseBuilds =
+    await db
+      .select({
+        id: buildsTable.id,
+        name: buildsTable.name,
+        role: buildsTable.role,
+        badge: buildsTable.badge,
+        description:
+          buildsTable.description,
+        specs:
+          buildsTable.specs,
+        image:
+          buildsTable.image,
+      })
+      .from(buildsTable)
+      .where(
+        eq(
+          buildsTable.isVisible,
+          true
+        )
+      )
+      .orderBy(
+        asc(
+          buildsTable.sortOrder
+        ),
+        asc(buildsTable.name)
+      );
 
   /* =========================================================
      PAGE
@@ -86,16 +122,24 @@ export default async function HomePage() {
         <Stats />
 
         <Products
-          products={databaseProducts}
+          products={
+            databaseProducts
+          }
         />
 
-        <Builds />
+        <Builds
+          builds={
+            databaseBuilds
+          }
+        />
 
         <Features />
 
         <Marquee reverse />
 
-        <Blog posts={posts} />
+        <Blog
+          posts={posts}
+        />
 
         <Contact />
       </main>
