@@ -1,40 +1,146 @@
-export default function AdminPage() {
+import {
+  Boxes,
+  FileText,
+  Gauge,
+  Mail,
+  MonitorCog,
+  Settings,
+} from "lucide-react";
+
+import { requireAdmin } from "@/lib/admin-auth";
+import { logoutAdmin } from "./actions";
+
+export default async function AdminPage() {
+  /*
+   * This is the security gate.
+   *
+   * If there is no valid admin session,
+   * requireAdmin() automatically redirects
+   * the visitor to /admin/login.
+   */
+  const admin = await requireAdmin();
+
   return (
-    <main className="min-h-screen bg-white px-6 py-24 text-slate-700">
-      <div className="mx-auto max-w-5xl">
+    <main className="min-h-screen bg-[#f7f9fc]">
+      {/* =====================================================
+          TOP BAR
+          ===================================================== */}
+
+      <header
+        className="
+          border-b
+          border-brand/10
+          bg-white
+        "
+      >
         <div
           className="
-            rounded-3xl
-            border
-            border-brand/12
-            bg-[#f7f9fc]
-            p-8
-            shadow-[0_24px_70px_-40px_rgba(23,49,96,0.35)]
-            md:p-10
+            mx-auto
+            flex
+            max-w-7xl
+            items-center
+            justify-between
+            gap-4
+            px-5
+            py-4
+            md:px-8
           "
         >
-          <span
+          <div>
+            <p
+              className="
+                font-display
+                text-lg
+                font-extrabold
+                uppercase
+                tracking-widest
+                text-brand-deep
+              "
+            >
+              Gamex Admin
+            </p>
+
+            <p className="mt-0.5 text-xs text-slate-500">
+              Website Management
+            </p>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="hidden text-right sm:block">
+              <p className="text-sm font-semibold text-brand-deep">
+                {admin.name}
+              </p>
+
+              <p className="text-xs text-slate-500">
+                {admin.email}
+              </p>
+            </div>
+
+            <form action={logoutAdmin}>
+              <button
+                type="submit"
+                className="
+                  rounded-lg
+                  border
+                  border-brand/15
+                  bg-white
+                  px-4
+                  py-2.5
+
+                  font-display
+                  text-xs
+                  font-bold
+                  uppercase
+                  tracking-wider
+                  text-brand
+
+                  transition-all
+                  duration-300
+
+                  hover:border-brand
+                  hover:bg-brand
+                  hover:text-white
+                "
+              >
+                Logout
+              </button>
+            </form>
+          </div>
+        </div>
+      </header>
+
+      {/* =====================================================
+          DASHBOARD
+          ===================================================== */}
+
+      <div
+        className="
+          mx-auto
+          max-w-7xl
+          px-5
+          py-10
+          md:px-8
+          md:py-14
+        "
+      >
+        {/* Welcome */}
+
+        <div>
+          <p
             className="
-              inline-flex
-              rounded-full
-              border
-              border-brand/20
-              bg-brand/[0.07]
-              px-4
-              py-1.5
               text-xs
               font-bold
               uppercase
-              tracking-[0.22em]
+              tracking-[0.24em]
               text-brand
             "
           >
-            Admin Area
-          </span>
+            Dashboard
+          </p>
 
           <h1
             className="
-              mt-5
+              mt-2
               font-display
               text-3xl
               font-extrabold
@@ -44,30 +150,272 @@ export default function AdminPage() {
               md:text-4xl
             "
           >
-            Gamex Admin Dashboard
+            Welcome, {admin.name}
           </h1>
 
-          <p className="mt-3 max-w-2xl text-base leading-relaxed text-slate-600">
-            Admin dashboard will be implemented here.
+          <p
+            className="
+              mt-3
+              max-w-2xl
+              text-slate-600
+            "
+          >
+            This will become the central control panel for the
+            entire Gamex website.
           </p>
+        </div>
+
+        {/* ===================================================
+            MANAGEMENT CARDS
+            =================================================== */}
+
+        <div
+          className="
+            mt-10
+            grid
+            gap-5
+            sm:grid-cols-2
+            lg:grid-cols-3
+          "
+        >
+          <DashboardCard
+            icon={Boxes}
+            title="Products"
+            description="Add, edit, hide and remove products."
+          />
+
+          <DashboardCard
+            icon={MonitorCog}
+            title="Custom Builds"
+            description="Manage Titan, Vortex, Stealth and future builds."
+          />
+
+          <DashboardCard
+            icon={Gauge}
+            title="Website Content"
+            description="Control hero, statistics, features and homepage sections."
+          />
+
+          <DashboardCard
+            icon={FileText}
+            title="Blog"
+            description="Create and manage Gamex articles."
+          />
+
+          <DashboardCard
+            icon={Mail}
+            title="Messages"
+            description="Read customer contact-form submissions."
+          />
+
+          <DashboardCard
+            icon={Settings}
+            title="Settings"
+            description="Manage navigation, contact details, footer and site information."
+          />
+        </div>
+
+        {/* ===================================================
+            DEVELOPMENT STATUS
+            =================================================== */}
+
+        <div
+          className="
+            mt-10
+            rounded-2xl
+            border
+            border-brand/10
+            bg-white
+            p-6
+
+            shadow-[0_20px_55px_-38px_rgba(23,49,96,0.3)]
+          "
+        >
+          <h2
+            className="
+              font-display
+              text-lg
+              font-bold
+              uppercase
+              text-brand-deep
+            "
+          >
+            Admin System Status
+          </h2>
 
           <div
             className="
-              mt-8
-              rounded-2xl
-              border
-              border-brand/10
-              bg-white
-              p-6
+              mt-5
+              grid
+              gap-3
+              text-sm
+              sm:grid-cols-2
             "
           >
-            <p className="text-sm font-medium text-slate-500">
-              This area is currently a placeholder for future product,
-              blog, contact-message, and administration tools.
-            </p>
+            <StatusItem
+              label="Secure login"
+              completed
+            />
+
+            <StatusItem
+              label="Database sessions"
+              completed
+            />
+
+            <StatusItem
+              label="Protected dashboard"
+              completed
+            />
+
+            <StatusItem
+              label="Logout"
+              completed
+            />
+
+            <StatusItem label="Product management" />
+
+            <StatusItem label="Website settings" />
+
+            <StatusItem label="Blog management" />
+
+            <StatusItem label="Message management" />
           </div>
         </div>
       </div>
     </main>
+  );
+}
+
+
+/* =========================================================
+   DASHBOARD CARD
+   ========================================================= */
+
+function DashboardCard({
+  icon: Icon,
+  title,
+  description,
+}: {
+  icon: typeof Boxes;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div
+      className="
+        group
+        rounded-2xl
+        border
+        border-brand/10
+        bg-white
+        p-6
+
+        shadow-[0_18px_50px_-38px_rgba(23,49,96,0.32)]
+
+        transition-all
+        duration-300
+
+        hover:-translate-y-1
+        hover:border-brand/25
+        hover:shadow-[0_26px_60px_-38px_rgba(23,49,96,0.42)]
+      "
+    >
+      <div
+        className="
+          grid
+          h-11
+          w-11
+          place-items-center
+
+          rounded-xl
+
+          bg-brand/[0.07]
+          text-brand
+
+          transition-all
+          duration-300
+
+          group-hover:bg-brand
+          group-hover:text-white
+        "
+      >
+        <Icon className="h-5 w-5" />
+      </div>
+
+      <h2
+        className="
+          mt-5
+          font-display
+          text-lg
+          font-bold
+          text-brand-deep
+        "
+      >
+        {title}
+      </h2>
+
+      <p
+        className="
+          mt-2
+          text-sm
+          leading-relaxed
+          text-slate-500
+        "
+      >
+        {description}
+      </p>
+    </div>
+  );
+}
+
+
+/* =========================================================
+   STATUS ITEM
+   ========================================================= */
+
+function StatusItem({
+  label,
+  completed = false,
+}: {
+  label: string;
+  completed?: boolean;
+}) {
+  return (
+    <div
+      className="
+        flex
+        items-center
+        gap-3
+        rounded-xl
+        bg-[#f7f9fc]
+        px-4
+        py-3
+      "
+    >
+      <span
+        className={`
+          h-2.5
+          w-2.5
+          shrink-0
+          rounded-full
+
+          ${
+            completed
+              ? "bg-emerald-500"
+              : "bg-slate-300"
+          }
+        `}
+      />
+
+      <span
+        className={
+          completed
+            ? "font-medium text-slate-700"
+            : "text-slate-500"
+        }
+      >
+        {label}
+      </span>
+    </div>
   );
 }
