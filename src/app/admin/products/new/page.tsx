@@ -1,10 +1,14 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
+
 import {
   ArrowLeft,
   ImageIcon,
+  LinkIcon,
   ListChecks,
   PackagePlus,
   Tag,
+  Upload,
 } from "lucide-react";
 
 import { requireAdmin } from "@/lib/admin-auth";
@@ -87,7 +91,6 @@ export default async function NewProductPage({
             "
           >
             <ArrowLeft className="h-4 w-4" />
-
             Products
           </Link>
         </div>
@@ -143,12 +146,15 @@ export default async function NewProductPage({
               text-slate-500
             "
           >
-            Enter the product information below. After saving,
-            the product will be stored in your Neon database.
+            Add a product to the Gamex catalogue. You can upload
+            an image directly from your computer or provide an
+            external image URL.
           </p>
         </div>
 
-        {/* Error */}
+        {/* ===================================================
+            ERROR MESSAGE
+            =================================================== */}
 
         {error ? (
           <div
@@ -186,6 +192,10 @@ export default async function NewProductPage({
             md:p-8
           "
         >
+          {/* =================================================
+              BASIC INFORMATION
+              ================================================= */}
+
           <div
             className="
               grid
@@ -223,7 +233,10 @@ export default async function NewProductPage({
                 defaultValue=""
                 className={inputClass}
               >
-                <option value="" disabled>
+                <option
+                  value=""
+                  disabled
+                >
                   Select category
                 </option>
 
@@ -280,7 +293,7 @@ export default async function NewProductPage({
               </div>
 
               <p className="mt-2 text-xs text-slate-400">
-                Leave empty to use FEATURED.
+                Leave empty and FEATURED will be used.
               </p>
             </FormField>
 
@@ -301,12 +314,14 @@ export default async function NewProductPage({
               />
 
               <p className="mt-2 text-xs text-slate-400">
-                Lower numbers appear first.
+                Lower numbers appear before higher numbers.
               </p>
             </FormField>
           </div>
 
-          {/* Description */}
+          {/* =================================================
+              DESCRIPTION
+              ================================================= */}
 
           <div className="mt-6">
             <FormField
@@ -324,7 +339,9 @@ export default async function NewProductPage({
             </FormField>
           </div>
 
-          {/* Specifications */}
+          {/* =================================================
+              SPECIFICATIONS
+              ================================================= */}
 
           <div className="mt-6">
             <FormField
@@ -363,41 +380,240 @@ Ryzen 9 9950X3D
             </FormField>
           </div>
 
-          {/* Image */}
+          {/* =================================================
+              PRODUCT IMAGE
+              ================================================= */}
 
-          <div className="mt-6">
-            <FormField
-              label="Image URL"
-              htmlFor="image"
+          <div className="mt-8">
+            <div
+              className="
+                rounded-2xl
+                border
+                border-brand/10
+                bg-[#f7f9fc]
+                p-5
+                md:p-6
+              "
             >
-              <div className="relative">
-                <ImageIcon
+              <div className="flex items-start gap-3">
+                <div
                   className="
-                    pointer-events-none
-                    absolute
-                    left-4
-                    top-1/2
-                    h-4
-                    w-4
-                    -translate-y-1/2
+                    grid
+                    h-10
+                    w-10
+                    shrink-0
+                    place-items-center
+                    rounded-xl
+                    bg-brand/[0.08]
+                    text-brand
+                  "
+                >
+                  <ImageIcon className="h-5 w-5" />
+                </div>
+
+                <div>
+                  <h2
+                    className="
+                      font-display
+                      text-base
+                      font-bold
+                      uppercase
+                      text-brand-deep
+                    "
+                  >
+                    Product Image
+                  </h2>
+
+                  <p
+                    className="
+                      mt-1
+                      text-xs
+                      leading-relaxed
+                      text-slate-500
+                    "
+                  >
+                    Choose an image from your computer or enter
+                    an image URL below.
+                  </p>
+                </div>
+              </div>
+
+              {/* =============================================
+                  PC UPLOAD
+                  ============================================= */}
+
+              <div className="mt-6">
+                <label
+                  htmlFor="imageFile"
+                  className="
+                    mb-2
+                    block
+                    text-xs
+                    font-bold
+                    uppercase
+                    tracking-wider
+                    text-slate-600
+                  "
+                >
+                  Upload From PC
+                </label>
+
+                <label
+                  htmlFor="imageFile"
+                  className="
+                    flex
+                    cursor-pointer
+                    flex-col
+                    items-center
+                    justify-center
+                    rounded-xl
+                    border
+                    border-dashed
+                    border-brand/25
+                    bg-white
+                    px-5
+                    py-8
+                    text-center
+                    transition-all
+                    hover:border-brand/50
+                    hover:bg-brand/[0.02]
+                  "
+                >
+                  <div
+                    className="
+                      grid
+                      h-11
+                      w-11
+                      place-items-center
+                      rounded-xl
+                      bg-brand/[0.08]
+                      text-brand
+                    "
+                  >
+                    <Upload className="h-5 w-5" />
+                  </div>
+
+                  <span
+                    className="
+                      mt-3
+                      text-sm
+                      font-bold
+                      text-brand-deep
+                    "
+                  >
+                    Choose Product Image
+                  </span>
+
+                  <span
+                    className="
+                      mt-1
+                      text-xs
+                      text-slate-400
+                    "
+                  >
+                    JPG, PNG or WebP — maximum 5 MB
+                  </span>
+
+                  <input
+                    id="imageFile"
+                    name="imageFile"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="
+                      mt-4
+                      block
+                      max-w-full
+                      text-xs
+                      text-slate-500
+
+                      file:mr-4
+                      file:rounded-lg
+                      file:border-0
+                      file:bg-brand
+                      file:px-4
+                      file:py-2.5
+                      file:text-xs
+                      file:font-bold
+                      file:text-white
+
+                      hover:file:bg-brand-soft
+                    "
+                  />
+                </label>
+              </div>
+
+              {/* =============================================
+                  OR
+                  ============================================= */}
+
+              <div className="my-6 flex items-center gap-4">
+                <div className="h-px flex-1 bg-brand/10" />
+
+                <span
+                  className="
+                    text-xs
+                    font-bold
+                    uppercase
+                    tracking-[0.2em]
                     text-slate-400
                   "
-                />
+                >
+                  Or
+                </span>
 
-                <input
-                  id="image"
-                  name="image"
-                  type="url"
-                  required
-                  maxLength={1000}
-                  placeholder="https://..."
-                  className={`${inputClass} pl-11`}
-                />
+                <div className="h-px flex-1 bg-brand/10" />
               </div>
-            </FormField>
+
+              {/* =============================================
+                  IMAGE URL
+                  ============================================= */}
+
+              <FormField
+                label="Image URL"
+                htmlFor="imageUrl"
+              >
+                <div className="relative">
+                  <LinkIcon
+                    className="
+                      pointer-events-none
+                      absolute
+                      left-4
+                      top-1/2
+                      h-4
+                      w-4
+                      -translate-y-1/2
+                      text-slate-400
+                    "
+                  />
+
+                  <input
+                    id="imageUrl"
+                    name="imageUrl"
+                    type="url"
+                    maxLength={1000}
+                    placeholder="https://example.com/product.jpg"
+                    className={`${inputClass} bg-white pl-11`}
+                  />
+                </div>
+
+                <p
+                  className="
+                    mt-2
+                    text-xs
+                    leading-relaxed
+                    text-slate-400
+                  "
+                >
+                  If you upload a file and also enter a URL,
+                  the uploaded file will be used.
+                </p>
+              </FormField>
+            </div>
           </div>
 
-          {/* Visibility */}
+          {/* =================================================
+              VISIBILITY
+              ================================================= */}
 
           <div
             className="
@@ -459,7 +675,9 @@ Ryzen 9 9950X3D
             </label>
           </div>
 
-          {/* Buttons */}
+          {/* =================================================
+              BUTTONS
+              ================================================= */}
 
           <div
             className="
@@ -522,7 +740,6 @@ Ryzen 9 9950X3D
               "
             >
               <PackagePlus className="h-4 w-4" />
-
               Save Product
             </button>
           </div>
@@ -543,7 +760,7 @@ function FormField({
 }: {
   label: string;
   htmlFor: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <div>

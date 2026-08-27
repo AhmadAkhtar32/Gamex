@@ -1,227 +1,425 @@
-import Link from "next/link";
+"use client";
+
+import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ArrowUpRight, Check } from "lucide-react";
+
 import {
-  ArrowLeft,
-  Eye,
-  EyeOff,
-  PackagePlus,
-} from "lucide-react";
-import { asc } from "drizzle-orm";
+  categories,
+  products,
+  type CategoryId,
+} from "@/lib/data";
 
-import { db } from "@/db";
-import { products } from "@/db/schema";
-import { requireAdmin } from "@/lib/admin-auth";
+import {
+  SectionHeading,
+  SpotlightCard,
+} from "@/components/ui";
 
-export default async function AdminProductsPage() {
-  /*
-   * Protect this page.
-   *
-   * Anyone without a valid admin session
-   * will be redirected to /admin/login.
-   */
-  await requireAdmin();
+export default function Products() {
+  const [active, setActive] =
+    useState<CategoryId>("all");
 
-  /*
-   * Read all products from Neon.
-   *
-   * Products are ordered using sortOrder.
-   */
-  const productList = await db
-    .select()
-    .from(products)
-    .orderBy(
-      asc(products.sortOrder),
-      asc(products.name)
-    );
+  const filteredProducts =
+    active === "all"
+      ? products
+      : products.filter(
+          (product) =>
+            product.category === active
+        );
 
   return (
-    <main className="min-h-screen bg-[#f7f9fc]">
-      {/* =====================================================
-          TOP BAR
-          ===================================================== */}
-
-      <header className="border-b border-brand/10 bg-white">
-        <div
-          className="
-            mx-auto
-            flex
-            max-w-7xl
-            items-center
-            justify-between
-            gap-4
-            px-5
-            py-4
-            md:px-8
-          "
-        >
-          <div>
-            <p
-              className="
-                font-display
-                text-lg
-                font-extrabold
-                uppercase
-                tracking-widest
-                text-brand-deep
-              "
-            >
-              Gamex Admin
-            </p>
-
-            <p className="mt-0.5 text-xs text-slate-500">
-              Product Management
-            </p>
-          </div>
-
-          <Link
-            href="/admin"
-            className="
-              inline-flex
-              items-center
-              gap-2
-              rounded-lg
-              border
-              border-brand/15
-              bg-white
-              px-4
-              py-2.5
-              text-xs
-              font-bold
-              uppercase
-              tracking-wider
-              text-brand
-              transition-all
-              hover:border-brand
-              hover:bg-brand
-              hover:text-white
-            "
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Dashboard
-          </Link>
-        </div>
-      </header>
-
-      {/* =====================================================
-          PAGE CONTENT
-          ===================================================== */}
+    <section
+      id="products"
+      className="
+        relative
+        overflow-hidden
+        bg-white
+        py-24
+        md:py-32
+      "
+    >
+      {/* Background decoration */}
 
       <div
         className="
+          pointer-events-none
+          absolute
+          inset-0
+          bg-[radial-gradient(circle_at_15%_20%,rgba(23,49,96,0.06),transparent_30%),radial-gradient(circle_at_85%_80%,rgba(49,91,145,0.05),transparent_32%)]
+        "
+      />
+
+      <div
+        className="
+          relative
           mx-auto
           max-w-7xl
           px-5
-          py-10
           md:px-8
-          md:py-14
         "
       >
-        {/* Heading */}
+        {/* ===================================================
+            SECTION HEADING
+            =================================================== */}
+
+        <SectionHeading
+          eyebrow="Catalogue"
+          title="Products"
+          subtitle="Premium gaming hardware selected for performance, reliability, and serious gaming setups."
+        />
+
+        {/* ===================================================
+            CATEGORY FILTERS
+            =================================================== */}
 
         <div
           className="
+            mt-10
             flex
-            flex-col
-            gap-5
-            sm:flex-row
-            sm:items-end
-            sm:justify-between
+            flex-wrap
+            items-center
+            justify-center
+            gap-2
           "
         >
-          <div>
-            <p
-              className="
-                text-xs
-                font-bold
-                uppercase
-                tracking-[0.24em]
-                text-brand
-              "
-            >
-              Catalogue
-            </p>
+          {categories.map((category) => {
+            const isActive =
+              active === category.id;
 
-            <h1
-              className="
-                mt-2
-                font-display
-                text-3xl
-                font-extrabold
-                uppercase
-                text-brand-deep
-                md:text-4xl
-              "
-            >
-              Products
-            </h1>
+            return (
+              <button
+                key={category.id}
+                type="button"
+                onClick={() =>
+                  setActive(category.id)
+                }
+                className={`
+                  rounded-full
+                  border
+                  px-4
+                  py-2.5
+                  text-xs
+                  font-bold
+                  uppercase
+                  tracking-wider
+                  transition-all
+                  duration-300
 
-            <p className="mt-3 text-sm text-slate-500">
-              Manage the products displayed on the Gamex website.
-            </p>
-          </div>
-
-          <Link
-            href="/admin/products/new"
-            className="
-              inline-flex
-              items-center
-              justify-center
-              gap-2
-              rounded-xl
-              bg-brand
-              px-5
-              py-3.5
-              font-display
-              text-xs
-              font-bold
-              uppercase
-              tracking-wider
-              text-white
-              transition-all
-              hover:-translate-y-0.5
-              hover:bg-brand-soft
-            "
-          >
-            <PackagePlus className="h-4 w-4" />
-            Add Product
-          </Link>
+                  ${
+                    isActive
+                      ? `
+                        border-brand
+                        bg-brand
+                        text-white
+                        shadow-[0_10px_30px_-16px_rgba(23,49,96,0.6)]
+                      `
+                      : `
+                        border-brand/10
+                        bg-white
+                        text-slate-500
+                        hover:border-brand/25
+                        hover:text-brand
+                      `
+                  }
+                `}
+              >
+                {category.label}
+              </button>
+            );
+          })}
         </div>
 
         {/* ===================================================
-            EMPTY STATE
+            PRODUCT CARDS
             =================================================== */}
 
-        {productList.length === 0 ? (
+        <motion.div
+          layout
+          className="
+            mt-12
+            grid
+            gap-5
+            sm:grid-cols-2
+            lg:grid-cols-3
+            xl:grid-cols-4
+          "
+        >
+          <AnimatePresence mode="popLayout">
+            {filteredProducts.map(
+              (product) => (
+                <motion.div
+                  layout
+                  key={product.id}
+                  initial={{
+                    opacity: 0,
+                    y: 20,
+                  }}
+                  animate={{
+                    opacity: 1,
+                    y: 0,
+                  }}
+                  exit={{
+                    opacity: 0,
+                    scale: 0.96,
+                  }}
+                  transition={{
+                    duration: 0.3,
+                  }}
+                >
+                  <SpotlightCard
+                    className="
+                      group
+                      flex
+                      h-full
+                      flex-col
+                      overflow-hidden
+                      rounded-2xl
+                      border
+                      border-brand/10
+                      bg-white
+                      shadow-[0_18px_50px_-38px_rgba(23,49,96,0.28)]
+                      transition-all
+                      duration-300
+                      hover:-translate-y-1
+                      hover:border-brand/20
+                      hover:shadow-[0_30px_70px_-42px_rgba(23,49,96,0.38)]
+                    "
+                  >
+                    {/* =========================================
+                        IMAGE
+                        ========================================= */}
+
+                    <div
+                      className="
+                        relative
+                        aspect-[4/3]
+                        overflow-hidden
+                        bg-[#f7f9fc]
+                      "
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="
+                          h-full
+                          w-full
+                          object-cover
+                          transition-transform
+                          duration-700
+                          group-hover:scale-105
+                        "
+                      />
+
+                      <div
+                        className="
+                          pointer-events-none
+                          absolute
+                          inset-0
+                          bg-gradient-to-t
+                          from-brand-deep/15
+                          via-transparent
+                          to-transparent
+                        "
+                      />
+
+                      {/* Tag */}
+
+                      <div
+                        className="
+                          absolute
+                          left-4
+                          top-4
+                        "
+                      >
+                        <span
+                          className="
+                            inline-flex
+                            rounded-full
+                            border
+                            border-white/50
+                            bg-white/90
+                            px-3
+                            py-1.5
+                            text-[10px]
+                            font-bold
+                            uppercase
+                            tracking-wider
+                            text-brand
+                            shadow-sm
+                            backdrop-blur-md
+                          "
+                        >
+                          {product.tag}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* =========================================
+                        CONTENT
+                        ========================================= */}
+
+                    <div
+                      className="
+                        flex
+                        flex-1
+                        flex-col
+                        p-5
+                      "
+                    >
+                      <p
+                        className="
+                          text-[10px]
+                          font-bold
+                          uppercase
+                          tracking-[0.18em]
+                          text-brand
+                        "
+                      >
+                        {
+                          categories.find(
+                            (category) =>
+                              category.id ===
+                              product.category
+                          )?.label
+                        }
+                      </p>
+
+                      <h3
+                        className="
+                          mt-2
+                          font-display
+                          text-lg
+                          font-bold
+                          leading-tight
+                          text-brand-deep
+                        "
+                      >
+                        {product.name}
+                      </h3>
+
+                      <p
+                        className="
+                          mt-3
+                          line-clamp-3
+                          text-sm
+                          leading-relaxed
+                          text-slate-500
+                        "
+                      >
+                        {product.description}
+                      </p>
+
+                      {/* =======================================
+                          SPECS
+                          ======================================= */}
+
+                      <div
+                        className="
+                          mt-5
+                          space-y-2
+                          border-t
+                          border-brand/[0.08]
+                          pt-4
+                        "
+                      >
+                        {product.specs
+                          .slice(0, 4)
+                          .map((spec) => (
+                            <div
+                              key={spec}
+                              className="
+                                flex
+                                items-start
+                                gap-2
+                                text-xs
+                                text-slate-600
+                              "
+                            >
+                              <span
+                                className="
+                                  mt-0.5
+                                  grid
+                                  h-4
+                                  w-4
+                                  shrink-0
+                                  place-items-center
+                                  rounded-full
+                                  bg-brand/[0.07]
+                                  text-brand
+                                "
+                              >
+                                <Check className="h-2.5 w-2.5" />
+                              </span>
+
+                              <span>
+                                {spec}
+                              </span>
+                            </div>
+                          ))}
+                      </div>
+
+                      {/* =======================================
+                          CTA
+                          ======================================= */}
+
+                      <a
+                        href="#contact"
+                        className="
+                          mt-6
+                          inline-flex
+                          items-center
+                          justify-between
+                          rounded-xl
+                          border
+                          border-brand/10
+                          bg-[#f7f9fc]
+                          px-4
+                          py-3
+                          text-xs
+                          font-bold
+                          uppercase
+                          tracking-wider
+                          text-brand-deep
+                          transition-all
+                          duration-300
+                          hover:border-brand
+                          hover:bg-brand
+                          hover:text-white
+                        "
+                      >
+                        Enquire Now
+
+                        <ArrowUpRight className="h-4 w-4" />
+                      </a>
+                    </div>
+                  </SpotlightCard>
+                </motion.div>
+              )
+            )}
+          </AnimatePresence>
+        </motion.div>
+
+        {/* ===================================================
+            NO RESULTS
+            =================================================== */}
+
+        {filteredProducts.length === 0 ? (
           <div
             className="
-              mt-10
+              mt-12
               rounded-2xl
               border
               border-dashed
               border-brand/20
-              bg-white
+              bg-[#f7f9fc]
               px-6
-              py-16
+              py-14
               text-center
             "
           >
-            <div
+            <h3
               className="
-                mx-auto
-                grid
-                h-14
-                w-14
-                place-items-center
-                rounded-2xl
-                bg-brand/[0.07]
-                text-brand
-              "
-            >
-              <PackagePlus className="h-6 w-6" />
-            </div>
-
-            <h2
-              className="
-                mt-5
                 font-display
                 text-xl
                 font-bold
@@ -229,259 +427,15 @@ export default async function AdminProductsPage() {
                 text-brand-deep
               "
             >
-              No products yet
-            </h2>
+              No Products Found
+            </h3>
 
-            <p
-              className="
-                mx-auto
-                mt-2
-                max-w-md
-                text-sm
-                leading-relaxed
-                text-slate-500
-              "
-            >
-              Your Neon products table is currently empty.
-              The next step will let you add products from
-              this admin panel.
+            <p className="mt-2 text-sm text-slate-500">
+              There are currently no products in this category.
             </p>
           </div>
-        ) : (
-          /* =================================================
-             PRODUCT TABLE
-             ================================================= */
-
-          <div
-            className="
-              mt-10
-              overflow-hidden
-              rounded-2xl
-              border
-              border-brand/10
-              bg-white
-            "
-          >
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[900px]">
-                <thead className="bg-[#f7f9fc]">
-                  <tr
-                    className="
-                      text-left
-                      text-xs
-                      font-bold
-                      uppercase
-                      tracking-wider
-                      text-slate-500
-                    "
-                  >
-                    <th className="px-5 py-4">
-                      Product
-                    </th>
-
-                    <th className="px-5 py-4">
-                      Category
-                    </th>
-
-                    <th className="px-5 py-4">
-                      Tag
-                    </th>
-
-                    <th className="px-5 py-4">
-                      Order
-                    </th>
-
-                    <th className="px-5 py-4">
-                      Status
-                    </th>
-
-                    <th className="px-5 py-4">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {productList.map((product) => (
-                    <tr
-                      key={product.id}
-                      className="
-                        border-t
-                        border-brand/[0.08]
-                      "
-                    >
-                      {/* Product */}
-
-                      <td className="px-5 py-5">
-                        <div className="flex items-center gap-4">
-                          <div
-                            className="
-                              h-14
-                              w-14
-                              shrink-0
-                              overflow-hidden
-                              rounded-xl
-                              border
-                              border-brand/10
-                              bg-[#f7f9fc]
-                            "
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={product.image}
-                              alt={product.name}
-                              className="
-                                h-full
-                                w-full
-                                object-cover
-                              "
-                            />
-                          </div>
-
-                          <div>
-                            <p
-                              className="
-                                font-semibold
-                                text-brand-deep
-                              "
-                            >
-                              {product.name}
-                            </p>
-
-                            <p
-                              className="
-                                mt-1
-                                text-xs
-                                text-slate-400
-                              "
-                            >
-                              {product.id}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-
-                      {/* Category */}
-
-                      <td
-                        className="
-                          px-5
-                          py-5
-                          text-sm
-                          text-slate-600
-                        "
-                      >
-                        {product.category}
-                      </td>
-
-                      {/* Tag */}
-
-                      <td className="px-5 py-5">
-                        <span
-                          className="
-                            rounded-full
-                            bg-brand/[0.07]
-                            px-3
-                            py-1.5
-                            text-xs
-                            font-bold
-                            uppercase
-                            text-brand
-                          "
-                        >
-                          {product.tag}
-                        </span>
-                      </td>
-
-                      {/* Order */}
-
-                      <td
-                        className="
-                          px-5
-                          py-5
-                          text-sm
-                          text-slate-600
-                        "
-                      >
-                        {product.sortOrder}
-                      </td>
-
-                      {/* Visibility */}
-
-                      <td className="px-5 py-5">
-                        {product.isVisible ? (
-                          <span
-                            className="
-                              inline-flex
-                              items-center
-                              gap-2
-                              rounded-full
-                              bg-emerald-50
-                              px-3
-                              py-1.5
-                              text-xs
-                              font-bold
-                              text-emerald-700
-                            "
-                          >
-                            <Eye className="h-3.5 w-3.5" />
-                            Visible
-                          </span>
-                        ) : (
-                          <span
-                            className="
-                              inline-flex
-                              items-center
-                              gap-2
-                              rounded-full
-                              bg-slate-100
-                              px-3
-                              py-1.5
-                              text-xs
-                              font-bold
-                              text-slate-500
-                            "
-                          >
-                            <EyeOff className="h-3.5 w-3.5" />
-                            Hidden
-                          </span>
-                        )}
-                      </td>
-
-                      {/* Actions */}
-
-                      <td className="px-5 py-5">
-                        <Link
-                          href={`/admin/products/${product.id}/edit`}
-                          className="
-                            text-sm
-                            font-bold
-                            text-brand
-                            transition-colors
-                            hover:text-brand-soft
-                          "
-                        >
-                          Edit
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* Count */}
-
-        <p className="mt-4 text-xs text-slate-400">
-          {productList.length}{" "}
-          {productList.length === 1
-            ? "product"
-            : "products"}{" "}
-          in database
-        </p>
+        ) : null}
       </div>
-    </main>
+    </section>
   );
 }
