@@ -5,7 +5,7 @@ import {
   ScrollProgress,
 } from "@/components/ui";
 import { Stats } from "@/components/Stats";
-import { Products } from "@/components/Products";
+import Products from "@/components/Products";
 import { Builds } from "@/components/Builds";
 import { Features } from "@/components/Features";
 import { Blog } from "@/components/Blog";
