@@ -6,7 +6,6 @@ import { ArrowUpRight, Check } from "lucide-react";
 
 import {
   categories,
-  products,
   type CategoryId,
 } from "@/lib/data";
 
@@ -15,7 +14,29 @@ import {
   SpotlightCard,
 } from "@/components/ui";
 
-export default function Products() {
+/* =========================================================
+   PRODUCT TYPE
+   ========================================================= */
+
+export type PublicProduct = {
+  id: string;
+  name: string;
+  category: string;
+  tag: string;
+  description: string;
+  specs: string[];
+  image: string;
+};
+
+/* =========================================================
+   COMPONENT
+   ========================================================= */
+
+export default function Products({
+  products,
+}: {
+  products: PublicProduct[];
+}) {
   const [active, setActive] =
     useState<CategoryId>("all");
 
@@ -38,7 +59,7 @@ export default function Products() {
         md:py-32
       "
     >
-      {/* Background decoration */}
+      {/* Background */}
 
       <div
         className="
@@ -58,9 +79,7 @@ export default function Products() {
           md:px-8
         "
       >
-        {/* ===================================================
-            SECTION HEADING
-            =================================================== */}
+        {/* Heading */}
 
         <SectionHeading
           eyebrow="Catalogue"
@@ -68,9 +87,7 @@ export default function Products() {
           subtitle="Premium gaming hardware selected for performance, reliability, and serious gaming setups."
         />
 
-        {/* ===================================================
-            CATEGORY FILTERS
-            =================================================== */}
+        {/* Categories */}
 
         <div
           className="
@@ -129,9 +146,7 @@ export default function Products() {
           })}
         </div>
 
-        {/* ===================================================
-            PRODUCT CARDS
-            =================================================== */}
+        {/* Product cards */}
 
         <motion.div
           layout
@@ -185,9 +200,7 @@ export default function Products() {
                       hover:shadow-[0_30px_70px_-42px_rgba(23,49,96,0.38)]
                     "
                   >
-                    {/* =========================================
-                        IMAGE
-                        ========================================= */}
+                    {/* Image */}
 
                     <div
                       className="
@@ -223,8 +236,6 @@ export default function Products() {
                         "
                       />
 
-                      {/* Tag */}
-
                       <div
                         className="
                           absolute
@@ -255,9 +266,7 @@ export default function Products() {
                       </div>
                     </div>
 
-                    {/* =========================================
-                        CONTENT
-                        ========================================= */}
+                    {/* Content */}
 
                     <div
                       className="
@@ -281,7 +290,8 @@ export default function Products() {
                             (category) =>
                               category.id ===
                               product.category
-                          )?.label
+                          )?.label ??
+                          product.category
                         }
                       </p>
 
@@ -310,9 +320,7 @@ export default function Products() {
                         {product.description}
                       </p>
 
-                      {/* =======================================
-                          SPECS
-                          ======================================= */}
+                      {/* Specifications */}
 
                       <div
                         className="
@@ -325,43 +333,43 @@ export default function Products() {
                       >
                         {product.specs
                           .slice(0, 4)
-                          .map((spec) => (
-                            <div
-                              key={spec}
-                              className="
-                                flex
-                                items-start
-                                gap-2
-                                text-xs
-                                text-slate-600
-                              "
-                            >
-                              <span
+                          .map(
+                            (spec, index) => (
+                              <div
+                                key={`${product.id}-${index}`}
                                 className="
-                                  mt-0.5
-                                  grid
-                                  h-4
-                                  w-4
-                                  shrink-0
-                                  place-items-center
-                                  rounded-full
-                                  bg-brand/[0.07]
-                                  text-brand
+                                  flex
+                                  items-start
+                                  gap-2
+                                  text-xs
+                                  text-slate-600
                                 "
                               >
-                                <Check className="h-2.5 w-2.5" />
-                              </span>
+                                <span
+                                  className="
+                                    mt-0.5
+                                    grid
+                                    h-4
+                                    w-4
+                                    shrink-0
+                                    place-items-center
+                                    rounded-full
+                                    bg-brand/[0.07]
+                                    text-brand
+                                  "
+                                >
+                                  <Check className="h-2.5 w-2.5" />
+                                </span>
 
-                              <span>
-                                {spec}
-                              </span>
-                            </div>
-                          ))}
+                                <span>
+                                  {spec}
+                                </span>
+                              </div>
+                            )
+                          )}
                       </div>
 
-                      {/* =======================================
-                          CTA
-                          ======================================= */}
+                      {/* CTA */}
 
                       <a
                         href="#contact"
@@ -400,9 +408,7 @@ export default function Products() {
           </AnimatePresence>
         </motion.div>
 
-        {/* ===================================================
-            NO RESULTS
-            =================================================== */}
+        {/* Empty state */}
 
         {filteredProducts.length === 0 ? (
           <div
