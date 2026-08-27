@@ -5,9 +5,7 @@ import {
   randomUUID,
 } from "node:crypto";
 
-import {
-  eq,
-} from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -30,14 +28,27 @@ const ALLOWED_IMAGE_TYPES = [
 ];
 
 /* =========================================================
-   ERROR REDIRECT
+   ERROR REDIRECTS
    ========================================================= */
 
-function redirectWithError(
+function redirectNewProductError(
   message: string
 ): never {
   redirect(
     `/admin/products/new?error=${encodeURIComponent(
+      message
+    )}`
+  );
+}
+
+function redirectEditProductError(
+  productId: string,
+  message: string
+): never {
+  redirect(
+    `/admin/products/${encodeURIComponent(
+      productId
+    )}/edit?error=${encodeURIComponent(
       message
     )}`
   );
@@ -131,9 +142,9 @@ async function uploadProductImage(
     );
   }
 
-  /* ---------------------------------------------------------
-     File size
-     --------------------------------------------------------- */
+  /* =======================================================
+     FILE SIZE
+     ======================================================= */
 
   if (
     imageFile.size >
@@ -144,9 +155,9 @@ async function uploadProductImage(
     );
   }
 
-  /* ---------------------------------------------------------
-     File type
-     --------------------------------------------------------- */
+  /* =======================================================
+     FILE TYPE
+     ======================================================= */
 
   if (
     !ALLOWED_IMAGE_TYPES.includes(
@@ -158,9 +169,9 @@ async function uploadProductImage(
     );
   }
 
-  /* ---------------------------------------------------------
-     Cloudinary request
-     --------------------------------------------------------- */
+  /* =======================================================
+     CLOUDINARY REQUEST
+     ======================================================= */
 
   const folder =
     "gamex/products";
@@ -242,9 +253,9 @@ export async function createProduct(
 ) {
   await requireAdmin();
 
-  /* ---------------------------------------------------------
-     Basic information
-     --------------------------------------------------------- */
+  /* =======================================================
+     BASIC INFORMATION
+     ======================================================= */
 
   const name = String(
     formData.get("name") ?? ""
@@ -274,9 +285,9 @@ export async function createProduct(
     ) ?? "0"
   ).trim();
 
-  /* ---------------------------------------------------------
-     Image inputs
-     --------------------------------------------------------- */
+  /* =======================================================
+     IMAGE INPUTS
+     ======================================================= */
 
   const imageUrl = String(
     formData.get(
@@ -299,9 +310,9 @@ export async function createProduct(
   const hasImageUrl =
     imageUrl.length > 0;
 
-  /* ---------------------------------------------------------
-     Visibility
-     --------------------------------------------------------- */
+  /* =======================================================
+     VISIBILITY
+     ======================================================= */
 
   const isVisible =
     formData.get(
@@ -313,25 +324,25 @@ export async function createProduct(
      ======================================================= */
 
   if (!name) {
-    redirectWithError(
+    redirectNewProductError(
       "Product name is required."
     );
   }
 
   if (!category) {
-    redirectWithError(
+    redirectNewProductError(
       "Category is required."
     );
   }
 
   if (!description) {
-    redirectWithError(
+    redirectNewProductError(
       "Description is required."
     );
   }
 
   if (name.length > 255) {
-    redirectWithError(
+    redirectNewProductError(
       "Product name is too long."
     );
   }
@@ -339,13 +350,13 @@ export async function createProduct(
   if (
     category.length > 100
   ) {
-    redirectWithError(
+    redirectNewProductError(
       "Category is too long."
     );
   }
 
   if (tag.length > 120) {
-    redirectWithError(
+    redirectNewProductError(
       "Product tag is too long."
     );
   }
@@ -353,7 +364,7 @@ export async function createProduct(
   if (
     imageUrl.length > 1000
   ) {
-    redirectWithError(
+    redirectNewProductError(
       "Image URL is too long."
     );
   }
@@ -366,7 +377,7 @@ export async function createProduct(
     !hasImageFile &&
     !hasImageUrl
   ) {
-    redirectWithError(
+    redirectNewProductError(
       "Please upload an image or enter an image URL."
     );
   }
@@ -376,7 +387,7 @@ export async function createProduct(
     hasImageUrl &&
     !isValidImageUrl(imageUrl)
   ) {
-    redirectWithError(
+    redirectNewProductError(
       "Please enter a valid image URL."
     );
   }
@@ -395,13 +406,13 @@ export async function createProduct(
   if (
     specs.length === 0
   ) {
-    redirectWithError(
+    redirectNewProductError(
       "Add at least one specification."
     );
   }
 
   /* =======================================================
-     SORT ORDER
+     DISPLAY ORDER
      ======================================================= */
 
   const sortOrder =
@@ -416,7 +427,7 @@ export async function createProduct(
     ) ||
     sortOrder < 0
   ) {
-    redirectWithError(
+    redirectNewProductError(
       "Display order must be 0 or greater."
     );
   }
@@ -443,20 +454,20 @@ export async function createProduct(
           ? error.message
           : "Image upload failed.";
 
-      redirectWithError(
+      redirectNewProductError(
         message
       );
     }
   }
 
   if (!finalImageUrl) {
-    redirectWithError(
+    redirectNewProductError(
       "Product image could not be processed."
     );
   }
 
   /* =======================================================
-     CREATE PRODUCT
+     INSERT
      ======================================================= */
 
   const id =
@@ -483,12 +494,323 @@ export async function createProduct(
       sortOrder,
     });
 
+  revalidatePath(
+    "/admin/products"
+  );
+
+  revalidatePath("/");
+
+  redirect(
+    "/admin/products"
+  );
+}
+
+/* =========================================================
+   UPDATE PRODUCT
+   ========================================================= */
+
+export async function updateProduct(
+  formData: FormData
+) {
+  await requireAdmin();
+
+  /* =======================================================
+     PRODUCT ID
+     ======================================================= */
+
+  const productId = String(
+    formData.get(
+      "productId"
+    ) ?? ""
+  ).trim();
+
+  if (!productId) {
+    redirect(
+      "/admin/products"
+    );
+  }
+
+  /* =======================================================
+     GET EXISTING PRODUCT
+     ======================================================= */
+
+  const existingRows =
+    await db
+      .select()
+      .from(products)
+      .where(
+        eq(
+          products.id,
+          productId
+        )
+      )
+      .limit(1);
+
+  const existingProduct =
+    existingRows[0];
+
+  if (!existingProduct) {
+    redirect(
+      "/admin/products"
+    );
+  }
+
+  /* =======================================================
+     READ FORM
+     ======================================================= */
+
+  const name = String(
+    formData.get("name") ?? ""
+  ).trim();
+
+  const category = String(
+    formData.get("category") ?? ""
+  ).trim();
+
+  const tag = String(
+    formData.get("tag") ?? ""
+  ).trim();
+
+  const description = String(
+    formData.get(
+      "description"
+    ) ?? ""
+  ).trim();
+
+  const specsText = String(
+    formData.get("specs") ?? ""
+  ).trim();
+
+  const sortOrderRaw = String(
+    formData.get(
+      "sortOrder"
+    ) ?? "0"
+  ).trim();
+
+  const imageUrl = String(
+    formData.get(
+      "imageUrl"
+    ) ?? ""
+  ).trim();
+
+  const possibleImageFile =
+    formData.get("imageFile");
+
+  const imageFile =
+    possibleImageFile instanceof File
+      ? possibleImageFile
+      : null;
+
+  const hasImageFile =
+    imageFile !== null &&
+    imageFile.size > 0;
+
+  const hasImageUrl =
+    imageUrl.length > 0;
+
+  const isVisible =
+    formData.get(
+      "isVisible"
+    ) === "on";
+
+  /* =======================================================
+     VALIDATION
+     ======================================================= */
+
+  if (!name) {
+    redirectEditProductError(
+      productId,
+      "Product name is required."
+    );
+  }
+
+  if (!category) {
+    redirectEditProductError(
+      productId,
+      "Category is required."
+    );
+  }
+
+  if (!description) {
+    redirectEditProductError(
+      productId,
+      "Description is required."
+    );
+  }
+
+  if (name.length > 255) {
+    redirectEditProductError(
+      productId,
+      "Product name is too long."
+    );
+  }
+
+  if (
+    category.length > 100
+  ) {
+    redirectEditProductError(
+      productId,
+      "Category is too long."
+    );
+  }
+
+  if (tag.length > 120) {
+    redirectEditProductError(
+      productId,
+      "Product tag is too long."
+    );
+  }
+
+  if (
+    imageUrl.length > 1000
+  ) {
+    redirectEditProductError(
+      productId,
+      "Image URL is too long."
+    );
+  }
+
+  if (
+    hasImageUrl &&
+    !isValidImageUrl(imageUrl)
+  ) {
+    redirectEditProductError(
+      productId,
+      "Please enter a valid image URL."
+    );
+  }
+
+  /* =======================================================
+     SPECIFICATIONS
+     ======================================================= */
+
+  const specs = specsText
+    .split("\n")
+    .map((spec) =>
+      spec.trim()
+    )
+    .filter(Boolean);
+
+  if (
+    specs.length === 0
+  ) {
+    redirectEditProductError(
+      productId,
+      "Add at least one specification."
+    );
+  }
+
+  /* =======================================================
+     DISPLAY ORDER
+     ======================================================= */
+
+  const sortOrder =
+    Number.parseInt(
+      sortOrderRaw,
+      10
+    );
+
+  if (
+    !Number.isFinite(
+      sortOrder
+    ) ||
+    sortOrder < 0
+  ) {
+    redirectEditProductError(
+      productId,
+      "Display order must be 0 or greater."
+    );
+  }
+
+  /* =======================================================
+     DETERMINE IMAGE
+     ======================================================= */
+
+  /*
+   * Default:
+   * keep the image already stored in Neon.
+   */
+  let finalImageUrl =
+    existingProduct.image;
+
+  /*
+   * If the administrator entered a new URL,
+   * use the new URL.
+   */
+  if (hasImageUrl) {
+    finalImageUrl =
+      imageUrl;
+  }
+
+  /*
+   * If a file was uploaded from the PC,
+   * that takes priority over the URL.
+   */
+  if (
+    hasImageFile &&
+    imageFile
+  ) {
+    try {
+      finalImageUrl =
+        await uploadProductImage(
+          imageFile
+        );
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Image upload failed.";
+
+      redirectEditProductError(
+        productId,
+        message
+      );
+    }
+  }
+
+  /* =======================================================
+     UPDATE NEON
+     ======================================================= */
+
+  await db
+    .update(products)
+    .set({
+      name,
+      category,
+
+      tag:
+        tag ||
+        "FEATURED",
+
+      description,
+      specs,
+
+      image:
+        finalImageUrl,
+
+      isVisible,
+      sortOrder,
+
+      updatedAt:
+        new Date(),
+    })
+    .where(
+      eq(
+        products.id,
+        productId
+      )
+    );
+
   /* =======================================================
      REFRESH
      ======================================================= */
 
   revalidatePath(
     "/admin/products"
+  );
+
+  revalidatePath(
+    `/admin/products/${productId}/edit`
   );
 
   revalidatePath("/");
@@ -505,10 +827,6 @@ export async function createProduct(
 export async function toggleProductVisibility(
   formData: FormData
 ) {
-  /*
-   * Security:
-   * anonymous visitors cannot run this action.
-   */
   await requireAdmin();
 
   const productId = String(
@@ -544,19 +862,10 @@ export async function toggleProductVisibility(
       )
     );
 
-  /*
-   * Refresh admin table.
-   */
   revalidatePath(
     "/admin/products"
   );
 
-  /*
-   * Refresh public homepage.
-   *
-   * Hiding a product should remove it
-   * from the public cards immediately.
-   */
   revalidatePath("/");
 }
 
@@ -567,9 +876,6 @@ export async function toggleProductVisibility(
 export async function deleteProduct(
   formData: FormData
 ) {
-  /*
-   * Only administrators can delete products.
-   */
   await requireAdmin();
 
   const productId = String(
@@ -591,9 +897,6 @@ export async function deleteProduct(
       )
     );
 
-  /*
-   * Refresh both places.
-   */
   revalidatePath(
     "/admin/products"
   );
