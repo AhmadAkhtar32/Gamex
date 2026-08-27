@@ -6,7 +6,6 @@ import {
 } from "node:crypto";
 
 import { eq } from "drizzle-orm";
-
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -19,7 +18,7 @@ import { requireAdmin } from "@/lib/admin-auth";
    ========================================================= */
 
 const MAX_IMAGE_SIZE =
-  5 * 1024 * 1024; // 5 MB
+  5 * 1024 * 1024;
 
 const ALLOWED_IMAGE_TYPES = [
   "image/jpeg",
@@ -28,14 +27,27 @@ const ALLOWED_IMAGE_TYPES = [
 ];
 
 /* =========================================================
-   ERROR REDIRECT
+   ERROR REDIRECTS
    ========================================================= */
 
-function redirectWithError(
+function redirectNewBuildError(
   message: string
 ): never {
   redirect(
     `/admin/builds/new?error=${encodeURIComponent(
+      message
+    )}`
+  );
+}
+
+function redirectEditBuildError(
+  buildId: string,
+  message: string
+): never {
+  redirect(
+    `/admin/builds/${encodeURIComponent(
+      buildId
+    )}/edit?error=${encodeURIComponent(
       message
     )}`
   );
@@ -64,7 +76,7 @@ function makeBuildId(
 }
 
 /* =========================================================
-   VALIDATE IMAGE URL
+   CHECK IMAGE URL
    ========================================================= */
 
 function isValidImageUrl(
@@ -104,7 +116,7 @@ function createCloudinarySignature({
 }
 
 /* =========================================================
-   UPLOAD BUILD IMAGE TO CLOUDINARY
+   UPLOAD BUILD IMAGE
    ========================================================= */
 
 async function uploadBuildImage(
@@ -130,7 +142,7 @@ async function uploadBuildImage(
   }
 
   /* =======================================================
-     FILE SIZE
+     SIZE
      ======================================================= */
 
   if (
@@ -143,7 +155,7 @@ async function uploadBuildImage(
   }
 
   /* =======================================================
-     FILE TYPE
+     TYPE
      ======================================================= */
 
   if (
@@ -157,7 +169,7 @@ async function uploadBuildImage(
   }
 
   /* =======================================================
-     CLOUDINARY SETTINGS
+     CLOUDINARY REQUEST
      ======================================================= */
 
   const folder =
@@ -201,10 +213,6 @@ async function uploadBuildImage(
     signature
   );
 
-  /* =======================================================
-     UPLOAD
-     ======================================================= */
-
   const response = await fetch(
     `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
     {
@@ -236,20 +244,16 @@ async function uploadBuildImage(
 }
 
 /* =========================================================
-   CREATE CUSTOM BUILD
+   CREATE BUILD
    ========================================================= */
 
 export async function createBuild(
   formData: FormData
 ) {
-  /*
-   * Only logged-in administrators
-   * can create custom builds.
-   */
   await requireAdmin();
 
   /* =======================================================
-     READ BASIC DATA
+     BASIC DATA
      ======================================================= */
 
   const name = String(
@@ -277,7 +281,7 @@ export async function createBuild(
   ).trim();
 
   /* =======================================================
-     IMAGE INPUTS
+     IMAGE
      ======================================================= */
 
   const imageUrl = String(
@@ -308,51 +312,47 @@ export async function createBuild(
     "on";
 
   /* =======================================================
-     REQUIRED FIELDS
+     VALIDATION
      ======================================================= */
 
   if (!name) {
-    redirectWithError(
+    redirectNewBuildError(
       "Build name is required."
     );
   }
 
   if (!role) {
-    redirectWithError(
+    redirectNewBuildError(
       "Build role is required."
     );
   }
 
   if (!description) {
-    redirectWithError(
+    redirectNewBuildError(
       "Description is required."
     );
   }
 
-  /* =======================================================
-     LENGTH VALIDATION
-     ======================================================= */
-
   if (name.length > 255) {
-    redirectWithError(
+    redirectNewBuildError(
       "Build name is too long."
     );
   }
 
   if (role.length > 255) {
-    redirectWithError(
+    redirectNewBuildError(
       "Build role is too long."
     );
   }
 
   if (badge.length > 120) {
-    redirectWithError(
+    redirectNewBuildError(
       "Badge is too long."
     );
   }
 
   if (imageUrl.length > 1000) {
-    redirectWithError(
+    redirectNewBuildError(
       "Image URL is too long."
     );
   }
@@ -369,13 +369,13 @@ export async function createBuild(
     .filter(Boolean);
 
   if (specs.length === 0) {
-    redirectWithError(
+    redirectNewBuildError(
       "Add at least one specification."
     );
   }
 
   /* =======================================================
-     DISPLAY ORDER
+     ORDER
      ======================================================= */
 
   const sortOrder =
@@ -385,12 +385,10 @@ export async function createBuild(
     );
 
   if (
-    !Number.isFinite(
-      sortOrder
-    ) ||
+    !Number.isFinite(sortOrder) ||
     sortOrder < 0
   ) {
-    redirectWithError(
+    redirectNewBuildError(
       "Display order must be 0 or greater."
     );
   }
@@ -403,7 +401,7 @@ export async function createBuild(
     !hasImageFile &&
     !hasImageUrl
   ) {
-    redirectWithError(
+    redirectNewBuildError(
       "Please upload an image or enter an image URL."
     );
   }
@@ -411,25 +409,310 @@ export async function createBuild(
   if (
     !hasImageFile &&
     hasImageUrl &&
-    !isValidImageUrl(
-      imageUrl
-    )
+    !isValidImageUrl(imageUrl)
   ) {
-    redirectWithError(
+    redirectNewBuildError(
       "Please enter a valid image URL."
     );
   }
 
   /* =======================================================
-     DETERMINE FINAL IMAGE
+     FINAL IMAGE
      ======================================================= */
 
   let finalImageUrl =
     imageUrl;
 
+  if (
+    hasImageFile &&
+    imageFile
+  ) {
+    try {
+      finalImageUrl =
+        await uploadBuildImage(
+          imageFile
+        );
+    } catch (error) {
+      redirectNewBuildError(
+        error instanceof Error
+          ? error.message
+          : "Image upload failed."
+      );
+    }
+  }
+
+  if (!finalImageUrl) {
+    redirectNewBuildError(
+      "Build image could not be processed."
+    );
+  }
+
+  /* =======================================================
+     INSERT
+     ======================================================= */
+
+  const id =
+    makeBuildId(name);
+
+  await db
+    .insert(customBuilds)
+    .values({
+      id,
+      name,
+      role,
+
+      badge:
+        badge ||
+        "CUSTOM BUILD",
+
+      description,
+      specs,
+      image:
+        finalImageUrl,
+
+      isVisible,
+      sortOrder,
+    });
+
+  revalidatePath(
+    "/admin/builds"
+  );
+
+  revalidatePath("/");
+
+  redirect(
+    "/admin/builds"
+  );
+}
+
+/* =========================================================
+   UPDATE BUILD
+   ========================================================= */
+
+export async function updateBuild(
+  formData: FormData
+) {
+  await requireAdmin();
+
+  /* =======================================================
+     BUILD ID
+     ======================================================= */
+
+  const buildId = String(
+    formData.get("buildId") ?? ""
+  ).trim();
+
+  if (!buildId) {
+    redirect(
+      "/admin/builds"
+    );
+  }
+
+  /* =======================================================
+     FIND EXISTING BUILD
+     ======================================================= */
+
+  const existingRows =
+    await db
+      .select()
+      .from(customBuilds)
+      .where(
+        eq(
+          customBuilds.id,
+          buildId
+        )
+      )
+      .limit(1);
+
+  const existingBuild =
+    existingRows[0];
+
+  if (!existingBuild) {
+    redirect(
+      "/admin/builds"
+    );
+  }
+
+  /* =======================================================
+     READ FORM
+     ======================================================= */
+
+  const name = String(
+    formData.get("name") ?? ""
+  ).trim();
+
+  const role = String(
+    formData.get("role") ?? ""
+  ).trim();
+
+  const badge = String(
+    formData.get("badge") ?? ""
+  ).trim();
+
+  const description = String(
+    formData.get("description") ?? ""
+  ).trim();
+
+  const specsText = String(
+    formData.get("specs") ?? ""
+  ).trim();
+
+  const sortOrderRaw = String(
+    formData.get("sortOrder") ?? "0"
+  ).trim();
+
+  /* =======================================================
+     NEW IMAGE INPUTS
+     ======================================================= */
+
+  const imageUrl = String(
+    formData.get("imageUrl") ?? ""
+  ).trim();
+
+  const possibleImageFile =
+    formData.get("imageFile");
+
+  const imageFile =
+    possibleImageFile instanceof File
+      ? possibleImageFile
+      : null;
+
+  const hasImageFile =
+    imageFile !== null &&
+    imageFile.size > 0;
+
+  const hasImageUrl =
+    imageUrl.length > 0;
+
+  /* =======================================================
+     VISIBILITY
+     ======================================================= */
+
+  const isVisible =
+    formData.get("isVisible") ===
+    "on";
+
+  /* =======================================================
+     VALIDATION
+     ======================================================= */
+
+  if (!name) {
+    redirectEditBuildError(
+      buildId,
+      "Build name is required."
+    );
+  }
+
+  if (!role) {
+    redirectEditBuildError(
+      buildId,
+      "Build role is required."
+    );
+  }
+
+  if (!description) {
+    redirectEditBuildError(
+      buildId,
+      "Description is required."
+    );
+  }
+
+  if (name.length > 255) {
+    redirectEditBuildError(
+      buildId,
+      "Build name is too long."
+    );
+  }
+
+  if (role.length > 255) {
+    redirectEditBuildError(
+      buildId,
+      "Build role is too long."
+    );
+  }
+
+  if (badge.length > 120) {
+    redirectEditBuildError(
+      buildId,
+      "Badge is too long."
+    );
+  }
+
+  if (imageUrl.length > 1000) {
+    redirectEditBuildError(
+      buildId,
+      "Image URL is too long."
+    );
+  }
+
+  if (
+    hasImageUrl &&
+    !isValidImageUrl(imageUrl)
+  ) {
+    redirectEditBuildError(
+      buildId,
+      "Please enter a valid image URL."
+    );
+  }
+
+  /* =======================================================
+     SPECS
+     ======================================================= */
+
+  const specs = specsText
+    .split("\n")
+    .map((spec) =>
+      spec.trim()
+    )
+    .filter(Boolean);
+
+  if (specs.length === 0) {
+    redirectEditBuildError(
+      buildId,
+      "Add at least one specification."
+    );
+  }
+
+  /* =======================================================
+     ORDER
+     ======================================================= */
+
+  const sortOrder =
+    Number.parseInt(
+      sortOrderRaw,
+      10
+    );
+
+  if (
+    !Number.isFinite(sortOrder) ||
+    sortOrder < 0
+  ) {
+    redirectEditBuildError(
+      buildId,
+      "Display order must be 0 or greater."
+    );
+  }
+
+  /* =======================================================
+     FINAL IMAGE
+     ======================================================= */
+
   /*
-   * PC upload takes priority if both
-   * a file and URL are supplied.
+   * By default keep the current image.
+   */
+  let finalImageUrl =
+    existingBuild.image;
+
+  /*
+   * New URL replaces existing image.
+   */
+  if (hasImageUrl) {
+    finalImageUrl =
+      imageUrl;
+  }
+
+  /*
+   * PC upload takes priority over URL.
    */
   if (
     hasImageFile &&
@@ -441,38 +724,22 @@ export async function createBuild(
           imageFile
         );
     } catch (error) {
-      const message =
+      redirectEditBuildError(
+        buildId,
         error instanceof Error
           ? error.message
-          : "Image upload failed.";
-
-      redirectWithError(
-        message
+          : "Image upload failed."
       );
     }
   }
 
-  if (!finalImageUrl) {
-    redirectWithError(
-      "Build image could not be processed."
-    );
-  }
-
   /* =======================================================
-     CREATE BUILD ID
-     ======================================================= */
-
-  const id =
-    makeBuildId(name);
-
-  /* =======================================================
-     INSERT INTO NEON
+     UPDATE NEON
      ======================================================= */
 
   await db
-    .insert(customBuilds)
-    .values({
-      id,
+    .update(customBuilds)
+    .set({
       name,
       role,
 
@@ -488,7 +755,16 @@ export async function createBuild(
 
       isVisible,
       sortOrder,
-    });
+
+      updatedAt:
+        new Date(),
+    })
+    .where(
+      eq(
+        customBuilds.id,
+        buildId
+      )
+    );
 
   /* =======================================================
      REFRESH
@@ -498,11 +774,11 @@ export async function createBuild(
     "/admin/builds"
   );
 
-  revalidatePath("/");
+  revalidatePath(
+    `/admin/builds/${buildId}/edit`
+  );
 
-  /* =======================================================
-     REDIRECT
-     ======================================================= */
+  revalidatePath("/");
 
   redirect(
     "/admin/builds"
@@ -510,7 +786,7 @@ export async function createBuild(
 }
 
 /* =========================================================
-   TOGGLE BUILD VISIBILITY
+   SHOW / HIDE BUILD
    ========================================================= */
 
 export async function toggleBuildVisibility(
