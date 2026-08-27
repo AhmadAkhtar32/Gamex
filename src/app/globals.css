@@ -256,19 +256,17 @@ section[id] {
 }
 
 /* Custom cursor */
-.custom-dot {
+.custom-cursor {
+  cursor: none;
+}
+
+.custom-cursor-dot {
   position: fixed;
   top: 0;
   left: 0;
-  width: 7px;
-  height: 7px;
-  border-radius: 9999px;
-  background: #ff0000;
-  box-shadow: 0 0 14px rgba(255, 0, 0, 0.9);
   pointer-events: none;
-  z-index: 9999;
-  opacity: 0;
-  transition: opacity 0.3s;
+  z-index: 999999;
+  transform: translate(0, 0);
 }
 .custom-ring {
   position: fixed;
