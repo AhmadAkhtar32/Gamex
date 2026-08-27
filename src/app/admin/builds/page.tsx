@@ -15,6 +15,12 @@ import { db } from "@/db";
 import { customBuilds } from "@/db/schema";
 import { requireAdmin } from "@/lib/admin-auth";
 
+import {
+  toggleBuildVisibility,
+} from "./actions";
+
+import DeleteBuildButton from "./DeleteBuildButton";
+
 export default async function AdminBuildsPage() {
   /* =========================================================
      SECURITY
@@ -23,7 +29,7 @@ export default async function AdminBuildsPage() {
   await requireAdmin();
 
   /* =========================================================
-     LOAD CUSTOM BUILDS
+     LOAD BUILDS
      ========================================================= */
 
   const buildList = await db
@@ -167,8 +173,8 @@ export default async function AdminBuildsPage() {
                 text-slate-500
               "
             >
-              Add and manage the custom gaming systems displayed
-              in the Custom Builds section of the website.
+              Add, edit, show, hide and delete the custom gaming
+              systems displayed on the Gamex website.
             </p>
           </div>
 
@@ -256,8 +262,7 @@ export default async function AdminBuildsPage() {
                 text-slate-500
               "
             >
-              Your custom builds database is currently empty.
-              Add your first build using the button above.
+              Add your first custom build using the button above.
             </p>
 
             <Link
@@ -303,11 +308,7 @@ export default async function AdminBuildsPage() {
             "
           >
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[1050px]">
-                {/* ===========================================
-                    HEADER
-                    =========================================== */}
-
+              <table className="w-full min-w-[1150px]">
                 <thead className="bg-[#f7f9fc]">
                   <tr
                     className="
@@ -344,10 +345,6 @@ export default async function AdminBuildsPage() {
                     </th>
                   </tr>
                 </thead>
-
-                {/* ===========================================
-                    BODY
-                    =========================================== */}
 
                 <tbody>
                   {buildList.map((build) => (
@@ -509,30 +506,109 @@ export default async function AdminBuildsPage() {
                       {/* ACTIONS */}
 
                       <td className="px-5 py-5">
-                        <Link
-                          href={`/admin/builds/${build.id}/edit`}
+                        <div
                           className="
-                            inline-flex
+                            flex
+                            flex-wrap
                             items-center
-                            gap-1.5
-                            rounded-lg
-                            border
-                            border-brand/15
-                            bg-white
-                            px-3
-                            py-2
-                            text-xs
-                            font-bold
-                            text-brand
-                            transition-all
-                            hover:border-brand
-                            hover:bg-brand/[0.05]
+                            gap-2
                           "
                         >
-                          <Pencil className="h-3.5 w-3.5" />
+                          {/* EDIT */}
 
-                          Edit
-                        </Link>
+                          <Link
+                            href={`/admin/builds/${build.id}/edit`}
+                            className="
+                              inline-flex
+                              items-center
+                              gap-1.5
+                              rounded-lg
+                              border
+                              border-brand/15
+                              bg-white
+                              px-3
+                              py-2
+                              text-xs
+                              font-bold
+                              text-brand
+                              transition-all
+                              hover:border-brand
+                              hover:bg-brand/[0.05]
+                            "
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+
+                            Edit
+                          </Link>
+
+                          {/* SHOW / HIDE */}
+
+                          <form
+                            action={
+                              toggleBuildVisibility
+                            }
+                          >
+                            <input
+                              type="hidden"
+                              name="buildId"
+                              value={build.id}
+                            />
+
+                            <input
+                              type="hidden"
+                              name="nextVisibility"
+                              value={
+                                build.isVisible
+                                  ? "false"
+                                  : "true"
+                              }
+                            />
+
+                            <button
+                              type="submit"
+                              className="
+                                inline-flex
+                                items-center
+                                gap-1.5
+                                rounded-lg
+                                border
+                                border-brand/15
+                                bg-white
+                                px-3
+                                py-2
+                                text-xs
+                                font-bold
+                                text-brand
+                                transition-all
+                                hover:border-brand
+                                hover:bg-brand/[0.05]
+                              "
+                            >
+                              {build.isVisible ? (
+                                <>
+                                  <EyeOff className="h-3.5 w-3.5" />
+
+                                  Hide
+                                </>
+                              ) : (
+                                <>
+                                  <Eye className="h-3.5 w-3.5" />
+
+                                  Show
+                                </>
+                              )}
+                            </button>
+                          </form>
+
+                          {/* DELETE */}
+
+                          <DeleteBuildButton
+                            buildId={build.id}
+                            buildName={
+                              build.name
+                            }
+                          />
+                        </div>
                       </td>
                     </tr>
                   ))}
