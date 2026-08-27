@@ -22,7 +22,10 @@ export function useReady() {
 
 export function Chrome({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
-  const onDone = useCallback(() => setReady(true), []);
+
+  const onDone = useCallback(() => {
+    setReady(true);
+  }, []);
 
   return (
     <ReadyContext.Provider value={ready}>
@@ -36,6 +39,11 @@ export function Chrome({ children }: { children: ReactNode }) {
   );
 }
 
+
+/* =========================================================
+   PRELOADER
+   ========================================================= */
+
 function Preloader({ onDone }: { onDone: () => void }) {
   const [count, setCount] = useState(0);
   const [done, setDone] = useState(false);
@@ -44,17 +52,20 @@ function Preloader({ onDone }: { onDone: () => void }) {
     let raf = 0;
     let start: number | null = null;
 
-    const dur = 950;
+    const duration = 950;
 
-    const tick = (t: number) => {
-      if (start === null) start = t;
+    const tick = (time: number) => {
+      if (start === null) {
+        start = time;
+      }
 
-      const p = Math.min(1, (t - start) / dur);
-      const eased = 1 - Math.pow(1 - p, 3);
+      const progress = Math.min(1, (time - start) / duration);
+
+      const eased = 1 - Math.pow(1 - progress, 3);
 
       setCount(Math.round(eased * 100));
 
-      if (p < 1) {
+      if (progress < 1) {
         raf = requestAnimationFrame(tick);
       } else {
         setTimeout(() => {
@@ -66,7 +77,9 @@ function Preloader({ onDone }: { onDone: () => void }) {
 
     raf = requestAnimationFrame(tick);
 
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+    };
   }, [onDone]);
 
   useEffect(() => {
@@ -81,7 +94,17 @@ function Preloader({ onDone }: { onDone: () => void }) {
     <AnimatePresence>
       {!done && (
         <motion.div
-          className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#08080a]"
+          className="
+            fixed
+            inset-0
+            z-[100]
+            flex
+            flex-col
+            items-center
+            justify-center
+            overflow-hidden
+            bg-white
+          "
           exit={{
             y: "-100%",
             transition: {
@@ -90,67 +113,171 @@ function Preloader({ onDone }: { onDone: () => void }) {
             },
           }}
         >
-          <GlitchText
-            text="GAMEX"
-            className="font-display text-5xl font-black tracking-[0.18em] text-white md:text-7xl"
+          {/* Soft background glow */}
+          <div
+            className="
+              pointer-events-none
+              absolute
+              left-1/2
+              top-1/2
+              h-[420px]
+              w-[420px]
+              -translate-x-1/2
+              -translate-y-1/2
+              rounded-full
+              bg-brand/[0.07]
+              blur-[110px]
+            "
           />
 
-          <div className="mt-8 h-1 w-56 overflow-hidden rounded-full bg-white/10">
+          {/* Subtle grid */}
+          <div className="bg-grid pointer-events-none absolute inset-0 opacity-40" />
+
+          {/* Brand */}
+          <GlitchText
+            text="GAMEX"
+            className="
+              relative
+              z-10
+              font-display
+              text-5xl
+              font-black
+              tracking-[0.18em]
+              text-brand-deep
+              md:text-7xl
+            "
+          />
+
+          {/* Progress bar */}
+          <div
+            className="
+              relative
+              z-10
+              mt-8
+              h-1
+              w-56
+              overflow-hidden
+              rounded-full
+              bg-brand/10
+            "
+          >
             <motion.div
-              className="h-full bg-gradient-to-r from-brand-deep via-brand to-brand-soft"
-              style={{ width: `${count}%` }}
+              className="
+                h-full
+                rounded-full
+                bg-gradient-to-r
+                from-brand-deep
+                via-brand
+                to-brand-soft
+                shadow-[0_0_18px_rgba(23,49,96,0.28)]
+              "
+              style={{
+                width: `${count}%`,
+              }}
             />
           </div>
 
-          <div className="mt-4 font-display text-sm font-bold tracking-[0.35em] text-brand">
+          {/* Percentage */}
+          <div
+            className="
+              relative
+              z-10
+              mt-4
+              font-display
+              text-sm
+              font-bold
+              tracking-[0.35em]
+              text-brand
+            "
+          >
             {count}%
           </div>
+
+          {/* Small decorative line */}
+          <div
+            className="
+              relative
+              z-10
+              mt-6
+              h-px
+              w-16
+              bg-gradient-to-r
+              from-transparent
+              via-brand/30
+              to-transparent
+            "
+          />
         </motion.div>
       )}
     </AnimatePresence>
   );
 }
 
+
+/* =========================================================
+   CUSTOM CURSOR
+   ========================================================= */
+
 /**
- * Simple Gamex Custom Cursor
+ * Gamex custom cursor.
  *
- * Desktop / mouse devices only.
- * Mobile and touch devices keep the normal browser behavior.
+ * Active only on desktop / mouse devices.
+ * Touch devices retain normal browser behavior.
  */
 function CustomCursor() {
   const cursorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!window.matchMedia("(pointer: fine)").matches) return;
+    if (!window.matchMedia("(pointer: fine)").matches) {
+      return;
+    }
 
     document.documentElement.classList.add("custom-cursor");
 
     const cursor = cursorRef.current;
-    if (!cursor) return;
 
-    const onMove = (e: MouseEvent) => {
-      cursor.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+    if (!cursor) {
+      return;
+    }
+
+    const onMove = (event: MouseEvent) => {
+      cursor.style.transform = `translate(${event.clientX}px, ${event.clientY}px)`;
     };
 
     window.addEventListener("mousemove", onMove);
 
     return () => {
       document.documentElement.classList.remove("custom-cursor");
+
       window.removeEventListener("mousemove", onMove);
     };
   }, []);
 
   return (
-    <div ref={cursorRef} className="custom-cursor-dot">
-      <svg width="22" height="22" viewBox="0 0 320 512" fill="none">
+    <div
+      ref={cursorRef}
+      className="custom-cursor-dot"
+      aria-hidden="true"
+    >
+      <svg
+        width="22"
+        height="22"
+        viewBox="0 0 320 512"
+        fill="none"
+      >
         <path
           d="M0 55.2V426c0 12.2 9.9 22 22 22c6.3 0 12.4-2.7 16.6-7.5L121.2 346l58.1 116.3c7.9 15.8 27.1 22.2 42.9 14.3s22.2-27.1 14.3-42.9L179.4 320H297.9c12.2 0 22.1-9.9 22.1-22.1c0-6.3-2.7-12.3-7.4-16.5L38.6 37.9C34.3 34.1 28.9 32 23.2 32C10.4 32 0 42.4 0 55.2z"
-          fill="#ff0000"
+          fill="#173160"
         />
       </svg>
     </div>
   );
 }
+
+
+/* =========================================================
+   SMOOTH SCROLL
+   ========================================================= */
 
 function SmoothScroll() {
   useEffect(() => {
@@ -167,26 +294,31 @@ function SmoothScroll() {
 
     const loop = (time: number) => {
       lenis.raf(time);
+
       raf = requestAnimationFrame(loop);
     };
 
     raf = requestAnimationFrame(loop);
 
-    const onClick = (e: MouseEvent) => {
-      const anchor = (e.target as HTMLElement).closest?.(
+    const onClick = (event: MouseEvent) => {
+      const anchor = (event.target as HTMLElement).closest?.(
         'a[href^="#"]'
       ) as HTMLAnchorElement | null;
 
-      if (!anchor) return;
+      if (!anchor) {
+        return;
+      }
 
       const href = anchor.getAttribute("href");
 
-      if (!href || href.length < 2) return;
+      if (!href || href.length < 2) {
+        return;
+      }
 
       const target = document.querySelector(href);
 
       if (target) {
-        e.preventDefault();
+        event.preventDefault();
 
         lenis.scrollTo(target as HTMLElement, {
           offset: -70,
@@ -198,7 +330,9 @@ function SmoothScroll() {
 
     return () => {
       cancelAnimationFrame(raf);
+
       document.removeEventListener("click", onClick);
+
       lenis.destroy();
     };
   }, []);

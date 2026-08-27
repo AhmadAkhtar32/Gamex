@@ -16,19 +16,37 @@ export function VideoBackground({
   const ref = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    const v = ref.current;
-    if (!v) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      v.pause();
+    const video = ref.current;
+
+    if (!video) {
       return;
     }
-    v.muted = true;
-    const play = v.play();
-    if (play) play.catch(() => {});
+
+    if (
+      window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches
+    ) {
+      video.pause();
+      return;
+    }
+
+    video.muted = true;
+
+    const playPromise = video.play();
+
+    if (playPromise) {
+      playPromise.catch(() => {
+        // Autoplay may be blocked by the browser.
+      });
+    }
   }, []);
 
   return (
-    <div className={`absolute inset-0 overflow-hidden ${className}`} aria-hidden="true">
+    <div
+      className={`absolute inset-0 overflow-hidden ${className}`}
+      aria-hidden="true"
+    >
       <video
         ref={ref}
         className="h-full w-full object-cover"
@@ -38,9 +56,14 @@ export function VideoBackground({
         muted
         loop
         playsInline
-        preload="auto"
+        preload="metadata"
       />
-      {overlayClassName ? <div className={`absolute inset-0 ${overlayClassName}`} /> : null}
+
+      {overlayClassName ? (
+        <div
+          className={`absolute inset-0 ${overlayClassName}`}
+        />
+      ) : null}
     </div>
   );
 }

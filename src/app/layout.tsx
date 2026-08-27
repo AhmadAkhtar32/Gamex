@@ -42,15 +42,22 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0a0c",
+  themeColor: "#ffffff",
   width: "device-width",
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   return (
-    <html lang="en" className={`${orbitron.variable} ${rajdhani.variable}`}>
-      <body className="font-body antialiased">
+    <html
+      lang="en"
+      className={`${orbitron.variable} ${rajdhani.variable}`}
+    >
+      <body className="bg-white font-body text-slate-700 antialiased">
         <Chrome>{children}</Chrome>
       </body>
     </html>

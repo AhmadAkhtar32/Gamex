@@ -1,6 +1,9 @@
 import { Navbar } from "@/components/Navbar";
 import { Hero } from "@/components/Hero";
-import { Marquee, ScrollProgress } from "@/components/ui";
+import {
+  Marquee,
+  ScrollProgress,
+} from "@/components/ui";
 import { Stats } from "@/components/Stats";
 import { Products } from "@/components/Products";
 import { Builds } from "@/components/Builds";
@@ -18,18 +21,29 @@ export default async function HomePage() {
   return (
     <>
       <ScrollProgress />
+
       <Navbar />
-      <main>
+
+      <main className="relative bg-white">
         <Hero />
+
         <Marquee />
+
         <Stats />
+
         <Products />
+
         <Builds />
+
         <Features />
+
         <Marquee reverse />
+
         <Blog posts={posts} />
+
         <Contact />
       </main>
+
       <Footer />
     </>
   );
