@@ -1,3 +1,7 @@
+import Link from "next/link";
+
+import type { LucideIcon } from "lucide-react";
+
 import {
   Boxes,
   FileText,
@@ -11,13 +15,10 @@ import { requireAdmin } from "@/lib/admin-auth";
 import { logoutAdmin } from "./actions";
 
 export default async function AdminPage() {
-  /*
-   * This is the security gate.
-   *
-   * If there is no valid admin session,
-   * requireAdmin() automatically redirects
-   * the visitor to /admin/login.
-   */
+  /* =========================================================
+     SECURITY
+     ========================================================= */
+
   const admin = await requireAdmin();
 
   return (
@@ -26,13 +27,7 @@ export default async function AdminPage() {
           TOP BAR
           ===================================================== */}
 
-      <header
-        className="
-          border-b
-          border-brand/10
-          bg-white
-        "
-      >
+      <header className="border-b border-brand/10 bg-white">
         <div
           className="
             mx-auto
@@ -46,6 +41,8 @@ export default async function AdminPage() {
             md:px-8
           "
         >
+          {/* Logo / title */}
+
           <div>
             <p
               className="
@@ -64,6 +61,8 @@ export default async function AdminPage() {
               Website Management
             </p>
           </div>
+
+          {/* Admin account */}
 
           <div className="flex items-center gap-4">
             <div className="hidden text-right sm:block">
@@ -86,17 +85,14 @@ export default async function AdminPage() {
                   bg-white
                   px-4
                   py-2.5
-
                   font-display
                   text-xs
                   font-bold
                   uppercase
                   tracking-wider
                   text-brand
-
                   transition-all
                   duration-300
-
                   hover:border-brand
                   hover:bg-brand
                   hover:text-white
@@ -123,7 +119,9 @@ export default async function AdminPage() {
           md:py-14
         "
       >
-        {/* Welcome */}
+        {/* ===================================================
+            WELCOME
+            =================================================== */}
 
         <div>
           <p
@@ -160,8 +158,8 @@ export default async function AdminPage() {
               text-slate-600
             "
           >
-            This will become the central control panel for the
-            entire Gamex website.
+            Manage the products, custom builds, website content,
+            blog, messages and settings of the Gamex website.
           </p>
         </div>
 
@@ -178,17 +176,25 @@ export default async function AdminPage() {
             lg:grid-cols-3
           "
         >
+          {/* PRODUCTS */}
+
           <DashboardCard
             icon={Boxes}
             title="Products"
-            description="Add, edit, hide and remove products."
+            description="Add, edit, show, hide and delete products."
+            href="/admin/products"
+            active
           />
+
+          {/* CUSTOM BUILDS */}
 
           <DashboardCard
             icon={MonitorCog}
             title="Custom Builds"
-            description="Manage Titan, Vortex, Stealth and future builds."
+            description="Manage Titan, Vortex, Stealth and future custom builds."
           />
+
+          {/* WEBSITE CONTENT */}
 
           <DashboardCard
             icon={Gauge}
@@ -196,17 +202,23 @@ export default async function AdminPage() {
             description="Control hero, statistics, features and homepage sections."
           />
 
+          {/* BLOG */}
+
           <DashboardCard
             icon={FileText}
             title="Blog"
-            description="Create and manage Gamex articles."
+            description="Create, edit and manage Gamex articles."
           />
+
+          {/* MESSAGES */}
 
           <DashboardCard
             icon={Mail}
             title="Messages"
-            description="Read customer contact-form submissions."
+            description="Read and manage customer contact-form submissions."
           />
+
+          {/* SETTINGS */}
 
           <DashboardCard
             icon={Settings}
@@ -227,7 +239,6 @@ export default async function AdminPage() {
             border-brand/10
             bg-white
             p-6
-
             shadow-[0_20px_55px_-38px_rgba(23,49,96,0.3)]
           "
         >
@@ -272,20 +283,32 @@ export default async function AdminPage() {
               completed
             />
 
-            <StatusItem label="Product management" />
+            <StatusItem
+              label="Product management"
+              completed
+            />
 
-            <StatusItem label="Website settings" />
+            <StatusItem
+              label="Custom build management"
+            />
 
-            <StatusItem label="Blog management" />
+            <StatusItem
+              label="Website settings"
+            />
 
-            <StatusItem label="Message management" />
+            <StatusItem
+              label="Blog management"
+            />
+
+            <StatusItem
+              label="Message management"
+            />
           </div>
         </div>
       </div>
     </main>
   );
 }
-
 
 /* =========================================================
    DASHBOARD CARD
@@ -295,52 +318,38 @@ function DashboardCard({
   icon: Icon,
   title,
   description,
+  href,
+  active = false,
 }: {
-  icon: typeof Boxes;
+  icon: LucideIcon;
   title: string;
   description: string;
+  href?: string;
+  active?: boolean;
 }) {
-  return (
-    <div
-      className="
-        group
-        rounded-2xl
-        border
-        border-brand/10
-        bg-white
-        p-6
+  const content = (
+    <>
+      {/* Icon */}
 
-        shadow-[0_18px_50px_-38px_rgba(23,49,96,0.32)]
-
-        transition-all
-        duration-300
-
-        hover:-translate-y-1
-        hover:border-brand/25
-        hover:shadow-[0_26px_60px_-38px_rgba(23,49,96,0.42)]
-      "
-    >
       <div
         className="
           grid
           h-11
           w-11
           place-items-center
-
           rounded-xl
-
           bg-brand/[0.07]
           text-brand
-
           transition-all
           duration-300
-
           group-hover:bg-brand
           group-hover:text-white
         "
       >
         <Icon className="h-5 w-5" />
       </div>
+
+      {/* Text */}
 
       <h2
         className="
@@ -364,10 +373,96 @@ function DashboardCard({
       >
         {description}
       </p>
+
+      {/* Status */}
+
+      <div
+        className="
+          mt-5
+          border-t
+          border-brand/[0.08]
+          pt-4
+        "
+      >
+        {active ? (
+          <span
+            className="
+              text-xs
+              font-bold
+              uppercase
+              tracking-wider
+              text-brand
+            "
+          >
+            Open Management →
+          </span>
+        ) : (
+          <span
+            className="
+              text-xs
+              font-semibold
+              uppercase
+              tracking-wider
+              text-slate-400
+            "
+          >
+            Coming Next
+          </span>
+        )}
+      </div>
+    </>
+  );
+
+  /* =======================================================
+     CLICKABLE CARD
+     ======================================================= */
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className="
+          group
+          block
+          rounded-2xl
+          border
+          border-brand/10
+          bg-white
+          p-6
+          shadow-[0_18px_50px_-38px_rgba(23,49,96,0.32)]
+          transition-all
+          duration-300
+          hover:-translate-y-1
+          hover:border-brand/25
+          hover:shadow-[0_26px_60px_-38px_rgba(23,49,96,0.42)]
+        "
+      >
+        {content}
+      </Link>
+    );
+  }
+
+  /* =======================================================
+     NON-CLICKABLE CARD
+     ======================================================= */
+
+  return (
+    <div
+      className="
+        group
+        rounded-2xl
+        border
+        border-brand/10
+        bg-white
+        p-6
+        opacity-80
+        shadow-[0_18px_50px_-38px_rgba(23,49,96,0.25)]
+      "
+    >
+      {content}
     </div>
   );
 }
-
 
 /* =========================================================
    STATUS ITEM
