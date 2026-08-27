@@ -6,7 +6,6 @@ import {
   EyeOff,
   PackagePlus,
   Pencil,
-  Trash2,
 } from "lucide-react";
 
 import { asc } from "drizzle-orm";
@@ -16,18 +15,25 @@ import { products } from "@/db/schema";
 import { requireAdmin } from "@/lib/admin-auth";
 
 import {
-  deleteProduct,
   toggleProductVisibility,
 } from "./actions";
 
+import DeleteProductButton from "./DeleteProductButton";
+
 export default async function AdminProductsPage() {
-  /*
-   * Protect admin page.
-   */
+  /* =========================================================
+     SECURITY
+     ========================================================= */
+
   await requireAdmin();
 
+  /* =========================================================
+     LOAD PRODUCTS
+     ========================================================= */
+
   /*
-   * Load every product, including hidden products.
+   * Admin should see every product,
+   * including products hidden from the public website.
    */
   const productList = await db
     .select()
@@ -94,6 +100,7 @@ export default async function AdminProductsPage() {
               tracking-wider
               text-brand
               transition-all
+              duration-300
               hover:border-brand
               hover:bg-brand
               hover:text-white
@@ -107,7 +114,7 @@ export default async function AdminProductsPage() {
       </header>
 
       {/* =====================================================
-          PAGE
+          CONTENT
           ===================================================== */}
 
       <div
@@ -164,11 +171,14 @@ export default async function AdminProductsPage() {
             <p
               className="
                 mt-3
+                max-w-2xl
                 text-sm
+                leading-relaxed
                 text-slate-500
               "
             >
-              Add, edit, show, hide and delete products.
+              Add, edit, show, hide and delete products displayed
+              on the Gamex website.
             </p>
           </div>
 
@@ -190,6 +200,7 @@ export default async function AdminProductsPage() {
               tracking-wider
               text-white
               transition-all
+              duration-300
               hover:-translate-y-0.5
               hover:bg-brand-soft
             "
@@ -256,9 +267,35 @@ export default async function AdminProductsPage() {
                 text-slate-500
               "
             >
-              Add your first product using the Add Product
-              button above.
+              Your products database is currently empty. Add your
+              first product using the button above.
             </p>
+
+            <Link
+              href="/admin/products/new"
+              className="
+                mt-6
+                inline-flex
+                items-center
+                justify-center
+                gap-2
+                rounded-xl
+                bg-brand
+                px-5
+                py-3
+                text-xs
+                font-bold
+                uppercase
+                tracking-wider
+                text-white
+                transition-all
+                hover:bg-brand-soft
+              "
+            >
+              <PackagePlus className="h-4 w-4" />
+
+              Add First Product
+            </Link>
           </div>
         ) : (
           /* =================================================
@@ -277,7 +314,7 @@ export default async function AdminProductsPage() {
             "
           >
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[1050px]">
+              <table className="w-full min-w-[1100px]">
                 {/* ===========================================
                     TABLE HEADER
                     =========================================== */}
@@ -320,7 +357,7 @@ export default async function AdminProductsPage() {
                 </thead>
 
                 {/* ===========================================
-                    PRODUCTS
+                    TABLE BODY
                     =========================================== */}
 
                 <tbody>
@@ -331,6 +368,7 @@ export default async function AdminProductsPage() {
                         border-t
                         border-brand/[0.08]
                         transition-colors
+                        duration-200
                         hover:bg-[#fafbfd]
                       "
                     >
@@ -364,9 +402,11 @@ export default async function AdminProductsPage() {
                             />
                           </div>
 
-                          <div>
+                          <div className="min-w-0">
                             <p
                               className="
+                                max-w-[240px]
+                                truncate
                                 font-semibold
                                 text-brand-deep
                               "
@@ -377,7 +417,7 @@ export default async function AdminProductsPage() {
                             <p
                               className="
                                 mt-1
-                                max-w-[220px]
+                                max-w-[240px]
                                 truncate
                                 text-xs
                                 text-slate-400
@@ -401,7 +441,9 @@ export default async function AdminProductsPage() {
                           text-slate-600
                         "
                       >
-                        {product.category}
+                        {formatCategory(
+                          product.category
+                        )}
                       </td>
 
                       {/* =====================================
@@ -411,6 +453,7 @@ export default async function AdminProductsPage() {
                       <td className="px-5 py-5">
                         <span
                           className="
+                            inline-flex
                             rounded-full
                             bg-brand/[0.07]
                             px-3
@@ -434,6 +477,7 @@ export default async function AdminProductsPage() {
                           px-5
                           py-5
                           text-sm
+                          font-medium
                           text-slate-600
                         "
                       >
@@ -499,7 +543,9 @@ export default async function AdminProductsPage() {
                             gap-2
                           "
                         >
-                          {/* EDIT */}
+                          {/* =================================
+                              EDIT
+                              ================================= */}
 
                           <Link
                             href={`/admin/products/${product.id}/edit`}
@@ -517,6 +563,7 @@ export default async function AdminProductsPage() {
                               font-bold
                               text-brand
                               transition-all
+                              duration-300
                               hover:border-brand
                               hover:bg-brand/[0.05]
                             "
@@ -526,7 +573,9 @@ export default async function AdminProductsPage() {
                             Edit
                           </Link>
 
-                          {/* SHOW / HIDE */}
+                          {/* =================================
+                              SHOW / HIDE
+                              ================================= */}
 
                           <form
                             action={
@@ -565,6 +614,7 @@ export default async function AdminProductsPage() {
                                 font-bold
                                 text-brand
                                 transition-all
+                                duration-300
                                 hover:border-brand
                                 hover:bg-brand/[0.05]
                               "
@@ -585,43 +635,18 @@ export default async function AdminProductsPage() {
                             </button>
                           </form>
 
-                          {/* DELETE */}
+                          {/* =================================
+                              DELETE WITH CONFIRMATION
+                              ================================= */}
 
-                          <form
-                            action={deleteProduct}
-                          >
-                            <input
-                              type="hidden"
-                              name="productId"
-                              value={product.id}
-                            />
-
-                            <button
-                              type="submit"
-                              className="
-                                inline-flex
-                                items-center
-                                gap-1.5
-                                rounded-lg
-                                border
-                                border-red-200
-                                bg-white
-                                px-3
-                                py-2
-                                text-xs
-                                font-bold
-                                text-red-600
-                                transition-all
-                                hover:border-red-600
-                                hover:bg-red-600
-                                hover:text-white
-                              "
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-
-                              Delete
-                            </button>
-                          </form>
+                          <DeleteProductButton
+                            productId={
+                              product.id
+                            }
+                            productName={
+                              product.name
+                            }
+                          />
                         </div>
                       </td>
                     </tr>
@@ -636,14 +661,68 @@ export default async function AdminProductsPage() {
             PRODUCT COUNT
             =================================================== */}
 
-        <p className="mt-4 text-xs text-slate-400">
-          {productList.length}{" "}
-          {productList.length === 1
-            ? "product"
-            : "products"}{" "}
-          in database
-        </p>
+        <div
+          className="
+            mt-4
+            flex
+            flex-wrap
+            items-center
+            justify-between
+            gap-3
+          "
+        >
+          <p className="text-xs text-slate-400">
+            {productList.length}{" "}
+            {productList.length === 1
+              ? "product"
+              : "products"}{" "}
+            in database
+          </p>
+
+          <p className="text-xs text-slate-400">
+            {
+              productList.filter(
+                (product) =>
+                  product.isVisible
+              ).length
+            }{" "}
+            visible on website
+          </p>
+        </div>
       </div>
     </main>
+  );
+}
+
+/* =========================================================
+   FORMAT CATEGORY
+   ========================================================= */
+
+function formatCategory(
+  category: string
+) {
+  const labels: Record<
+    string,
+    string
+  > = {
+    "custom-pcs":
+      "Custom PCs",
+
+    "graphics-cards":
+      "Graphics Cards",
+
+    ram:
+      "RAM",
+
+    processors:
+      "Processors",
+
+    accessories:
+      "Accessories",
+  };
+
+  return (
+    labels[category] ??
+    category
   );
 }
