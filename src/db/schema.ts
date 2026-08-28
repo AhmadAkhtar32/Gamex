@@ -734,3 +734,155 @@ export const homepageStats = pgTable(
       .notNull(),
   }
 );
+/* =========================================================
+   FEATURES SECTION SETTINGS
+   ========================================================= */
+
+export const featuresSettings = pgTable(
+  "features_settings",
+  {
+    /*
+     * We only need one row for the homepage
+     * Features section.
+     *
+     * id = "main"
+     */
+    id: varchar("id", {
+      length: 50,
+    }).primaryKey(),
+
+    /*
+     * Small text above the main heading.
+     *
+     * Example:
+     * Why Gamex
+     */
+    eyebrow: varchar("eyebrow", {
+      length: 255,
+    }).notNull(),
+
+    /*
+     * Main Features section heading.
+     */
+    title: varchar("title", {
+      length: 255,
+    }).notNull(),
+
+    /*
+     * Optional descriptive paragraph
+     * underneath the heading.
+     */
+    subtitle: text(
+      "subtitle"
+    ).notNull(),
+
+    /*
+     * Hide/show the entire Features section.
+     */
+    isVisible: boolean(
+      "is_visible"
+    )
+      .default(true)
+      .notNull(),
+
+    createdAt: timestamp(
+      "created_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+
+    updatedAt: timestamp(
+      "updated_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+  }
+);
+
+/* =========================================================
+   HOMEPAGE FEATURE CARDS
+   ========================================================= */
+
+export const homepageFeatures = pgTable(
+  "homepage_features",
+  {
+    id: serial("id")
+      .primaryKey(),
+
+    /*
+     * Icon identifier.
+     *
+     * Examples currently used:
+     *
+     * wrench
+     * shield
+     * gauge
+     * badge
+     * zap
+     * refresh
+     */
+    icon: varchar("icon", {
+      length: 100,
+    }).notNull(),
+
+    /*
+     * Feature card heading.
+     */
+    title: varchar("title", {
+      length: 255,
+    }).notNull(),
+
+    /*
+     * Feature card description.
+     */
+    description: text(
+      "description"
+    ).notNull(),
+
+    /*
+     * Hide/show this individual card.
+     */
+    isVisible: boolean(
+      "is_visible"
+    )
+      .default(true)
+      .notNull(),
+
+    /*
+     * Card display order.
+     *
+     * 0 = first
+     * 1 = second
+     * etc.
+     */
+    sortOrder: integer(
+      "sort_order"
+    )
+      .default(0)
+      .notNull(),
+
+    createdAt: timestamp(
+      "created_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+
+    updatedAt: timestamp(
+      "updated_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+  }
+);
