@@ -1,17 +1,48 @@
 "use server";
 
+import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { db } from "@/db";
-import { contactSettings } from "@/db/schema";
+
+import {
+  contactSettings,
+  contactSocialLinks,
+} from "@/db/schema";
+
 import { requireAdmin } from "@/lib/admin-auth";
 
 /* =========================================================
    CONSTANTS
    ========================================================= */
 
-const CONTACT_SETTINGS_ID = "main";
+const CONTACT_SETTINGS_ID =
+  "main";
+
+/* =========================================================
+   SUPPORTED SOCIAL PLATFORMS
+   ========================================================= */
+
+/*
+ * The value saved here is what we will later use
+ * to automatically choose the correct brand icon.
+ */
+
+const SOCIAL_PLATFORMS = [
+  "instagram",
+  "tiktok",
+  "facebook",
+  "youtube",
+  "x",
+  "twitch",
+  "discord",
+  "whatsapp",
+  "linkedin",
+] as const;
+
+type SocialPlatform =
+  (typeof SOCIAL_PLATFORMS)[number];
 
 /* =========================================================
    HELPERS
@@ -26,6 +57,10 @@ function getText(
   ).trim();
 }
 
+/* =========================================================
+   CONTACT ERROR REDIRECT
+   ========================================================= */
+
 function redirectContactError(
   message: string
 ): never {
@@ -33,6 +68,20 @@ function redirectContactError(
     `/admin/content/contact?error=${encodeURIComponent(
       message
     )}`
+  );
+}
+
+/* =========================================================
+   SOCIAL ERROR REDIRECT
+   ========================================================= */
+
+function redirectSocialError(
+  message: string
+): never {
+  redirect(
+    `/admin/content/contact?error=${encodeURIComponent(
+      message
+    )}#social-links`
   );
 }
 
@@ -49,25 +98,52 @@ function isValidEmail(
 }
 
 /* =========================================================
-   URL VALIDATION
+   URL NORMALIZATION
    ========================================================= */
 
 /*
- * Social links may be left blank.
+ * Admin can enter:
  *
- * When provided, they must use:
+ * instagram.com/gamex
  *
- * https://...
- * http://...
+ * or:
+ *
+ * https://instagram.com/gamex
+ *
+ * We automatically add https:// when necessary.
  */
 
-function isValidOptionalUrl(
+function normalizeUrl(
   value: string
 ) {
-  if (!value) {
-    return true;
+  const trimmed =
+    value.trim();
+
+  if (!trimmed) {
+    return "";
   }
 
+  if (
+    trimmed.startsWith(
+      "https://"
+    ) ||
+    trimmed.startsWith(
+      "http://"
+    )
+  ) {
+    return trimmed;
+  }
+
+  return `https://${trimmed}`;
+}
+
+/* =========================================================
+   URL VALIDATION
+   ========================================================= */
+
+function isValidUrl(
+  value: string
+) {
   try {
     const url =
       new URL(value);
@@ -81,6 +157,116 @@ function isValidOptionalUrl(
   } catch {
     return false;
   }
+}
+
+/* =========================================================
+   OPTIONAL URL VALIDATION
+   ========================================================= */
+
+function isValidOptionalUrl(
+  value: string
+) {
+  if (!value) {
+    return true;
+  }
+
+  return isValidUrl(
+    value
+  );
+}
+
+/* =========================================================
+   SOCIAL PLATFORM VALIDATION
+   ========================================================= */
+
+function isSocialPlatform(
+  value: string
+): value is SocialPlatform {
+  return SOCIAL_PLATFORMS.includes(
+    value as SocialPlatform
+  );
+}
+
+/* =========================================================
+   SOCIAL ID PARSER
+   ========================================================= */
+
+function parseSocialId(
+  formData: FormData
+) {
+  const raw =
+    getText(
+      formData,
+      "socialId"
+    );
+
+  const id =
+    Number.parseInt(
+      raw,
+      10
+    );
+
+  if (
+    !Number.isFinite(id) ||
+    id <= 0
+  ) {
+    redirectSocialError(
+      "Invalid social link."
+    );
+  }
+
+  return id;
+}
+
+/* =========================================================
+   SORT ORDER PARSER
+   ========================================================= */
+
+function parseSortOrder(
+  formData: FormData
+) {
+  const raw =
+    getText(
+      formData,
+      "sortOrder"
+    );
+
+  /*
+   * Empty order defaults to zero.
+   */
+
+  if (!raw) {
+    return 0;
+  }
+
+  const value =
+    Number.parseInt(
+      raw,
+      10
+    );
+
+  if (
+    !Number.isFinite(value) ||
+    value < 0
+  ) {
+    redirectSocialError(
+      "Display order must be zero or greater."
+    );
+  }
+
+  return value;
+}
+
+/* =========================================================
+   REFRESH CONTACT
+   ========================================================= */
+
+function refreshContactPages() {
+  revalidatePath(
+    "/admin/content/contact"
+  );
+
+  revalidatePath("/");
 }
 
 /* =========================================================
@@ -115,7 +301,7 @@ export async function saveContactSettings(
     );
 
   /* =======================================================
-     CONTACT DETAILS
+     CONTACT INFORMATION
      ======================================================= */
 
   const emailLabel =
@@ -167,7 +353,7 @@ export async function saveContactSettings(
     );
 
   /* =======================================================
-     SOCIAL LINKS
+     SOCIAL HEADING
      ======================================================= */
 
   const socialHeading =
@@ -176,28 +362,44 @@ export async function saveContactSettings(
       "socialHeading"
     );
 
+  /*
+   * These four legacy fields are temporarily retained
+   * because they already exist in contact_settings.
+   *
+   * Once the dynamic social manager is fully connected,
+   * they will no longer be used by the public website.
+   */
+
   const xUrl =
-    getText(
-      formData,
-      "xUrl"
+    normalizeUrl(
+      getText(
+        formData,
+        "xUrl"
+      )
     );
 
   const instagramUrl =
-    getText(
-      formData,
-      "instagramUrl"
+    normalizeUrl(
+      getText(
+        formData,
+        "instagramUrl"
+      )
     );
 
   const youtubeUrl =
-    getText(
-      formData,
-      "youtubeUrl"
+    normalizeUrl(
+      getText(
+        formData,
+        "youtubeUrl"
+      )
     );
 
   const twitchUrl =
-    getText(
-      formData,
-      "twitchUrl"
+    normalizeUrl(
+      getText(
+        formData,
+        "twitchUrl"
+      )
     );
 
   /* =======================================================
@@ -268,7 +470,7 @@ export async function saveContactSettings(
     ) === "on";
 
   /* =======================================================
-     REQUIRED FIELD VALIDATION
+     REQUIRED VALIDATION
      ======================================================= */
 
   if (!eyebrow) {
@@ -351,10 +553,6 @@ export async function saveContactSettings(
     );
   }
 
-  /* =======================================================
-     CONTACT FORM VALIDATION
-     ======================================================= */
-
   if (!nameLabel) {
     redirectContactError(
       "Name field label is required."
@@ -373,7 +571,9 @@ export async function saveContactSettings(
     );
   }
 
-  if (!formEmailPlaceholder) {
+  if (
+    !formEmailPlaceholder
+  ) {
     redirectContactError(
       "Form email placeholder is required."
     );
@@ -413,37 +613,55 @@ export async function saveContactSettings(
      LENGTH VALIDATION
      ======================================================= */
 
-  if (eyebrow.length > 255) {
+  if (
+    eyebrow.length >
+    255
+  ) {
     redirectContactError(
       "Section eyebrow is too long."
     );
   }
 
-  if (title.length > 255) {
+  if (
+    title.length >
+    255
+  ) {
     redirectContactError(
       "Section title is too long."
     );
   }
 
-  if (emailLabel.length > 100) {
+  if (
+    emailLabel.length >
+    100
+  ) {
     redirectContactError(
       "Email label is too long."
     );
   }
 
-  if (email.length > 255) {
+  if (
+    email.length >
+    255
+  ) {
     redirectContactError(
       "Email address is too long."
     );
   }
 
-  if (phoneLabel.length > 100) {
+  if (
+    phoneLabel.length >
+    100
+  ) {
     redirectContactError(
       "Phone label is too long."
     );
   }
 
-  if (phone.length > 100) {
+  if (
+    phone.length >
+    100
+  ) {
     redirectContactError(
       "Phone number is too long."
     );
@@ -458,13 +676,19 @@ export async function saveContactSettings(
     );
   }
 
-  if (hoursLabel.length > 100) {
+  if (
+    hoursLabel.length >
+    100
+  ) {
     redirectContactError(
       "Hours label is too long."
     );
   }
 
-  if (hours.length > 255) {
+  if (
+    hours.length >
+    255
+  ) {
     redirectContactError(
       "Business hours text is too long."
     );
@@ -479,7 +703,10 @@ export async function saveContactSettings(
     );
   }
 
-  if (nameLabel.length > 100) {
+  if (
+    nameLabel.length >
+    100
+  ) {
     redirectContactError(
       "Name label is too long."
     );
@@ -549,7 +776,7 @@ export async function saveContactSettings(
   }
 
   /* =======================================================
-     SOCIAL URL VALIDATION
+     LEGACY SOCIAL URL VALIDATION
      ======================================================= */
 
   if (
@@ -558,7 +785,7 @@ export async function saveContactSettings(
     )
   ) {
     redirectContactError(
-      "X / Twitter link must be a valid http or https URL."
+      "X / Twitter link is invalid."
     );
   }
 
@@ -568,7 +795,7 @@ export async function saveContactSettings(
     )
   ) {
     redirectContactError(
-      "Instagram link must be a valid http or https URL."
+      "Instagram link is invalid."
     );
   }
 
@@ -578,7 +805,7 @@ export async function saveContactSettings(
     )
   ) {
     redirectContactError(
-      "YouTube link must be a valid http or https URL."
+      "YouTube link is invalid."
     );
   }
 
@@ -588,12 +815,12 @@ export async function saveContactSettings(
     )
   ) {
     redirectContactError(
-      "Twitch link must be a valid http or https URL."
+      "Twitch link is invalid."
     );
   }
 
   /* =======================================================
-     SAVE TO DATABASE
+     SAVE SETTINGS
      ======================================================= */
 
   await db
@@ -605,51 +832,38 @@ export async function saveContactSettings(
         CONTACT_SETTINGS_ID,
 
       eyebrow,
-
       title,
-
       subtitle,
 
       emailLabel,
-
       email,
 
       phoneLabel,
-
       phone,
 
       addressLabel,
-
       address,
 
       hoursLabel,
-
       hours,
 
       socialHeading,
 
       xUrl,
-
       instagramUrl,
-
       youtubeUrl,
-
       twitchUrl,
 
       nameLabel,
-
       namePlaceholder,
 
       formEmailLabel,
-
       formEmailPlaceholder,
 
       subjectLabel,
-
       subjectPlaceholder,
 
       messageLabel,
-
       messagePlaceholder,
 
       submitButtonText,
@@ -662,51 +876,38 @@ export async function saveContactSettings(
 
       set: {
         eyebrow,
-
         title,
-
         subtitle,
 
         emailLabel,
-
         email,
 
         phoneLabel,
-
         phone,
 
         addressLabel,
-
         address,
 
         hoursLabel,
-
         hours,
 
         socialHeading,
 
         xUrl,
-
         instagramUrl,
-
         youtubeUrl,
-
         twitchUrl,
 
         nameLabel,
-
         namePlaceholder,
 
         formEmailLabel,
-
         formEmailPlaceholder,
 
         subjectLabel,
-
         subjectPlaceholder,
 
         messageLabel,
-
         messagePlaceholder,
 
         submitButtonText,
@@ -718,21 +919,400 @@ export async function saveContactSettings(
       },
     });
 
-  /* =======================================================
-     REFRESH PAGES
-     ======================================================= */
-
-  revalidatePath(
-    "/admin/content/contact"
-  );
-
-  revalidatePath("/");
-
-  /* =======================================================
-     REDIRECT
-     ======================================================= */
+  refreshContactPages();
 
   redirect(
     "/admin/content/contact?saved=1"
+  );
+}
+
+/* =========================================================
+   CREATE SOCIAL LINK
+   ========================================================= */
+
+export async function createSocialLink(
+  formData: FormData
+) {
+  await requireAdmin();
+
+  /* =======================================================
+     PLATFORM
+     ======================================================= */
+
+  const platform =
+    getText(
+      formData,
+      "platform"
+    ).toLowerCase();
+
+  if (!platform) {
+    redirectSocialError(
+      "Please choose a social platform."
+    );
+  }
+
+  if (
+    !isSocialPlatform(
+      platform
+    )
+  ) {
+    redirectSocialError(
+      "Unsupported social platform."
+    );
+  }
+
+  /* =======================================================
+     URL
+     ======================================================= */
+
+  const url =
+    normalizeUrl(
+      getText(
+        formData,
+        "url"
+      )
+    );
+
+  if (!url) {
+    redirectSocialError(
+      "Social profile URL is required."
+    );
+  }
+
+  if (
+    url.length >
+    1000
+  ) {
+    redirectSocialError(
+      "Social profile URL is too long."
+    );
+  }
+
+  if (
+    !isValidUrl(url)
+  ) {
+    redirectSocialError(
+      "Please enter a valid social profile URL."
+    );
+  }
+
+  /* =======================================================
+     ORDER
+     ======================================================= */
+
+  const sortOrder =
+    parseSortOrder(
+      formData
+    );
+
+  /* =======================================================
+     VISIBILITY
+     ======================================================= */
+
+  const isVisible =
+    formData.get(
+      "isVisible"
+    ) === "on";
+
+  /* =======================================================
+     INSERT
+     ======================================================= */
+
+  await db
+    .insert(
+      contactSocialLinks
+    )
+    .values({
+      platform,
+      url,
+      sortOrder,
+      isVisible,
+    });
+
+  refreshContactPages();
+
+  redirect(
+    "/admin/content/contact?socialCreated=1#social-links"
+  );
+}
+
+/* =========================================================
+   UPDATE SOCIAL LINK
+   ========================================================= */
+
+export async function updateSocialLink(
+  formData: FormData
+) {
+  await requireAdmin();
+
+  const id =
+    parseSocialId(
+      formData
+    );
+
+  /* =======================================================
+     CHECK EXISTENCE
+     ======================================================= */
+
+  const existing =
+    await db
+      .select({
+        id:
+          contactSocialLinks.id,
+      })
+      .from(
+        contactSocialLinks
+      )
+      .where(
+        eq(
+          contactSocialLinks.id,
+          id
+        )
+      )
+      .limit(1);
+
+  if (!existing[0]) {
+    redirectSocialError(
+      "Social link could not be found."
+    );
+  }
+
+  /* =======================================================
+     PLATFORM
+     ======================================================= */
+
+  const platform =
+    getText(
+      formData,
+      "platform"
+    ).toLowerCase();
+
+  if (
+    !isSocialPlatform(
+      platform
+    )
+  ) {
+    redirectSocialError(
+      "Please choose a supported social platform."
+    );
+  }
+
+  /* =======================================================
+     URL
+     ======================================================= */
+
+  const url =
+    normalizeUrl(
+      getText(
+        formData,
+        "url"
+      )
+    );
+
+  if (!url) {
+    redirectSocialError(
+      "Social profile URL is required."
+    );
+  }
+
+  if (
+    url.length >
+    1000
+  ) {
+    redirectSocialError(
+      "Social profile URL is too long."
+    );
+  }
+
+  if (
+    !isValidUrl(url)
+  ) {
+    redirectSocialError(
+      "Please enter a valid social profile URL."
+    );
+  }
+
+  /* =======================================================
+     ORDER
+     ======================================================= */
+
+  const sortOrder =
+    parseSortOrder(
+      formData
+    );
+
+  /* =======================================================
+     VISIBILITY
+     ======================================================= */
+
+  const isVisible =
+    formData.get(
+      "isVisible"
+    ) === "on";
+
+  /* =======================================================
+     UPDATE
+     ======================================================= */
+
+  await db
+    .update(
+      contactSocialLinks
+    )
+    .set({
+      platform,
+      url,
+      sortOrder,
+      isVisible,
+
+      updatedAt:
+        new Date(),
+    })
+    .where(
+      eq(
+        contactSocialLinks.id,
+        id
+      )
+    );
+
+  refreshContactPages();
+
+  redirect(
+    "/admin/content/contact?socialUpdated=1#social-links"
+  );
+}
+
+/* =========================================================
+   SHOW / HIDE SOCIAL LINK
+   ========================================================= */
+
+export async function toggleSocialLinkVisibility(
+  formData: FormData
+) {
+  await requireAdmin();
+
+  const id =
+    parseSocialId(
+      formData
+    );
+
+  /* =======================================================
+     LOAD CURRENT VALUE
+     ======================================================= */
+
+  const rows =
+    await db
+      .select({
+        isVisible:
+          contactSocialLinks.isVisible,
+      })
+      .from(
+        contactSocialLinks
+      )
+      .where(
+        eq(
+          contactSocialLinks.id,
+          id
+        )
+      )
+      .limit(1);
+
+  const social =
+    rows[0];
+
+  if (!social) {
+    redirectSocialError(
+      "Social link could not be found."
+    );
+  }
+
+  /* =======================================================
+     TOGGLE
+     ======================================================= */
+
+  await db
+    .update(
+      contactSocialLinks
+    )
+    .set({
+      isVisible:
+        !social.isVisible,
+
+      updatedAt:
+        new Date(),
+    })
+    .where(
+      eq(
+        contactSocialLinks.id,
+        id
+      )
+    );
+
+  refreshContactPages();
+
+  redirect(
+    "/admin/content/contact?socialVisibility=1#social-links"
+  );
+}
+
+/* =========================================================
+   DELETE SOCIAL LINK
+   ========================================================= */
+
+export async function deleteSocialLink(
+  formData: FormData
+) {
+  await requireAdmin();
+
+  const id =
+    parseSocialId(
+      formData
+    );
+
+  /* =======================================================
+     CHECK EXISTENCE
+     ======================================================= */
+
+  const existing =
+    await db
+      .select({
+        id:
+          contactSocialLinks.id,
+      })
+      .from(
+        contactSocialLinks
+      )
+      .where(
+        eq(
+          contactSocialLinks.id,
+          id
+        )
+      )
+      .limit(1);
+
+  if (!existing[0]) {
+    redirectSocialError(
+      "Social link could not be found."
+    );
+  }
+
+  /* =======================================================
+     DELETE
+     ======================================================= */
+
+  await db
+    .delete(
+      contactSocialLinks
+    )
+    .where(
+      eq(
+        contactSocialLinks.id,
+        id
+      )
+    );
+
+  refreshContactPages();
+
+  redirect(
+    "/admin/content/contact?socialDeleted=1#social-links"
   );
 }
