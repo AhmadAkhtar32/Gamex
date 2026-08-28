@@ -15,6 +15,7 @@ import {
   Wrench,
   Zap,
 } from "lucide-react";
+import DeleteFeatureButton from "./DeleteFeatureButton";
 
 import {
   asc,
@@ -1137,22 +1138,12 @@ export default async function FeaturesAdminPage({
 
                               {/* DELETE PLACEHOLDER */}
 
-                              <span
-                                className="
-                                  rounded-lg
-                                  border
-                                  border-red-100
-                                  bg-red-50
-                                  px-3
-                                  py-2
-                                  text-xs
-                                  font-bold
-                                  text-red-400
-                                "
-                                title="Delete confirmation component comes next"
-                              >
-                                Delete
-                              </span>
+                              {/* DELETE */}
+
+<DeleteFeatureButton
+  featureId={feature.id}
+  featureTitle={feature.title}
+/>
                             </div>
                           </td>
                         </tr>
