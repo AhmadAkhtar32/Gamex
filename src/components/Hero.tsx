@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
 import {
   AnimatePresence,
   motion,
@@ -9,28 +10,34 @@ import {
   useTransform,
   type Variants,
 } from "framer-motion";
+
 import {
   Cpu,
   Gauge,
   MousePointerClick,
   Zap,
 } from "lucide-react";
+
+import {
+  DEFAULT_HERO_CONTENT,
+  type HeroContent,
+} from "@/lib/hero-content";
+
 import {
   GlitchText,
   Magnetic,
 } from "./ui";
+
 import {
   MouseIndicator,
   ScrambleText,
 } from "./fx";
+
 import { useReady } from "./chrome";
 
-const WORDS = [
-  "MATCH.",
-  "RAID.",
-  "BATTLE.",
-  "FRAME.",
-];
+/* =========================================================
+   ANIMATION VARIANTS
+   ========================================================= */
 
 const container: Variants = {
   hidden: {},
@@ -55,8 +62,27 @@ const item: Variants = {
   }),
 };
 
-export function Hero() {
+/* =========================================================
+   HERO
+   ========================================================= */
+
+export function Hero({
+  content,
+}: {
+  content: HeroContent;
+}) {
   const ready = useReady();
+
+  /* =========================================================
+     ROTATING WORDS
+     ========================================================= */
+
+  const words =
+    content.rotatingWords.length > 0
+      ? content.rotatingWords
+      : DEFAULT_HERO_CONTENT.rotatingWords;
+
+  const wordCount = words.length;
 
   const [wordIndex, setWordIndex] =
     useState(0);
@@ -65,14 +91,14 @@ export function Hero() {
     const timer = setInterval(() => {
       setWordIndex(
         (value) =>
-          (value + 1) % WORDS.length
+          (value + 1) % wordCount
       );
     }, 2300);
 
     return () => {
       clearInterval(timer);
     };
-  }, []);
+  }, [wordCount]);
 
   /* =========================================================
      MOUSE PARALLAX
@@ -145,6 +171,18 @@ export function Hero() {
         0.5
     );
   }
+
+  /* =========================================================
+     VISIBILITY
+     ========================================================= */
+
+  if (!content.isVisible) {
+    return null;
+  }
+
+  /* =========================================================
+     HERO UI
+     ========================================================= */
 
   return (
     <section
@@ -270,11 +308,15 @@ export function Hero() {
         <motion.div
           initial="hidden"
           animate={
-            ready ? "show" : "hidden"
+            ready
+              ? "show"
+              : "hidden"
           }
           variants={container}
         >
-          {/* Eyebrow */}
+          {/* =================================================
+              EYEBROW
+              ================================================= */}
 
           <motion.span
             variants={item}
@@ -308,7 +350,7 @@ export function Hero() {
               <Zap className="h-3.5 w-3.5" />
 
               <ScrambleText
-                text="Premium Gaming Hardware"
+                text={content.eyebrow}
                 duration={1200}
               />
             </span>
@@ -332,15 +374,19 @@ export function Hero() {
               lg:text-7xl
             "
           >
+            {/* Heading line 1 */}
+
             <span className="block">
               <motion.span
                 variants={item}
                 custom={1}
                 className="inline-block"
               >
-                Dominate
+                {content.headingLine1}
               </motion.span>
             </span>
+
+            {/* Heading line 2 + rotating word */}
 
             <span className="block">
               <motion.span
@@ -348,7 +394,8 @@ export function Hero() {
                 custom={2}
                 className="inline-block"
               >
-                every&nbsp;
+                {content.headingLine2}
+                &nbsp;
               </motion.span>
 
               <motion.span
@@ -370,7 +417,9 @@ export function Hero() {
                 >
                   <AnimatePresence mode="wait">
                     <motion.span
-                      key={WORDS[wordIndex]}
+                      key={
+                        words[wordIndex]
+                      }
                       initial={{
                         y: "105%",
                         opacity: 0,
@@ -391,7 +440,9 @@ export function Hero() {
                     >
                       <GlitchText
                         text={
-                          WORDS[wordIndex]
+                          words[
+                            wordIndex
+                          ]
                         }
                       />
                     </motion.span>
@@ -417,12 +468,7 @@ export function Hero() {
               md:text-xl
             "
           >
-            Gamex builds custom
-            high-performance gaming PCs
-            and supplies pro-grade graphics
-            cards, memory, processors and
-            accessories — engineered for
-            players who refuse to lose.
+            {content.description}
           </motion.p>
 
           {/* =================================================
@@ -440,11 +486,15 @@ export function Hero() {
               gap-4
             "
           >
-            {/* Primary CTA */}
+            {/* ===============================================
+                PRIMARY CTA
+                =============================================== */}
 
             <Magnetic>
               <a
-                href="#builds"
+                href={
+                  content.primaryButtonLink
+                }
                 className="
                   cta-pulse
                   group
@@ -474,7 +524,9 @@ export function Hero() {
                   hover:bg-brand-soft
                 "
               >
-                Explore Builds
+                {
+                  content.primaryButtonText
+                }
 
                 <span
                   className="
@@ -488,11 +540,15 @@ export function Hero() {
               </a>
             </Magnetic>
 
-            {/* Secondary CTA */}
+            {/* ===============================================
+                SECONDARY CTA
+                =============================================== */}
 
             <Magnetic strength={0.25}>
               <a
-                href="#products"
+                href={
+                  content.secondaryButtonLink
+                }
                 className="
                   inline-flex
                   items-center
@@ -528,7 +584,9 @@ export function Hero() {
                   hover:text-brand
                 "
               >
-                Shop Components
+                {
+                  content.secondaryButtonText
+                }
               </a>
             </Magnetic>
           </motion.div>
@@ -552,6 +610,8 @@ export function Hero() {
               text-slate-500
             "
           >
+            {/* Trust 1 */}
+
             <span
               className="
                 inline-flex
@@ -561,8 +621,10 @@ export function Hero() {
             >
               <Gauge className="h-4 w-4 text-brand" />
 
-              Benchmark-tested
+              {content.trustPoint1}
             </span>
+
+            {/* Trust 2 */}
 
             <span
               className="
@@ -573,8 +635,10 @@ export function Hero() {
             >
               <Cpu className="h-4 w-4 text-brand" />
 
-              Certified silicon
+              {content.trustPoint2}
             </span>
+
+            {/* Trust 3 */}
 
             <span
               className="
@@ -585,7 +649,7 @@ export function Hero() {
             >
               <MousePointerClick className="h-4 w-4 text-brand" />
 
-              12,000+ happy gamers
+              {content.trustPoint3}
             </span>
           </motion.div>
         </motion.div>
@@ -627,7 +691,9 @@ export function Hero() {
             max-w-xl
           "
         >
-          {/* Rotating dashed frame */}
+          {/* =================================================
+              ROTATING DASHED FRAME
+              ================================================= */}
 
           <div
             className="
@@ -643,11 +709,16 @@ export function Hero() {
             "
           />
 
+          {/* =================================================
+              PARALLAX IMAGE CARD
+              ================================================= */}
+
           <motion.div
             style={{
               rotateX,
               rotateY,
-              transformPerspective: 1100,
+              transformPerspective:
+                1100,
             }}
             className="relative"
           >
@@ -679,7 +750,9 @@ export function Hero() {
               "
             />
 
-            {/* Main PC image card */}
+            {/* =================================================
+                MAIN PC IMAGE CARD
+                ================================================= */}
 
             <div
               className="
@@ -703,9 +776,14 @@ export function Hero() {
                   overflow-hidden
                 "
               >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="https://images.pexels.com/photos/34301924/pexels-photo-34301924.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
-                  alt="Gamex custom gaming PC with RGB lighting"
+                  src={
+                    content.image
+                  }
+                  alt={
+                    content.imageAlt
+                  }
                   className="
                     animate-kenburns
                     h-full
@@ -716,6 +794,7 @@ export function Hero() {
 
                 {/*
                   Keep a dark overlay ON THE IMAGE.
+
                   This is intentional because white
                   text sits over the photograph.
                 */}
@@ -733,7 +812,9 @@ export function Hero() {
 
                 <div className="scanline" />
 
-                {/* Image information */}
+                {/* =============================================
+                    IMAGE INFORMATION
+                    ============================================= */}
 
                 <div
                   className="
@@ -747,6 +828,8 @@ export function Hero() {
                   "
                 >
                   <div>
+                    {/* Image title */}
+
                     <p
                       className="
                         font-display
@@ -757,8 +840,12 @@ export function Hero() {
                         text-white
                       "
                     >
-                      Titan Series
+                      {
+                        content.imageTitle
+                      }
                     </p>
+
+                    {/* Image subtitle */}
 
                     <p
                       className="
@@ -769,9 +856,13 @@ export function Hero() {
                         text-white/65
                       "
                     >
-                      Flagship Build
+                      {
+                        content.imageSubtitle
+                      }
                     </p>
                   </div>
+
+                  {/* Image badge */}
 
                   <span
                     className="
@@ -796,7 +887,7 @@ export function Hero() {
                       backdrop-blur
                     "
                   >
-                    Live
+                    {content.imageBadge}
                   </span>
                 </div>
               </div>
@@ -846,7 +937,9 @@ export function Hero() {
                   text-brand-deep
                 "
               >
-                Flagship GPU
+                {
+                  content.chip1Title
+                }
               </p>
 
               <p
@@ -858,7 +951,9 @@ export function Hero() {
                   text-slate-500
                 "
               >
-                Next-gen VRAM
+                {
+                  content.chip1Subtitle
+                }
               </p>
             </div>
           </motion.div>
@@ -905,7 +1000,9 @@ export function Hero() {
                   text-brand-deep
                 "
               >
-                High-Capacity
+                {
+                  content.chip2Title
+                }
               </p>
 
               <p
@@ -917,7 +1014,9 @@ export function Hero() {
                   text-slate-500
                 "
               >
-                Blazing Fast Memory
+                {
+                  content.chip2Subtitle
+                }
               </p>
             </div>
           </motion.div>
@@ -963,7 +1062,9 @@ export function Hero() {
                   text-brand
                 "
               >
-                300+ FPS
+                {
+                  content.chip3Title
+                }
               </p>
 
               <p
@@ -975,7 +1076,9 @@ export function Hero() {
                   text-slate-500
                 "
               >
-                Esports Ready
+                {
+                  content.chip3Subtitle
+                }
               </p>
             </div>
           </motion.div>
@@ -991,7 +1094,8 @@ export function Hero() {
           opacity: 0,
         }}
         animate={{
-          opacity: ready ? 1 : 0,
+          opacity:
+            ready ? 1 : 0,
         }}
         transition={{
           delay: 1.4,
