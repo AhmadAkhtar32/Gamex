@@ -50,6 +50,13 @@
       "when": 1787929118091,
       "tag": "0006_add-contact-settings",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1787929983699,
+      "tag": "0007_add-contact-social-links",
+      "breakpoints": true
     }
   ]
 }
