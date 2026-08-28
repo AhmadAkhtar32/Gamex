@@ -658,3 +658,79 @@ export const heroSettings = pgTable(
       .notNull(),
   }
 );
+/* =========================================================
+   HOMEPAGE STATS
+   ========================================================= */
+
+export const homepageStats = pgTable(
+  "homepage_stats",
+  {
+    id: serial("id")
+      .primaryKey(),
+
+    /*
+     * Large number/value displayed on the website.
+     *
+     * Examples:
+     * 12K+
+     * 3.5K+
+     * 48h
+     * 24/7
+     */
+    value: varchar("value", {
+      length: 100,
+    }).notNull(),
+
+    /*
+     * Description shown below the value.
+     *
+     * Examples:
+     * Gamers Equipped
+     * Custom Builds
+     */
+    label: varchar("label", {
+      length: 255,
+    }).notNull(),
+
+    /*
+     * Allows hiding an individual stat
+     * without deleting it.
+     */
+    isVisible: boolean(
+      "is_visible"
+    )
+      .default(true)
+      .notNull(),
+
+    /*
+     * Controls left-to-right display order.
+     *
+     * 0 = first
+     * 1 = second
+     * 2 = third
+     */
+    sortOrder: integer(
+      "sort_order"
+    )
+      .default(0)
+      .notNull(),
+
+    createdAt: timestamp(
+      "created_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+
+    updatedAt: timestamp(
+      "updated_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+  }
+);
