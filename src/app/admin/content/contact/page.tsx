@@ -12,27 +12,22 @@ import {
 } from "lucide-react";
 
 import {
-  FaFacebookF,
-  FaInstagram,
-  FaLinkedinIn,
-  FaTiktok,
-  FaTwitch,
-  FaWhatsapp,
-  FaXTwitter,
-  FaYoutube,
-} from "react-icons/fa6";
-
-import {
-  FaDiscord,
-} from "react-icons/fa";
-
-import { eq } from "drizzle-orm";
+  asc,
+  eq,
+} from "drizzle-orm";
 
 import { db } from "@/db";
-import { contactSettings } from "@/db/schema";
+
+import {
+  contactSettings,
+  contactSocialLinks,
+} from "@/db/schema";
+
 import { requireAdmin } from "@/lib/admin-auth";
 
 import { saveContactSettings } from "./actions";
+
+import SocialLinksManager from "./SocialLinksManager";
 
 /* =========================================================
    TYPES
@@ -42,6 +37,11 @@ type ContactAdminPageProps = {
   searchParams: Promise<{
     saved?: string;
     error?: string;
+
+    socialCreated?: string;
+    socialUpdated?: string;
+    socialDeleted?: string;
+    socialVisibility?: string;
   }>;
 };
 
@@ -80,6 +80,15 @@ const DEFAULT_CONTACT_SETTINGS = {
   socialHeading:
     "Follow Gamex",
 
+  /*
+   * Legacy fields.
+   *
+   * We keep these temporarily because they still
+   * exist in contact_settings.
+   *
+   * The public website will eventually use
+   * contact_social_links instead.
+   */
   xUrl: "",
 
   instagramUrl: "",
@@ -127,10 +136,10 @@ export default async function ContactAdminPage({
     await searchParams;
 
   /* =========================================================
-     LOAD SETTINGS
+     LOAD CONTACT SETTINGS
      ========================================================= */
 
-  const rows =
+  const settingsRows =
     await db
       .select()
       .from(contactSettings)
@@ -143,8 +152,42 @@ export default async function ContactAdminPage({
       .limit(1);
 
   const settings =
-    rows[0] ??
+    settingsRows[0] ??
     DEFAULT_CONTACT_SETTINGS;
+
+  /* =========================================================
+     LOAD SOCIAL LINKS
+     ========================================================= */
+
+  const socialLinks =
+    await db
+      .select({
+        id:
+          contactSocialLinks.id,
+
+        platform:
+          contactSocialLinks.platform,
+
+        url:
+          contactSocialLinks.url,
+
+        isVisible:
+          contactSocialLinks.isVisible,
+
+        sortOrder:
+          contactSocialLinks.sortOrder,
+      })
+      .from(
+        contactSocialLinks
+      )
+      .orderBy(
+        asc(
+          contactSocialLinks.sortOrder
+        ),
+        asc(
+          contactSocialLinks.id
+        )
+      );
 
   /* =========================================================
      PAGE
@@ -273,32 +316,60 @@ export default async function ContactAdminPage({
               text-slate-500
             "
           >
-            Manage the public contact information, contact form,
-            social media links, and section visibility.
+            Manage the contact section, public contact
+            information, social profiles, contact form text,
+            and section visibility.
           </p>
         </div>
 
         {/* ===================================================
-            SUCCESS
+            CONTACT SAVED
             =================================================== */}
 
         {query.saved === "1" ? (
-          <div
-            className="
-              mt-7
-              rounded-xl
-              border
-              border-emerald-200
-              bg-emerald-50
-              px-5
-              py-4
-              text-sm
-              font-semibold
-              text-emerald-700
-            "
-          >
+          <SuccessMessage>
             Contact section settings saved successfully.
-          </div>
+          </SuccessMessage>
+        ) : null}
+
+        {/* ===================================================
+            SOCIAL CREATED
+            =================================================== */}
+
+        {query.socialCreated === "1" ? (
+          <SuccessMessage>
+            Social link added successfully.
+          </SuccessMessage>
+        ) : null}
+
+        {/* ===================================================
+            SOCIAL UPDATED
+            =================================================== */}
+
+        {query.socialUpdated === "1" ? (
+          <SuccessMessage>
+            Social link updated successfully.
+          </SuccessMessage>
+        ) : null}
+
+        {/* ===================================================
+            SOCIAL VISIBILITY
+            =================================================== */}
+
+        {query.socialVisibility === "1" ? (
+          <SuccessMessage>
+            Social link visibility updated.
+          </SuccessMessage>
+        ) : null}
+
+        {/* ===================================================
+            SOCIAL DELETED
+            =================================================== */}
+
+        {query.socialDeleted === "1" ? (
+          <SuccessMessage>
+            Social link deleted successfully.
+          </SuccessMessage>
         ) : null}
 
         {/* ===================================================
@@ -325,11 +396,13 @@ export default async function ContactAdminPage({
         ) : null}
 
         {/* ===================================================
-            FORM
+            CONTACT SETTINGS FORM
             =================================================== */}
 
         <form
-          action={saveContactSettings}
+          action={
+            saveContactSettings
+          }
           className="mt-8 space-y-8"
         >
           {/* =================================================
@@ -347,6 +420,8 @@ export default async function ContactAdminPage({
                 md:grid-cols-2
               "
             >
+              {/* EYEBROW */}
+
               <Field label="Eyebrow">
                 <input
                   name="eyebrow"
@@ -359,6 +434,8 @@ export default async function ContactAdminPage({
                   className={inputClass}
                 />
               </Field>
+
+              {/* TITLE */}
 
               <Field label="Section Title">
                 <input
@@ -373,6 +450,8 @@ export default async function ContactAdminPage({
                 />
               </Field>
 
+              {/* SUBTITLE */}
+
               <div className="md:col-span-2">
                 <Field label="Subtitle">
                   <textarea
@@ -382,13 +461,17 @@ export default async function ContactAdminPage({
                     defaultValue={
                       settings.subtitle
                     }
-                    className={textareaClass}
+                    className={
+                      textareaClass
+                    }
                   />
                 </Field>
               </div>
             </div>
 
-            {/* VISIBILITY */}
+            {/* ===============================================
+                VISIBILITY
+                =============================================== */}
 
             <div
               className="
@@ -453,8 +536,8 @@ export default async function ContactAdminPage({
                       text-slate-500
                     "
                   >
-                    Turning this off hides the Contact section but
-                    does not delete submitted customer messages.
+                    Hiding this section does not delete contact
+                    settings or submitted customer messages.
                   </span>
                 </span>
               </label>
@@ -462,7 +545,7 @@ export default async function ContactAdminPage({
           </SectionCard>
 
           {/* =================================================
-              CONTACT DETAILS
+              PUBLIC CONTACT INFORMATION
               ================================================= */}
 
           <SectionCard
@@ -476,7 +559,9 @@ export default async function ContactAdminPage({
                 lg:grid-cols-2
               "
             >
-              {/* EMAIL */}
+              {/* =============================================
+                  EMAIL
+                  ============================================= */}
 
               <ContactFieldGroup
                 icon={
@@ -512,7 +597,9 @@ export default async function ContactAdminPage({
                 </div>
               </ContactFieldGroup>
 
-              {/* PHONE */}
+              {/* =============================================
+                  PHONE
+                  ============================================= */}
 
               <ContactFieldGroup
                 icon={
@@ -547,7 +634,9 @@ export default async function ContactAdminPage({
                 </div>
               </ContactFieldGroup>
 
-              {/* ADDRESS */}
+              {/* =============================================
+                  ADDRESS
+                  ============================================= */}
 
               <ContactFieldGroup
                 icon={
@@ -576,13 +665,17 @@ export default async function ContactAdminPage({
                       defaultValue={
                         settings.address
                       }
-                      className={textareaClass}
+                      className={
+                        textareaClass
+                      }
                     />
                   </Field>
                 </div>
               </ContactFieldGroup>
 
-              {/* HOURS */}
+              {/* =============================================
+                  HOURS
+                  ============================================= */}
 
               <ContactFieldGroup
                 icon={
@@ -620,14 +713,14 @@ export default async function ContactAdminPage({
           </SectionCard>
 
           {/* =================================================
-              SOCIAL MEDIA
+              SOCIAL HEADING
               ================================================= */}
 
           <SectionCard
             eyebrow="Social Media"
-            title="Social Links"
+            title="Social Section Settings"
           >
-            <Field label="Social Section Heading">
+            <Field label="Social Heading">
               <input
                 name="socialHeading"
                 required
@@ -639,166 +732,61 @@ export default async function ContactAdminPage({
               />
             </Field>
 
-            {/* ===============================================
-                CURRENT SOCIAL LINKS
-
-                These four still connect to the current
-                contact_settings schema.
-
-                We will convert this into fully dynamic social
-                rows in the next database step.
-                =============================================== */}
-
-            <div
+            <p
               className="
-                mt-6
-                grid
-                gap-5
-                md:grid-cols-2
+                mt-3
+                text-xs
+                leading-relaxed
+                text-slate-400
               "
             >
-              <SocialField
-                icon={
-                  <FaXTwitter />
-                }
-                label="X / Twitter"
-                name="xUrl"
-                defaultValue={
-                  settings.xUrl
-                }
-              />
-
-              <SocialField
-                icon={
-                  <FaInstagram />
-                }
-                label="Instagram"
-                name="instagramUrl"
-                defaultValue={
-                  settings.instagramUrl
-                }
-              />
-
-              <SocialField
-                icon={
-                  <FaYoutube />
-                }
-                label="YouTube"
-                name="youtubeUrl"
-                defaultValue={
-                  settings.youtubeUrl
-                }
-              />
-
-              <SocialField
-                icon={
-                  <FaTwitch />
-                }
-                label="Twitch"
-                name="twitchUrl"
-                defaultValue={
-                  settings.twitchUrl
-                }
-              />
-            </div>
+              Social profiles themselves are managed separately
+              below using the Social Links Manager.
+            </p>
 
             {/* ===============================================
-                FUTURE PLATFORM SUPPORT PREVIEW
+                LEGACY SOCIAL VALUES
+
+                These remain hidden so saving the Contact form
+                does not unexpectedly erase existing values
+                while we transition to contact_social_links.
                 =============================================== */}
 
-            <div
-              className="
-                mt-7
-                rounded-xl
-                border
-                border-brand/10
-                bg-[#f7f9fc]
-                p-5
-              "
-            >
-              <p
-                className="
-                  text-xs
-                  font-bold
-                  uppercase
-                  tracking-wider
-                  text-brand-deep
-                "
-              >
-                Supported Social Icons
-              </p>
+            <input
+              type="hidden"
+              name="xUrl"
+              value={
+                settings.xUrl
+              }
+            />
 
-              <p
-                className="
-                  mt-2
-                  text-xs
-                  leading-relaxed
-                  text-slate-500
-                "
-              >
-                The final social manager will let you add or remove
-                platforms instead of being limited to four fixed
-                fields.
-              </p>
+            <input
+              type="hidden"
+              name="instagramUrl"
+              value={
+                settings.instagramUrl
+              }
+            />
 
-              <div
-                className="
-                  mt-5
-                  flex
-                  flex-wrap
-                  gap-3
-                "
-              >
-                <PlatformPreview
-                  icon={<FaInstagram />}
-                  label="Instagram"
-                />
+            <input
+              type="hidden"
+              name="youtubeUrl"
+              value={
+                settings.youtubeUrl
+              }
+            />
 
-                <PlatformPreview
-                  icon={<FaTiktok />}
-                  label="TikTok"
-                />
-
-                <PlatformPreview
-                  icon={<FaFacebookF />}
-                  label="Facebook"
-                />
-
-                <PlatformPreview
-                  icon={<FaYoutube />}
-                  label="YouTube"
-                />
-
-                <PlatformPreview
-                  icon={<FaXTwitter />}
-                  label="X"
-                />
-
-                <PlatformPreview
-                  icon={<FaTwitch />}
-                  label="Twitch"
-                />
-
-                <PlatformPreview
-                  icon={<FaDiscord />}
-                  label="Discord"
-                />
-
-                <PlatformPreview
-                  icon={<FaLinkedinIn />}
-                  label="LinkedIn"
-                />
-
-                <PlatformPreview
-                  icon={<FaWhatsapp />}
-                  label="WhatsApp"
-                />
-              </div>
-            </div>
+            <input
+              type="hidden"
+              name="twitchUrl"
+              value={
+                settings.twitchUrl
+              }
+            />
           </SectionCard>
 
           {/* =================================================
-              CONTACT FORM
+              CONTACT FORM SETTINGS
               ================================================= */}
 
           <SectionCard
@@ -812,7 +800,9 @@ export default async function ContactAdminPage({
                 md:grid-cols-2
               "
             >
-              {/* NAME */}
+              {/* =============================================
+                  NAME
+                  ============================================= */}
 
               <Field label="Name Label">
                 <input
@@ -838,7 +828,9 @@ export default async function ContactAdminPage({
                 />
               </Field>
 
-              {/* EMAIL */}
+              {/* =============================================
+                  FORM EMAIL
+                  ============================================= */}
 
               <Field label="Email Label">
                 <input
@@ -864,7 +856,9 @@ export default async function ContactAdminPage({
                 />
               </Field>
 
-              {/* SUBJECT */}
+              {/* =============================================
+                  SUBJECT
+                  ============================================= */}
 
               <Field label="Subject Label">
                 <input
@@ -890,7 +884,9 @@ export default async function ContactAdminPage({
                 />
               </Field>
 
-              {/* MESSAGE */}
+              {/* =============================================
+                  MESSAGE
+                  ============================================= */}
 
               <Field label="Message Label">
                 <input
@@ -904,6 +900,10 @@ export default async function ContactAdminPage({
                 />
               </Field>
 
+              {/* =============================================
+                  BUTTON
+                  ============================================= */}
+
               <Field label="Submit Button Text">
                 <input
                   name="submitButtonText"
@@ -916,6 +916,10 @@ export default async function ContactAdminPage({
                 />
               </Field>
 
+              {/* =============================================
+                  MESSAGE PLACEHOLDER
+                  ============================================= */}
+
               <div className="md:col-span-2">
                 <Field label="Message Placeholder">
                   <textarea
@@ -925,7 +929,9 @@ export default async function ContactAdminPage({
                     defaultValue={
                       settings.messagePlaceholder
                     }
-                    className={textareaClass}
+                    className={
+                      textareaClass
+                    }
                   />
                 </Field>
               </div>
@@ -933,23 +939,19 @@ export default async function ContactAdminPage({
           </SectionCard>
 
           {/* =================================================
-              SAVE BAR
+              SAVE CONTACT SETTINGS
               ================================================= */}
 
           <div
             className="
-              sticky
-              bottom-5
-              z-20
               flex
               justify-end
               rounded-2xl
               border
               border-brand/10
-              bg-white/95
+              bg-white
               p-4
               shadow-[0_15px_45px_-25px_rgba(23,49,96,0.45)]
-              backdrop-blur
             "
           >
             <button
@@ -976,12 +978,68 @@ export default async function ContactAdminPage({
             >
               <Save className="h-4 w-4" />
 
-              Save Contact
+              Save Contact Settings
             </button>
           </div>
         </form>
+
+        {/* ===================================================
+            DYNAMIC SOCIAL LINKS MANAGER
+
+            IMPORTANT:
+            This is outside the Contact settings <form>
+            because SocialLinksManager contains its own forms.
+            =================================================== */}
+
+        <section
+          className="
+            mt-8
+            rounded-2xl
+            border
+            border-brand/10
+            bg-white
+            p-6
+            shadow-[0_25px_65px_-45px_rgba(23,49,96,0.35)]
+            md:p-8
+          "
+        >
+          <SocialLinksManager
+            socialLinks={
+              socialLinks
+            }
+          />
+        </section>
       </div>
     </main>
+  );
+}
+
+/* =========================================================
+   SUCCESS MESSAGE
+   ========================================================= */
+
+function SuccessMessage({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className="
+        mt-7
+        rounded-xl
+        border
+        border-emerald-200
+        bg-emerald-50
+        px-5
+        py-4
+        text-sm
+        font-semibold
+        text-emerald-700
+      "
+    >
+      {children}
+    </div>
   );
 }
 
@@ -1131,103 +1189,6 @@ function ContactFieldGroup({
       </div>
 
       {children}
-    </div>
-  );
-}
-
-/* =========================================================
-   SOCIAL FIELD
-   ========================================================= */
-
-function SocialField({
-  icon,
-  label,
-  name,
-  defaultValue,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  name: string;
-  defaultValue: string;
-}) {
-  return (
-    <div>
-      <label
-        className="
-          mb-2
-          flex
-          items-center
-          gap-2
-          text-xs
-          font-bold
-          uppercase
-          tracking-wider
-          text-slate-600
-        "
-      >
-        <span
-          className="
-            grid
-            h-7
-            w-7
-            place-items-center
-            rounded-lg
-            bg-brand/[0.08]
-            text-brand
-          "
-        >
-          {icon}
-        </span>
-
-        {label}
-      </label>
-
-      <input
-        type="url"
-        name={name}
-        defaultValue={
-          defaultValue
-        }
-        placeholder="https://..."
-        className={inputClass}
-      />
-    </div>
-  );
-}
-
-/* =========================================================
-   PLATFORM PREVIEW
-   ========================================================= */
-
-function PlatformPreview({
-  icon,
-  label,
-}: {
-  icon: React.ReactNode;
-  label: string;
-}) {
-  return (
-    <div
-      className="
-        flex
-        items-center
-        gap-2
-        rounded-lg
-        border
-        border-brand/10
-        bg-white
-        px-3
-        py-2
-        text-xs
-        font-semibold
-        text-brand-deep
-      "
-    >
-      <span className="text-base text-brand">
-        {icon}
-      </span>
-
-      {label}
     </div>
   );
 }
