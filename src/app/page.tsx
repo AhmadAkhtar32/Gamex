@@ -8,6 +8,7 @@ import { db } from "@/db";
 import {
   customBuilds as buildsTable,
   heroSettings as heroSettingsTable,
+  homepageStats as statsTable,
   products as productsTable,
 } from "@/db/schema";
 
@@ -143,14 +144,43 @@ export default async function HomePage() {
      HERO FALLBACK
      ========================================================= */
 
-  /*
-   * If the Hero has not been saved in Neon yet,
-   * use the original website content instead.
-   */
-
   const heroContent: HeroContent =
     heroRows[0] ??
     DEFAULT_HERO_CONTENT;
+
+  /* =========================================================
+     HOMEPAGE STATISTICS
+     ========================================================= */
+
+  const databaseStats =
+    await db
+      .select({
+        id:
+          statsTable.id,
+
+        value:
+          statsTable.value,
+
+        label:
+          statsTable.label,
+      })
+      .from(
+        statsTable
+      )
+      .where(
+        eq(
+          statsTable.isVisible,
+          true
+        )
+      )
+      .orderBy(
+        asc(
+          statsTable.sortOrder
+        ),
+        asc(
+          statsTable.id
+        )
+      );
 
   /* =========================================================
      BLOG POSTS
@@ -262,9 +292,7 @@ export default async function HomePage() {
       <Navbar />
 
       <main className="relative bg-white">
-        {/* ===================================================
-            HERO
-            =================================================== */}
+        {/* HERO */}
 
         <Hero
           content={
@@ -272,21 +300,19 @@ export default async function HomePage() {
           }
         />
 
-        {/* ===================================================
-            MARQUEE
-            =================================================== */}
+        {/* MARQUEE */}
 
         <Marquee />
 
-        {/* ===================================================
-            STATS
-            =================================================== */}
+        {/* STATS */}
 
-        <Stats />
+        <Stats
+          stats={
+            databaseStats
+          }
+        />
 
-        {/* ===================================================
-            PRODUCTS
-            =================================================== */}
+        {/* PRODUCTS */}
 
         <Products
           products={
@@ -294,9 +320,7 @@ export default async function HomePage() {
           }
         />
 
-        {/* ===================================================
-            CUSTOM BUILDS
-            =================================================== */}
+        {/* CUSTOM BUILDS */}
 
         <Builds
           builds={
@@ -304,36 +328,24 @@ export default async function HomePage() {
           }
         />
 
-        {/* ===================================================
-            FEATURES
-            =================================================== */}
+        {/* FEATURES */}
 
         <Features />
 
-        {/* ===================================================
-            SECOND MARQUEE
-            =================================================== */}
+        {/* SECOND MARQUEE */}
 
         <Marquee reverse />
 
-        {/* ===================================================
-            BLOG
-            =================================================== */}
+        {/* BLOG */}
 
         <Blog
           posts={posts}
         />
 
-        {/* ===================================================
-            CONTACT
-            =================================================== */}
+        {/* CONTACT */}
 
         <Contact />
       </main>
-
-      {/* =====================================================
-          FOOTER
-          ===================================================== */}
 
       <Footer />
     </>
