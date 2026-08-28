@@ -1107,3 +1107,86 @@ export const contactSettings = pgTable(
       .notNull(),
   }
 );
+/* =========================================================
+   CONTACT SOCIAL LINKS
+   ========================================================= */
+
+export const contactSocialLinks = pgTable(
+  "contact_social_links",
+  {
+    /*
+     * Auto-generated database ID.
+     */
+    id: serial("id")
+      .primaryKey(),
+
+    /*
+     * Platform identifier.
+     *
+     * Examples:
+     *
+     * instagram
+     * tiktok
+     * facebook
+     * youtube
+     * x
+     * twitch
+     * discord
+     * whatsapp
+     * linkedin
+     */
+    platform: varchar(
+      "platform",
+      {
+        length: 50,
+      }
+    ).notNull(),
+
+    /*
+     * Public profile/page URL.
+     */
+    url: varchar("url", {
+      length: 1000,
+    }).notNull(),
+
+    /*
+     * Allows Admin to hide a social link
+     * without permanently deleting it.
+     */
+    isVisible: boolean(
+      "is_visible"
+    )
+      .default(true)
+      .notNull(),
+
+    /*
+     * Controls the display order.
+     *
+     * 0 appears before 1,
+     * 1 before 2, etc.
+     */
+    sortOrder: integer(
+      "sort_order"
+    )
+      .default(0)
+      .notNull(),
+
+    createdAt: timestamp(
+      "created_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+
+    updatedAt: timestamp(
+      "updated_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+  }
+);
