@@ -43,6 +43,13 @@
       "when": 1787925699331,
       "tag": "0005_add-homepage-features",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1787929118091,
+      "tag": "0006_add-contact-settings",
+      "breakpoints": true
     }
   ]
 }
