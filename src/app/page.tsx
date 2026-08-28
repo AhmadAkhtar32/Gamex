@@ -7,6 +7,7 @@ import { db } from "@/db";
 
 import {
   customBuilds as buildsTable,
+  heroSettings as heroSettingsTable,
   products as productsTable,
 } from "@/db/schema";
 
@@ -28,10 +29,129 @@ import { Footer } from "@/components/Footer";
 
 import { getBlogPosts } from "@/lib/blog";
 
+import {
+  DEFAULT_HERO_CONTENT,
+  type HeroContent,
+} from "@/lib/hero-content";
+
+/* =========================================================
+   PAGE SETTINGS
+   ========================================================= */
+
 export const dynamic =
   "force-dynamic";
 
+/* =========================================================
+   HOMEPAGE
+   ========================================================= */
+
 export default async function HomePage() {
+  /* =========================================================
+     HERO SETTINGS
+     ========================================================= */
+
+  const heroRows =
+    await db
+      .select({
+        id:
+          heroSettingsTable.id,
+
+        eyebrow:
+          heroSettingsTable.eyebrow,
+
+        headingLine1:
+          heroSettingsTable.headingLine1,
+
+        headingLine2:
+          heroSettingsTable.headingLine2,
+
+        rotatingWords:
+          heroSettingsTable.rotatingWords,
+
+        description:
+          heroSettingsTable.description,
+
+        primaryButtonText:
+          heroSettingsTable.primaryButtonText,
+
+        primaryButtonLink:
+          heroSettingsTable.primaryButtonLink,
+
+        secondaryButtonText:
+          heroSettingsTable.secondaryButtonText,
+
+        secondaryButtonLink:
+          heroSettingsTable.secondaryButtonLink,
+
+        trustPoint1:
+          heroSettingsTable.trustPoint1,
+
+        trustPoint2:
+          heroSettingsTable.trustPoint2,
+
+        trustPoint3:
+          heroSettingsTable.trustPoint3,
+
+        image:
+          heroSettingsTable.image,
+
+        imageAlt:
+          heroSettingsTable.imageAlt,
+
+        imageTitle:
+          heroSettingsTable.imageTitle,
+
+        imageSubtitle:
+          heroSettingsTable.imageSubtitle,
+
+        imageBadge:
+          heroSettingsTable.imageBadge,
+
+        chip1Title:
+          heroSettingsTable.chip1Title,
+
+        chip1Subtitle:
+          heroSettingsTable.chip1Subtitle,
+
+        chip2Title:
+          heroSettingsTable.chip2Title,
+
+        chip2Subtitle:
+          heroSettingsTable.chip2Subtitle,
+
+        chip3Title:
+          heroSettingsTable.chip3Title,
+
+        chip3Subtitle:
+          heroSettingsTable.chip3Subtitle,
+
+        isVisible:
+          heroSettingsTable.isVisible,
+      })
+      .from(
+        heroSettingsTable
+      )
+      .where(
+        eq(
+          heroSettingsTable.id,
+          "main"
+        )
+      )
+      .limit(1);
+
+  /* =========================================================
+     HERO FALLBACK
+     ========================================================= */
+
+  /*
+   * If the Hero has not been saved in Neon yet,
+   * use the original website content instead.
+   */
+
+  const heroContent: HeroContent =
+    heroRows[0] ??
+    DEFAULT_HERO_CONTENT;
+
   /* =========================================================
      BLOG POSTS
      ========================================================= */
@@ -46,19 +166,30 @@ export default async function HomePage() {
   const databaseProducts =
     await db
       .select({
-        id: productsTable.id,
-        name: productsTable.name,
+        id:
+          productsTable.id,
+
+        name:
+          productsTable.name,
+
         category:
           productsTable.category,
-        tag: productsTable.tag,
+
+        tag:
+          productsTable.tag,
+
         description:
           productsTable.description,
+
         specs:
           productsTable.specs,
+
         image:
           productsTable.image,
       })
-      .from(productsTable)
+      .from(
+        productsTable
+      )
       .where(
         eq(
           productsTable.isVisible,
@@ -69,7 +200,9 @@ export default async function HomePage() {
         asc(
           productsTable.sortOrder
         ),
-        asc(productsTable.name)
+        asc(
+          productsTable.name
+        )
       );
 
   /* =========================================================
@@ -79,18 +212,30 @@ export default async function HomePage() {
   const databaseBuilds =
     await db
       .select({
-        id: buildsTable.id,
-        name: buildsTable.name,
-        role: buildsTable.role,
-        badge: buildsTable.badge,
+        id:
+          buildsTable.id,
+
+        name:
+          buildsTable.name,
+
+        role:
+          buildsTable.role,
+
+        badge:
+          buildsTable.badge,
+
         description:
           buildsTable.description,
+
         specs:
           buildsTable.specs,
+
         image:
           buildsTable.image,
       })
-      .from(buildsTable)
+      .from(
+        buildsTable
+      )
       .where(
         eq(
           buildsTable.isVisible,
@@ -101,7 +246,9 @@ export default async function HomePage() {
         asc(
           buildsTable.sortOrder
         ),
-        asc(buildsTable.name)
+        asc(
+          buildsTable.name
+        )
       );
 
   /* =========================================================
@@ -115,11 +262,31 @@ export default async function HomePage() {
       <Navbar />
 
       <main className="relative bg-white">
-        <Hero />
+        {/* ===================================================
+            HERO
+            =================================================== */}
+
+        <Hero
+          content={
+            heroContent
+          }
+        />
+
+        {/* ===================================================
+            MARQUEE
+            =================================================== */}
 
         <Marquee />
 
+        {/* ===================================================
+            STATS
+            =================================================== */}
+
         <Stats />
+
+        {/* ===================================================
+            PRODUCTS
+            =================================================== */}
 
         <Products
           products={
@@ -127,22 +294,46 @@ export default async function HomePage() {
           }
         />
 
+        {/* ===================================================
+            CUSTOM BUILDS
+            =================================================== */}
+
         <Builds
           builds={
             databaseBuilds
           }
         />
 
+        {/* ===================================================
+            FEATURES
+            =================================================== */}
+
         <Features />
 
+        {/* ===================================================
+            SECOND MARQUEE
+            =================================================== */}
+
         <Marquee reverse />
+
+        {/* ===================================================
+            BLOG
+            =================================================== */}
 
         <Blog
           posts={posts}
         />
 
+        {/* ===================================================
+            CONTACT
+            =================================================== */}
+
         <Contact />
       </main>
+
+      {/* =====================================================
+          FOOTER
+          ===================================================== */}
 
       <Footer />
     </>
