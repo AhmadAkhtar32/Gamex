@@ -390,3 +390,271 @@ export const customBuilds = pgTable(
       .notNull(),
   }
 );
+/* =========================================================
+   HERO SETTINGS
+   ========================================================= */
+
+export const heroSettings = pgTable(
+  "hero_settings",
+  {
+    /*
+     * We only need one main Hero configuration.
+     *
+     * We will save it using:
+     *
+     * id = "main"
+     */
+    id: varchar("id", {
+      length: 50,
+    }).primaryKey(),
+
+    /* -------------------------------------------------------
+       TOP EYEBROW
+       ------------------------------------------------------- */
+
+    eyebrow: varchar("eyebrow", {
+      length: 255,
+    }).notNull(),
+
+    /* -------------------------------------------------------
+       MAIN HEADING
+       ------------------------------------------------------- */
+
+    /*
+     * Current:
+     *
+     * Dominate
+     * every MATCH.
+     */
+
+    headingLine1: varchar(
+      "heading_line_1",
+      {
+        length: 255,
+      }
+    ).notNull(),
+
+    headingLine2: varchar(
+      "heading_line_2",
+      {
+        length: 255,
+      }
+    ).notNull(),
+
+    /*
+     * Current rotating words:
+     *
+     * MATCH.
+     * RAID.
+     * BATTLE.
+     * FRAME.
+     */
+    rotatingWords: text(
+      "rotating_words"
+    )
+      .array()
+      .notNull(),
+
+    /* -------------------------------------------------------
+       DESCRIPTION
+       ------------------------------------------------------- */
+
+    description: text(
+      "description"
+    ).notNull(),
+
+    /* -------------------------------------------------------
+       PRIMARY BUTTON
+       ------------------------------------------------------- */
+
+    primaryButtonText: varchar(
+      "primary_button_text",
+      {
+        length: 120,
+      }
+    ).notNull(),
+
+    primaryButtonLink: varchar(
+      "primary_button_link",
+      {
+        length: 500,
+      }
+    ).notNull(),
+
+    /* -------------------------------------------------------
+       SECONDARY BUTTON
+       ------------------------------------------------------- */
+
+    secondaryButtonText: varchar(
+      "secondary_button_text",
+      {
+        length: 120,
+      }
+    ).notNull(),
+
+    secondaryButtonLink: varchar(
+      "secondary_button_link",
+      {
+        length: 500,
+      }
+    ).notNull(),
+
+    /* -------------------------------------------------------
+       TRUST POINTS
+       ------------------------------------------------------- */
+
+    trustPoint1: varchar(
+      "trust_point_1",
+      {
+        length: 255,
+      }
+    ).notNull(),
+
+    trustPoint2: varchar(
+      "trust_point_2",
+      {
+        length: 255,
+      }
+    ).notNull(),
+
+    trustPoint3: varchar(
+      "trust_point_3",
+      {
+        length: 255,
+      }
+    ).notNull(),
+
+    /* -------------------------------------------------------
+       HERO IMAGE
+       ------------------------------------------------------- */
+
+    /*
+     * Can contain:
+     *
+     * Cloudinary URL
+     * OR
+     * external image URL
+     */
+    image: varchar("image", {
+      length: 1000,
+    }).notNull(),
+
+    imageAlt: varchar(
+      "image_alt",
+      {
+        length: 500,
+      }
+    ).notNull(),
+
+    /* -------------------------------------------------------
+       TEXT DISPLAYED OVER HERO IMAGE
+       ------------------------------------------------------- */
+
+    imageTitle: varchar(
+      "image_title",
+      {
+        length: 255,
+      }
+    ).notNull(),
+
+    imageSubtitle: varchar(
+      "image_subtitle",
+      {
+        length: 255,
+      }
+    ).notNull(),
+
+    imageBadge: varchar(
+      "image_badge",
+      {
+        length: 120,
+      }
+    ).notNull(),
+
+    /* -------------------------------------------------------
+       FLOATING CHIP 1
+       ------------------------------------------------------- */
+
+    chip1Title: varchar(
+      "chip_1_title",
+      {
+        length: 255,
+      }
+    ).notNull(),
+
+    chip1Subtitle: varchar(
+      "chip_1_subtitle",
+      {
+        length: 255,
+      }
+    ).notNull(),
+
+    /* -------------------------------------------------------
+       FLOATING CHIP 2
+       ------------------------------------------------------- */
+
+    chip2Title: varchar(
+      "chip_2_title",
+      {
+        length: 255,
+      }
+    ).notNull(),
+
+    chip2Subtitle: varchar(
+      "chip_2_subtitle",
+      {
+        length: 255,
+      }
+    ).notNull(),
+
+    /* -------------------------------------------------------
+       FLOATING CHIP 3
+       ------------------------------------------------------- */
+
+    chip3Title: varchar(
+      "chip_3_title",
+      {
+        length: 255,
+      }
+    ).notNull(),
+
+    chip3Subtitle: varchar(
+      "chip_3_subtitle",
+      {
+        length: 255,
+      }
+    ).notNull(),
+
+    /* -------------------------------------------------------
+       VISIBILITY
+       ------------------------------------------------------- */
+
+    isVisible: boolean(
+      "is_visible"
+    )
+      .default(true)
+      .notNull(),
+
+    /* -------------------------------------------------------
+       TIMESTAMPS
+       ------------------------------------------------------- */
+
+    createdAt: timestamp(
+      "created_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+
+    updatedAt: timestamp(
+      "updated_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+  }
+);
