@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import {
   Eye,
   EyeOff,
@@ -7,6 +9,8 @@ import {
   Plus,
   Save,
   Trash2,
+  TriangleAlert,
+  X,
 } from "lucide-react";
 
 import {
@@ -144,13 +148,13 @@ export default function SocialLinksManager({
           "
         >
           Add, edit, hide, reorder, or remove social media
-          profiles. The correct brand icon is selected
-          automatically from the platform.
+          profiles. Gamex automatically displays the correct
+          brand icon for each selected platform.
         </p>
       </div>
 
       {/* =====================================================
-          ADD NEW SOCIAL
+          ADD NEW SOCIAL LINK
           ===================================================== */}
 
       <div
@@ -164,13 +168,7 @@ export default function SocialLinksManager({
           md:p-6
         "
       >
-        <div
-          className="
-            flex
-            items-center
-            gap-3
-          "
-        >
+        <div className="flex items-center gap-3">
           <div
             className="
               grid
@@ -199,7 +197,7 @@ export default function SocialLinksManager({
             </h3>
 
             <p className="mt-1 text-xs text-slate-500">
-              Choose a platform and enter the profile URL.
+              Select a platform and enter its public profile URL.
             </p>
           </div>
         </div>
@@ -209,7 +207,7 @@ export default function SocialLinksManager({
           className="mt-6"
         >
           {/* =================================================
-              PLATFORM CHOOSER
+              PLATFORM
               ================================================= */}
 
           <p className={labelClass}>
@@ -233,10 +231,7 @@ export default function SocialLinksManager({
               }) => (
                 <label
                   key={value}
-                  className="
-                    relative
-                    cursor-pointer
-                  "
+                  className="relative cursor-pointer"
                 >
                   <input
                     type="radio"
@@ -254,24 +249,16 @@ export default function SocialLinksManager({
                       items-center
                       justify-center
                       gap-2.5
-
                       rounded-xl
-
                       border
                       border-brand/10
-
                       bg-white
-
                       px-3
                       py-4
-
                       text-center
-
                       transition-all
-
                       hover:border-brand/30
                       hover:bg-brand/[0.03]
-
                       peer-checked:border-brand
                       peer-checked:bg-brand/[0.08]
                       peer-checked:shadow-[0_0_0_2px_rgba(23,49,96,0.08)]
@@ -301,7 +288,7 @@ export default function SocialLinksManager({
           </div>
 
           {/* =================================================
-              URL / ORDER
+              URL + ORDER
               ================================================= */}
 
           <div
@@ -343,15 +330,8 @@ export default function SocialLinksManager({
                 />
               </div>
 
-              <p
-                className="
-                  mt-2
-                  text-xs
-                  text-slate-400
-                "
-              >
-                You may enter the URL with or without
-                https://
+              <p className="mt-2 text-xs text-slate-400">
+                You may enter the URL with or without https://
               </p>
             </div>
 
@@ -378,7 +358,7 @@ export default function SocialLinksManager({
           </div>
 
           {/* =================================================
-              VISIBILITY
+              VISIBILITY + ADD
               ================================================= */}
 
           <div
@@ -428,13 +408,7 @@ export default function SocialLinksManager({
                   Visible on website
                 </span>
 
-                <span
-                  className="
-                    block
-                    text-xs
-                    text-slate-400
-                  "
-                >
+                <span className="block text-xs text-slate-400">
                   You can hide it later without deleting it.
                 </span>
               </span>
@@ -447,23 +421,17 @@ export default function SocialLinksManager({
                 items-center
                 justify-center
                 gap-2
-
                 rounded-xl
-
                 bg-brand
-
                 px-5
                 py-3
-
                 font-display
                 text-xs
                 font-bold
                 uppercase
                 tracking-wider
                 text-white
-
                 transition-all
-
                 hover:-translate-y-0.5
                 hover:bg-brand-soft
               "
@@ -477,47 +445,38 @@ export default function SocialLinksManager({
       </div>
 
       {/* =====================================================
-          EXISTING SOCIAL LINKS
+          EXISTING LINKS
           ===================================================== */}
 
       <div className="mt-8">
-        <div
-          className="
-            flex
-            items-end
-            justify-between
-            gap-4
-          "
-        >
-          <div>
-            <p
-              className="
-                text-xs
-                font-bold
-                uppercase
-                tracking-wider
-                text-slate-400
-              "
-            >
-              Current Profiles
-            </p>
+        <div>
+          <p
+            className="
+              text-xs
+              font-bold
+              uppercase
+              tracking-wider
+              text-slate-400
+            "
+          >
+            Current Profiles
+          </p>
 
-            <h3
-              className="
-                mt-1
-                font-display
-                text-xl
-                font-extrabold
-                uppercase
-                text-brand-deep
-              "
-            >
-              {socialLinks.length}{" "}
-              {socialLinks.length === 1
-                ? "Social Link"
-                : "Social Links"}
-            </h3>
-          </div>
+          <h3
+            className="
+              mt-1
+              font-display
+              text-xl
+              font-extrabold
+              uppercase
+              text-brand-deep
+            "
+          >
+            {socialLinks.length}{" "}
+            {socialLinks.length === 1
+              ? "Social Link"
+              : "Social Links"}
+          </h3>
         </div>
 
         {/* ===================================================
@@ -577,22 +536,11 @@ export default function SocialLinksManager({
               "
             >
               Add Instagram, TikTok, Facebook, YouTube,
-              X, Discord, WhatsApp, LinkedIn, or Twitch
-              using the form above.
+              X, Discord, WhatsApp, LinkedIn, or Twitch.
             </p>
           </div>
         ) : (
-          /* =================================================
-             SOCIAL CARDS
-             ================================================= */
-
-          <div
-            className="
-              mt-5
-              grid
-              gap-5
-            "
-          >
+          <div className="mt-5 grid gap-5">
             {socialLinks.map(
               (social) => (
                 <SocialLinkEditor
@@ -609,7 +557,7 @@ export default function SocialLinksManager({
 }
 
 /* =========================================================
-   EXISTING SOCIAL LINK EDITOR
+   SOCIAL LINK EDITOR
    ========================================================= */
 
 function SocialLinkEditor({
@@ -617,6 +565,11 @@ function SocialLinkEditor({
 }: {
   social: AdminSocialLink;
 }) {
+  const [
+    deleteOpen,
+    setDeleteOpen,
+  ] = useState(false);
+
   const platform =
     getPlatform(
       social.platform
@@ -626,136 +579,175 @@ function SocialLinkEditor({
     platform.icon;
 
   return (
-    <div
-      className="
-        overflow-hidden
-        rounded-2xl
-        border
-        border-brand/10
-        bg-white
-      "
-    >
-      {/* =====================================================
-          SOCIAL HEADER
-          ===================================================== */}
-
+    <>
       <div
         className="
-          flex
-          flex-col
-          gap-4
-
-          border-b
+          overflow-hidden
+          rounded-2xl
+          border
           border-brand/10
-
-          bg-[#f7f9fc]
-
-          px-5
-          py-4
-
-          sm:flex-row
-          sm:items-center
-          sm:justify-between
+          bg-white
         "
       >
+        {/* ===================================================
+            HEADER
+            =================================================== */}
+
         <div
           className="
             flex
-            min-w-0
-            items-center
-            gap-3
+            flex-col
+            gap-4
+            border-b
+            border-brand/10
+            bg-[#f7f9fc]
+            px-5
+            py-4
+            sm:flex-row
+            sm:items-center
+            sm:justify-between
           "
         >
           <div
             className="
-              grid
-              h-11
-              w-11
-              shrink-0
-              place-items-center
-
-              rounded-xl
-
-              bg-brand/[0.08]
-
-              text-xl
-              text-brand
+              flex
+              min-w-0
+              items-center
+              gap-3
             "
           >
-            <Icon />
-          </div>
-
-          <div className="min-w-0">
             <div
               className="
-                flex
-                flex-wrap
-                items-center
-                gap-2
+                grid
+                h-11
+                w-11
+                shrink-0
+                place-items-center
+                rounded-xl
+                bg-brand/[0.08]
+                text-xl
+                text-brand
               "
             >
-              <p
-                className="
-                  font-display
-                  text-sm
-                  font-extrabold
-                  uppercase
-                  text-brand-deep
-                "
-              >
-                {platform.label}
-              </p>
-
-              <span
-                className={`
-                  rounded-full
-                  px-2.5
-                  py-1
-                  text-[10px]
-                  font-bold
-                  uppercase
-                  tracking-wider
-
-                  ${
-                    social.isVisible
-                      ? `
-                        bg-emerald-50
-                        text-emerald-700
-                      `
-                      : `
-                        bg-slate-100
-                        text-slate-500
-                      `
-                  }
-                `}
-              >
-                {social.isVisible
-                  ? "Visible"
-                  : "Hidden"}
-              </span>
+              <Icon />
             </div>
 
-            <p
+            <div className="min-w-0">
+              <div
+                className="
+                  flex
+                  flex-wrap
+                  items-center
+                  gap-2
+                "
+              >
+                <p
+                  className="
+                    font-display
+                    text-sm
+                    font-extrabold
+                    uppercase
+                    text-brand-deep
+                  "
+                >
+                  {platform.label}
+                </p>
+
+                <span
+                  className={`
+                    rounded-full
+                    px-2.5
+                    py-1
+                    text-[10px]
+                    font-bold
+                    uppercase
+                    tracking-wider
+                    ${
+                      social.isVisible
+                        ? "bg-emerald-50 text-emerald-700"
+                        : "bg-slate-100 text-slate-500"
+                    }
+                  `}
+                >
+                  {social.isVisible
+                    ? "Visible"
+                    : "Hidden"}
+                </span>
+              </div>
+
+              <p
+                className="
+                  mt-1
+                  truncate
+                  text-xs
+                  text-slate-400
+                "
+              >
+                {social.url}
+              </p>
+            </div>
+          </div>
+
+          {/* =================================================
+              QUICK SHOW / HIDE
+              ================================================= */}
+
+          <form
+            action={
+              toggleSocialLinkVisibility
+            }
+          >
+            <input
+              type="hidden"
+              name="socialId"
+              value={social.id}
+            />
+
+            <button
+              type="submit"
               className="
-                mt-1
-                truncate
+                inline-flex
+                items-center
+                gap-2
+                rounded-lg
+                border
+                border-brand/15
+                bg-white
+                px-3
+                py-2
                 text-xs
-                text-slate-400
+                font-bold
+                text-brand
+                transition-all
+                hover:border-brand
+                hover:bg-brand
+                hover:text-white
               "
             >
-              {social.url}
-            </p>
-          </div>
+              {social.isVisible ? (
+                <>
+                  <EyeOff className="h-4 w-4" />
+                  Hide
+                </>
+              ) : (
+                <>
+                  <Eye className="h-4 w-4" />
+                  Show
+                </>
+              )}
+            </button>
+          </form>
         </div>
 
         {/* ===================================================
-            QUICK VISIBILITY
+            EDIT FORM
             =================================================== */}
 
         <form
           action={
-            toggleSocialLinkVisibility
+            updateSocialLink
           }
+          className="p-5 md:p-6"
         >
           <input
             type="hidden"
@@ -763,260 +755,178 @@ function SocialLinkEditor({
             value={social.id}
           />
 
-          <button
-            type="submit"
-            className="
-              inline-flex
-              items-center
-              gap-2
+          {/* =================================================
+              PLATFORM
+              ================================================= */}
 
-              rounded-lg
-
-              border
-              border-brand/15
-
-              bg-white
-
-              px-3
-              py-2
-
-              text-xs
-              font-bold
-              text-brand
-
-              transition-all
-
-              hover:border-brand
-              hover:bg-brand
-              hover:text-white
-            "
-          >
-            {social.isVisible ? (
-              <>
-                <EyeOff className="h-4 w-4" />
-
-                Hide
-              </>
-            ) : (
-              <>
-                <Eye className="h-4 w-4" />
-
-                Show
-              </>
-            )}
-          </button>
-        </form>
-      </div>
-
-      {/* =====================================================
-          EDIT FORM
-          ===================================================== */}
-
-      <form
-        action={updateSocialLink}
-        className="
-          p-5
-          md:p-6
-        "
-      >
-        <input
-          type="hidden"
-          name="socialId"
-          value={social.id}
-        />
-
-        {/* ===================================================
-            PLATFORM
-            =================================================== */}
-
-        <p className={labelClass}>
-          Platform
-        </p>
-
-        <div
-          className="
-            grid
-            grid-cols-3
-            gap-2
-            sm:grid-cols-5
-            lg:grid-cols-9
-          "
-        >
-          {SOCIAL_PLATFORMS.map(
-            ({
-              value,
-              label,
-              icon: PlatformIcon,
-            }) => (
-              <label
-                key={value}
-                className="
-                  cursor-pointer
-                "
-                title={label}
-              >
-                <input
-                  type="radio"
-                  name="platform"
-                  value={value}
-                  defaultChecked={
-                    social.platform ===
-                    value
-                  }
-                  required
-                  className="peer sr-only"
-                />
-
-                <span
-                  className="
-                    flex
-                    min-h-16
-                    items-center
-                    justify-center
-
-                    rounded-xl
-
-                    border
-                    border-brand/10
-
-                    bg-[#f7f9fc]
-
-                    text-xl
-                    text-brand
-
-                    transition-all
-
-                    hover:border-brand/30
-
-                    peer-checked:border-brand
-                    peer-checked:bg-brand/[0.08]
-                    peer-checked:shadow-[0_0_0_2px_rgba(23,49,96,0.08)]
-                  "
-                >
-                  <PlatformIcon />
-                </span>
-              </label>
-            )
-          )}
-        </div>
-
-        {/* ===================================================
-            URL / ORDER
-            =================================================== */}
-
-        <div
-          className="
-            mt-5
-            grid
-            gap-5
-            md:grid-cols-[1fr_160px]
-          "
-        >
-          <div>
-            <label
-              htmlFor={`social-url-${social.id}`}
-              className={labelClass}
-            >
-              Profile URL
-            </label>
-
-            <input
-              id={`social-url-${social.id}`}
-              name="url"
-              type="text"
-              required
-              defaultValue={
-                social.url
-              }
-              className={inputClass}
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor={`social-order-${social.id}`}
-              className={labelClass}
-            >
-              Display Order
-            </label>
-
-            <input
-              id={`social-order-${social.id}`}
-              name="sortOrder"
-              type="number"
-              min="0"
-              step="1"
-              defaultValue={
-                social.sortOrder
-              }
-              className={inputClass}
-            />
-          </div>
-        </div>
-
-        {/* ===================================================
-            VISIBILITY + ACTIONS
-            =================================================== */}
-
-        <div
-          className="
-            mt-5
-            flex
-            flex-col
-            gap-4
-
-            border-t
-            border-brand/10
-
-            pt-5
-
-            sm:flex-row
-            sm:items-center
-            sm:justify-between
-          "
-        >
-          <label
-            className="
-              flex
-              cursor-pointer
-              items-center
-              gap-3
-            "
-          >
-            <input
-              name="isVisible"
-              type="checkbox"
-              defaultChecked={
-                social.isVisible
-              }
-              className="
-                h-4
-                w-4
-                accent-[#173160]
-              "
-            />
-
-            <span
-              className="
-                text-xs
-                font-bold
-                uppercase
-                tracking-wider
-                text-slate-600
-              "
-            >
-              Visible on website
-            </span>
-          </label>
+          <p className={labelClass}>
+            Platform
+          </p>
 
           <div
             className="
-              flex
-              flex-col
+              grid
+              grid-cols-3
               gap-2
-              sm:flex-row
+              sm:grid-cols-5
+              lg:grid-cols-9
             "
           >
+            {SOCIAL_PLATFORMS.map(
+              ({
+                value,
+                label,
+                icon: PlatformIcon,
+              }) => (
+                <label
+                  key={value}
+                  className="cursor-pointer"
+                  title={label}
+                >
+                  <input
+                    type="radio"
+                    name="platform"
+                    value={value}
+                    defaultChecked={
+                      social.platform ===
+                      value
+                    }
+                    required
+                    className="peer sr-only"
+                  />
+
+                  <span
+                    className="
+                      flex
+                      min-h-16
+                      items-center
+                      justify-center
+                      rounded-xl
+                      border
+                      border-brand/10
+                      bg-[#f7f9fc]
+                      text-xl
+                      text-brand
+                      transition-all
+                      hover:border-brand/30
+                      peer-checked:border-brand
+                      peer-checked:bg-brand/[0.08]
+                      peer-checked:shadow-[0_0_0_2px_rgba(23,49,96,0.08)]
+                    "
+                  >
+                    <PlatformIcon />
+                  </span>
+                </label>
+              )
+            )}
+          </div>
+
+          {/* =================================================
+              URL + ORDER
+              ================================================= */}
+
+          <div
+            className="
+              mt-5
+              grid
+              gap-5
+              md:grid-cols-[1fr_160px]
+            "
+          >
+            <div>
+              <label
+                htmlFor={`social-url-${social.id}`}
+                className={labelClass}
+              >
+                Profile URL
+              </label>
+
+              <input
+                id={`social-url-${social.id}`}
+                name="url"
+                type="text"
+                required
+                defaultValue={
+                  social.url
+                }
+                className={inputClass}
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor={`social-order-${social.id}`}
+                className={labelClass}
+              >
+                Display Order
+              </label>
+
+              <input
+                id={`social-order-${social.id}`}
+                name="sortOrder"
+                type="number"
+                min="0"
+                step="1"
+                defaultValue={
+                  social.sortOrder
+                }
+                className={inputClass}
+              />
+            </div>
+          </div>
+
+          {/* =================================================
+              VISIBILITY + SAVE
+              ================================================= */}
+
+          <div
+            className="
+              mt-5
+              flex
+              flex-col
+              gap-4
+              border-t
+              border-brand/10
+              pt-5
+              sm:flex-row
+              sm:items-center
+              sm:justify-between
+            "
+          >
+            <label
+              className="
+                flex
+                cursor-pointer
+                items-center
+                gap-3
+              "
+            >
+              <input
+                name="isVisible"
+                type="checkbox"
+                defaultChecked={
+                  social.isVisible
+                }
+                className="
+                  h-4
+                  w-4
+                  accent-[#173160]
+                "
+              />
+
+              <span
+                className="
+                  text-xs
+                  font-bold
+                  uppercase
+                  tracking-wider
+                  text-slate-600
+                "
+              >
+                Visible on website
+              </span>
+            </label>
+
             <button
               type="submit"
               className="
@@ -1024,20 +934,14 @@ function SocialLinkEditor({
                 items-center
                 justify-center
                 gap-2
-
                 rounded-lg
-
                 bg-brand
-
                 px-4
                 py-2.5
-
                 text-xs
                 font-bold
                 text-white
-
                 transition-all
-
                 hover:bg-brand-soft
               "
             >
@@ -1046,57 +950,43 @@ function SocialLinkEditor({
               Save Changes
             </button>
           </div>
-        </div>
-      </form>
+        </form>
 
-      {/* =====================================================
-          DELETE
-          ===================================================== */}
+        {/* ===================================================
+            DELETE BUTTON
+            =================================================== */}
 
-      <div
-        className="
-          border-t
-          border-red-100
-          bg-red-50/40
-          px-5
-          py-4
-          md:px-6
-        "
-      >
-        <form
-          action={
-            deleteSocialLink
-          }
+        <div
+          className="
+            border-t
+            border-red-100
+            bg-red-50/40
+            px-5
+            py-4
+            md:px-6
+          "
         >
-          <input
-            type="hidden"
-            name="socialId"
-            value={social.id}
-          />
-
           <button
-            type="submit"
+            type="button"
+            onClick={() =>
+              setDeleteOpen(
+                true
+              )
+            }
             className="
               inline-flex
               items-center
               gap-2
-
               rounded-lg
-
               border
               border-red-200
-
               bg-white
-
               px-3
               py-2
-
               text-xs
               font-bold
               text-red-600
-
               transition-all
-
               hover:border-red-600
               hover:bg-red-600
               hover:text-white
@@ -1106,7 +996,324 @@ function SocialLinkEditor({
 
             Delete {platform.label}
           </button>
-        </form>
+        </div>
+      </div>
+
+      {/* =====================================================
+          DELETE CONFIRMATION MODAL
+          ===================================================== */}
+
+      {deleteOpen ? (
+        <DeleteConfirmationModal
+          social={social}
+          platformLabel={
+            platform.label
+          }
+          platformIcon={
+            <Icon />
+          }
+          onClose={() =>
+            setDeleteOpen(
+              false
+            )
+          }
+        />
+      ) : null}
+    </>
+  );
+}
+
+/* =========================================================
+   DELETE CONFIRMATION MODAL
+   ========================================================= */
+
+function DeleteConfirmationModal({
+  social,
+  platformLabel,
+  platformIcon,
+  onClose,
+}: {
+  social: AdminSocialLink;
+  platformLabel: string;
+  platformIcon: React.ReactNode;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      className="
+        fixed
+        inset-0
+        z-[100]
+        flex
+        items-center
+        justify-center
+        bg-slate-950/45
+        px-5
+        backdrop-blur-sm
+      "
+      onClick={onClose}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={`delete-social-title-${social.id}`}
+        onClick={(event) =>
+          event.stopPropagation()
+        }
+        className="
+          w-full
+          max-w-md
+          overflow-hidden
+          rounded-2xl
+          border
+          border-red-100
+          bg-white
+          shadow-2xl
+        "
+      >
+        {/* ===================================================
+            MODAL HEADER
+            =================================================== */}
+
+        <div
+          className="
+            flex
+            items-start
+            justify-between
+            gap-4
+            border-b
+            border-red-100
+            bg-red-50/60
+            p-5
+          "
+        >
+          <div className="flex gap-4">
+            <div
+              className="
+                grid
+                h-11
+                w-11
+                shrink-0
+                place-items-center
+                rounded-xl
+                bg-red-100
+                text-red-600
+              "
+            >
+              <TriangleAlert className="h-5 w-5" />
+            </div>
+
+            <div>
+              <p
+                className="
+                  text-xs
+                  font-bold
+                  uppercase
+                  tracking-wider
+                  text-red-500
+                "
+              >
+                Permanent Action
+              </p>
+
+              <h3
+                id={`delete-social-title-${social.id}`}
+                className="
+                  mt-1
+                  font-display
+                  text-xl
+                  font-extrabold
+                  uppercase
+                  text-brand-deep
+                "
+              >
+                Delete Social Link?
+              </h3>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            aria-label="Close"
+            onClick={onClose}
+            className="
+              grid
+              h-9
+              w-9
+              shrink-0
+              place-items-center
+              rounded-lg
+              text-slate-400
+              transition-colors
+              hover:bg-white
+              hover:text-brand-deep
+            "
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* ===================================================
+            DETAILS
+            =================================================== */}
+
+        <div className="p-5">
+          <p
+            className="
+              text-sm
+              leading-relaxed
+              text-slate-600
+            "
+          >
+            Are you sure you want to permanently delete this
+            social profile?
+          </p>
+
+          <div
+            className="
+              mt-5
+              flex
+              items-center
+              gap-3
+              rounded-xl
+              border
+              border-brand/10
+              bg-[#f7f9fc]
+              p-4
+            "
+          >
+            <div
+              className="
+                grid
+                h-11
+                w-11
+                shrink-0
+                place-items-center
+                rounded-xl
+                bg-white
+                text-xl
+                text-brand
+                shadow-sm
+              "
+            >
+              {platformIcon}
+            </div>
+
+            <div className="min-w-0">
+              <p
+                className="
+                  font-display
+                  text-sm
+                  font-bold
+                  uppercase
+                  text-brand-deep
+                "
+              >
+                {platformLabel}
+              </p>
+
+              <p
+                className="
+                  mt-1
+                  truncate
+                  text-xs
+                  text-slate-500
+                "
+              >
+                {social.url}
+              </p>
+            </div>
+          </div>
+
+          <p
+            className="
+              mt-4
+              text-xs
+              leading-relaxed
+              text-red-500
+            "
+          >
+            This removes the profile from the database. If you
+            only want to temporarily remove it from the website,
+            use the Hide option instead.
+          </p>
+
+          {/* =================================================
+              ACTIONS
+              ================================================= */}
+
+          <div
+            className="
+              mt-6
+              flex
+              flex-col-reverse
+              gap-3
+              sm:flex-row
+              sm:justify-end
+            "
+          >
+            <button
+              type="button"
+              onClick={onClose}
+              className="
+                rounded-xl
+                border
+                border-brand/15
+                bg-white
+                px-5
+                py-3
+                text-xs
+                font-bold
+                uppercase
+                tracking-wider
+                text-brand
+                transition-all
+                hover:border-brand
+                hover:bg-brand/[0.04]
+              "
+            >
+              Cancel
+            </button>
+
+            <form
+              action={
+                deleteSocialLink
+              }
+            >
+              <input
+                type="hidden"
+                name="socialId"
+                value={social.id}
+              />
+
+              <button
+                type="submit"
+                className="
+                  inline-flex
+                  w-full
+                  items-center
+                  justify-center
+                  gap-2
+                  rounded-xl
+                  bg-red-600
+                  px-5
+                  py-3
+                  text-xs
+                  font-bold
+                  uppercase
+                  tracking-wider
+                  text-white
+                  transition-all
+                  hover:bg-red-700
+                "
+              >
+                <Trash2 className="h-4 w-4" />
+
+                Delete Permanently
+              </button>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   );
