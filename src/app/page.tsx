@@ -6,6 +6,8 @@ import {
 import { db } from "@/db";
 
 import {
+  contactSettings as contactSettingsTable,
+  contactSocialLinks as contactSocialLinksTable,
   customBuilds as buildsTable,
   featuresSettings as featuresSettingsTable,
   heroSettings as heroSettingsTable,
@@ -15,30 +17,53 @@ import {
 } from "@/db/schema";
 
 import { Navbar } from "@/components/Navbar";
-import { Hero } from "@/components/Hero";
+
+import {
+  Hero,
+} from "@/components/Hero";
 
 import {
   Marquee,
   ScrollProgress,
 } from "@/components/ui";
 
-import { Stats } from "@/components/Stats";
-import Products from "@/components/Products";
-import { Builds } from "@/components/Builds";
-import { Features } from "@/components/Features";
-import { Blog } from "@/components/Blog";
-import { Contact } from "@/components/Contact";
-import { Footer } from "@/components/Footer";
+import {
+  Stats,
+} from "@/components/Stats";
 
-import { getBlogPosts } from "@/lib/blog";
+import Products from "@/components/Products";
+
+import {
+  Builds,
+} from "@/components/Builds";
+
+import {
+  Features,
+} from "@/components/Features";
+
+import {
+  Blog,
+} from "@/components/Blog";
+
+import {
+  Contact,
+  DEFAULT_CONTACT_CONTENT,
+} from "@/components/Contact";
+
+import {
+  Footer,
+} from "@/components/Footer";
+
+import {
+  getBlogPosts,
+} from "@/lib/blog";
 
 import {
   DEFAULT_HERO_CONTENT,
-  type HeroContent,
 } from "@/lib/hero-content";
 
 /* =========================================================
-   PAGE SETTINGS
+   FORCE FRESH DATABASE CONTENT
    ========================================================= */
 
 export const dynamic =
@@ -48,20 +73,18 @@ export const dynamic =
    DEFAULT FEATURES SETTINGS
    ========================================================= */
 
-/*
- * These are only used if the features_settings
- * table does not yet contain the "main" row.
- */
-
 const DEFAULT_FEATURES_SETTINGS = {
-  eyebrow: "Why Gamex",
+  eyebrow:
+    "Why Gamex",
 
-  title: "Built Different.",
+  title:
+    "Built Different.",
 
   subtitle:
     "Everything we do is focused on delivering reliable, high-performance gaming hardware with the support to match.",
 
-  isVisible: true,
+  isVisible:
+    true,
 };
 
 /* =========================================================
@@ -69,88 +92,13 @@ const DEFAULT_FEATURES_SETTINGS = {
    ========================================================= */
 
 export default async function HomePage() {
-  /* =========================================================
-     HERO SETTINGS
-     ========================================================= */
+  /* =======================================================
+     HERO
+     ======================================================= */
 
   const heroRows =
     await db
-      .select({
-        id:
-          heroSettingsTable.id,
-
-        eyebrow:
-          heroSettingsTable.eyebrow,
-
-        headingLine1:
-          heroSettingsTable.headingLine1,
-
-        headingLine2:
-          heroSettingsTable.headingLine2,
-
-        rotatingWords:
-          heroSettingsTable.rotatingWords,
-
-        description:
-          heroSettingsTable.description,
-
-        primaryButtonText:
-          heroSettingsTable.primaryButtonText,
-
-        primaryButtonLink:
-          heroSettingsTable.primaryButtonLink,
-
-        secondaryButtonText:
-          heroSettingsTable.secondaryButtonText,
-
-        secondaryButtonLink:
-          heroSettingsTable.secondaryButtonLink,
-
-        trustPoint1:
-          heroSettingsTable.trustPoint1,
-
-        trustPoint2:
-          heroSettingsTable.trustPoint2,
-
-        trustPoint3:
-          heroSettingsTable.trustPoint3,
-
-        image:
-          heroSettingsTable.image,
-
-        imageAlt:
-          heroSettingsTable.imageAlt,
-
-        imageTitle:
-          heroSettingsTable.imageTitle,
-
-        imageSubtitle:
-          heroSettingsTable.imageSubtitle,
-
-        imageBadge:
-          heroSettingsTable.imageBadge,
-
-        chip1Title:
-          heroSettingsTable.chip1Title,
-
-        chip1Subtitle:
-          heroSettingsTable.chip1Subtitle,
-
-        chip2Title:
-          heroSettingsTable.chip2Title,
-
-        chip2Subtitle:
-          heroSettingsTable.chip2Subtitle,
-
-        chip3Title:
-          heroSettingsTable.chip3Title,
-
-        chip3Subtitle:
-          heroSettingsTable.chip3Subtitle,
-
-        isVisible:
-          heroSettingsTable.isVisible,
-      })
+      .select()
       .from(
         heroSettingsTable
       )
@@ -162,13 +110,13 @@ export default async function HomePage() {
       )
       .limit(1);
 
-  const heroContent: HeroContent =
+  const heroContent =
     heroRows[0] ??
     DEFAULT_HERO_CONTENT;
 
-  /* =========================================================
-     HOMEPAGE STATISTICS
-     ========================================================= */
+  /* =======================================================
+     HOMEPAGE STATS
+     ======================================================= */
 
   const databaseStats =
     await db
@@ -182,9 +130,7 @@ export default async function HomePage() {
         label:
           statsTable.label,
       })
-      .from(
-        statsTable
-      )
+      .from(statsTable)
       .where(
         eq(
           statsTable.isVisible,
@@ -200,9 +146,59 @@ export default async function HomePage() {
         )
       );
 
-  /* =========================================================
+  /* =======================================================
+     PRODUCTS
+     ======================================================= */
+
+  const databaseProducts =
+    await db
+      .select()
+      .from(
+        productsTable
+      )
+      .where(
+        eq(
+          productsTable.isVisible,
+          true
+        )
+      )
+      .orderBy(
+        asc(
+          productsTable.sortOrder
+        ),
+        asc(
+          productsTable.name
+        )
+      );
+
+  /* =======================================================
+     CUSTOM BUILDS
+     ======================================================= */
+
+  const databaseBuilds =
+    await db
+      .select()
+      .from(
+        buildsTable
+      )
+      .where(
+        eq(
+          buildsTable.isVisible,
+          true
+        )
+      )
+      .orderBy(
+        asc(
+          buildsTable.sortOrder
+        ),
+        asc(
+          buildsTable.name
+        )
+      );
+
+  /* =======================================================
      FEATURES SECTION SETTINGS
-     ========================================================= */
+     ======================================================= */
 
   const featuresSettingsRows =
     await db
@@ -230,18 +226,13 @@ export default async function HomePage() {
       )
       .limit(1);
 
-  /*
-   * If you have not yet pressed "Save Section"
-   * inside Admin, use the default values.
-   */
-
   const featuresContent =
     featuresSettingsRows[0] ??
     DEFAULT_FEATURES_SETTINGS;
 
-  /* =========================================================
+  /* =======================================================
      FEATURE CARDS
-     ========================================================= */
+     ======================================================= */
 
   const databaseFeatures =
     await db
@@ -276,108 +267,143 @@ export default async function HomePage() {
         )
       );
 
-  /* =========================================================
-     BLOG
-     ========================================================= */
+  /* =======================================================
+     BLOG POSTS
+     ======================================================= */
 
   const posts =
     await getBlogPosts();
 
-  /* =========================================================
-     PRODUCTS
-     ========================================================= */
+  /* =======================================================
+     CONTACT SETTINGS
+     ======================================================= */
 
-  const databaseProducts =
+  const contactRows =
     await db
       .select({
-        id:
-          productsTable.id,
+        eyebrow:
+          contactSettingsTable.eyebrow,
 
-        name:
-          productsTable.name,
+        title:
+          contactSettingsTable.title,
 
-        category:
-          productsTable.category,
+        subtitle:
+          contactSettingsTable.subtitle,
 
-        tag:
-          productsTable.tag,
+        emailLabel:
+          contactSettingsTable.emailLabel,
 
-        description:
-          productsTable.description,
+        email:
+          contactSettingsTable.email,
 
-        specs:
-          productsTable.specs,
+        phoneLabel:
+          contactSettingsTable.phoneLabel,
 
-        image:
-          productsTable.image,
+        phone:
+          contactSettingsTable.phone,
+
+        addressLabel:
+          contactSettingsTable.addressLabel,
+
+        address:
+          contactSettingsTable.address,
+
+        hoursLabel:
+          contactSettingsTable.hoursLabel,
+
+        hours:
+          contactSettingsTable.hours,
+
+        socialHeading:
+          contactSettingsTable.socialHeading,
+
+        nameLabel:
+          contactSettingsTable.nameLabel,
+
+        namePlaceholder:
+          contactSettingsTable.namePlaceholder,
+
+        formEmailLabel:
+          contactSettingsTable.formEmailLabel,
+
+        formEmailPlaceholder:
+          contactSettingsTable.formEmailPlaceholder,
+
+        subjectLabel:
+          contactSettingsTable.subjectLabel,
+
+        subjectPlaceholder:
+          contactSettingsTable.subjectPlaceholder,
+
+        messageLabel:
+          contactSettingsTable.messageLabel,
+
+        messagePlaceholder:
+          contactSettingsTable.messagePlaceholder,
+
+        submitButtonText:
+          contactSettingsTable.submitButtonText,
+
+        isVisible:
+          contactSettingsTable.isVisible,
       })
       .from(
-        productsTable
+        contactSettingsTable
       )
       .where(
         eq(
-          productsTable.isVisible,
+          contactSettingsTable.id,
+          "main"
+        )
+      )
+      .limit(1);
+
+  /*
+   * If the admin has not saved Contact settings yet,
+   * use the original website content.
+   */
+
+  const contactContent =
+    contactRows[0] ??
+    DEFAULT_CONTACT_CONTENT;
+
+  /* =======================================================
+     CONTACT SOCIAL LINKS
+     ======================================================= */
+
+  const databaseSocialLinks =
+    await db
+      .select({
+        id:
+          contactSocialLinksTable.id,
+
+        platform:
+          contactSocialLinksTable.platform,
+
+        url:
+          contactSocialLinksTable.url,
+      })
+      .from(
+        contactSocialLinksTable
+      )
+      .where(
+        eq(
+          contactSocialLinksTable.isVisible,
           true
         )
       )
       .orderBy(
         asc(
-          productsTable.sortOrder
+          contactSocialLinksTable.sortOrder
         ),
         asc(
-          productsTable.name
+          contactSocialLinksTable.id
         )
       );
 
-  /* =========================================================
-     CUSTOM BUILDS
-     ========================================================= */
-
-  const databaseBuilds =
-    await db
-      .select({
-        id:
-          buildsTable.id,
-
-        name:
-          buildsTable.name,
-
-        role:
-          buildsTable.role,
-
-        badge:
-          buildsTable.badge,
-
-        description:
-          buildsTable.description,
-
-        specs:
-          buildsTable.specs,
-
-        image:
-          buildsTable.image,
-      })
-      .from(
-        buildsTable
-      )
-      .where(
-        eq(
-          buildsTable.isVisible,
-          true
-        )
-      )
-      .orderBy(
-        asc(
-          buildsTable.sortOrder
-        ),
-        asc(
-          buildsTable.name
-        )
-      );
-
-  /* =========================================================
-     PAGE
-     ========================================================= */
+  /* =======================================================
+     HOMEPAGE
+     ======================================================= */
 
   return (
     <>
@@ -385,10 +411,13 @@ export default async function HomePage() {
 
       <Navbar />
 
-      <main className="relative bg-white">
-        {/* ===================================================
-            HERO
-            =================================================== */}
+      <main
+        className="
+          relative
+          bg-white
+        "
+      >
+        {/* HERO */}
 
         <Hero
           content={
@@ -396,15 +425,11 @@ export default async function HomePage() {
           }
         />
 
-        {/* ===================================================
-            MARQUEE
-            =================================================== */}
+        {/* MARQUEE */}
 
         <Marquee />
 
-        {/* ===================================================
-            STATS
-            =================================================== */}
+        {/* STATS */}
 
         <Stats
           stats={
@@ -412,9 +437,7 @@ export default async function HomePage() {
           }
         />
 
-        {/* ===================================================
-            PRODUCTS
-            =================================================== */}
+        {/* PRODUCTS */}
 
         <Products
           products={
@@ -422,9 +445,7 @@ export default async function HomePage() {
           }
         />
 
-        {/* ===================================================
-            CUSTOM BUILDS
-            =================================================== */}
+        {/* CUSTOM BUILDS */}
 
         <Builds
           builds={
@@ -432,9 +453,7 @@ export default async function HomePage() {
           }
         />
 
-        {/* ===================================================
-            FEATURES / WHY GAMEX
-            =================================================== */}
+        {/* FEATURES */}
 
         <Features
           settings={
@@ -445,30 +464,34 @@ export default async function HomePage() {
           }
         />
 
-        {/* ===================================================
-            SECOND MARQUEE
-            =================================================== */}
+        {/* SECOND MARQUEE */}
 
         <Marquee reverse />
 
-        {/* ===================================================
-            BLOG
-            =================================================== */}
+        {/* BLOG */}
 
         <Blog
-          posts={posts}
+          posts={
+            posts
+          }
         />
 
-        {/* ===================================================
+        {/* ===============================================
             CONTACT
-            =================================================== */}
 
-        <Contact />
+            Both Contact content and Social Links now
+            come from Neon.
+            =============================================== */}
+
+        <Contact
+          content={
+            contactContent
+          }
+          socialLinks={
+            databaseSocialLinks
+          }
+        />
       </main>
-
-      {/* =====================================================
-          FOOTER
-          ===================================================== */}
 
       <Footer />
     </>
