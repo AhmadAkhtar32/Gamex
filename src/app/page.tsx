@@ -7,7 +7,9 @@ import { db } from "@/db";
 
 import {
   customBuilds as buildsTable,
+  featuresSettings as featuresSettingsTable,
   heroSettings as heroSettingsTable,
+  homepageFeatures as featuresTable,
   homepageStats as statsTable,
   products as productsTable,
 } from "@/db/schema";
@@ -41,6 +43,26 @@ import {
 
 export const dynamic =
   "force-dynamic";
+
+/* =========================================================
+   DEFAULT FEATURES SETTINGS
+   ========================================================= */
+
+/*
+ * These are only used if the features_settings
+ * table does not yet contain the "main" row.
+ */
+
+const DEFAULT_FEATURES_SETTINGS = {
+  eyebrow: "Why Gamex",
+
+  title: "Built Different.",
+
+  subtitle:
+    "Everything we do is focused on delivering reliable, high-performance gaming hardware with the support to match.",
+
+  isVisible: true,
+};
 
 /* =========================================================
    HOMEPAGE
@@ -140,10 +162,6 @@ export default async function HomePage() {
       )
       .limit(1);
 
-  /* =========================================================
-     HERO FALLBACK
-     ========================================================= */
-
   const heroContent: HeroContent =
     heroRows[0] ??
     DEFAULT_HERO_CONTENT;
@@ -183,7 +201,83 @@ export default async function HomePage() {
       );
 
   /* =========================================================
-     BLOG POSTS
+     FEATURES SECTION SETTINGS
+     ========================================================= */
+
+  const featuresSettingsRows =
+    await db
+      .select({
+        eyebrow:
+          featuresSettingsTable.eyebrow,
+
+        title:
+          featuresSettingsTable.title,
+
+        subtitle:
+          featuresSettingsTable.subtitle,
+
+        isVisible:
+          featuresSettingsTable.isVisible,
+      })
+      .from(
+        featuresSettingsTable
+      )
+      .where(
+        eq(
+          featuresSettingsTable.id,
+          "main"
+        )
+      )
+      .limit(1);
+
+  /*
+   * If you have not yet pressed "Save Section"
+   * inside Admin, use the default values.
+   */
+
+  const featuresContent =
+    featuresSettingsRows[0] ??
+    DEFAULT_FEATURES_SETTINGS;
+
+  /* =========================================================
+     FEATURE CARDS
+     ========================================================= */
+
+  const databaseFeatures =
+    await db
+      .select({
+        id:
+          featuresTable.id,
+
+        icon:
+          featuresTable.icon,
+
+        title:
+          featuresTable.title,
+
+        description:
+          featuresTable.description,
+      })
+      .from(
+        featuresTable
+      )
+      .where(
+        eq(
+          featuresTable.isVisible,
+          true
+        )
+      )
+      .orderBy(
+        asc(
+          featuresTable.sortOrder
+        ),
+        asc(
+          featuresTable.id
+        )
+      );
+
+  /* =========================================================
+     BLOG
      ========================================================= */
 
   const posts =
@@ -292,7 +386,9 @@ export default async function HomePage() {
       <Navbar />
 
       <main className="relative bg-white">
-        {/* HERO */}
+        {/* ===================================================
+            HERO
+            =================================================== */}
 
         <Hero
           content={
@@ -300,11 +396,15 @@ export default async function HomePage() {
           }
         />
 
-        {/* MARQUEE */}
+        {/* ===================================================
+            MARQUEE
+            =================================================== */}
 
         <Marquee />
 
-        {/* STATS */}
+        {/* ===================================================
+            STATS
+            =================================================== */}
 
         <Stats
           stats={
@@ -312,7 +412,9 @@ export default async function HomePage() {
           }
         />
 
-        {/* PRODUCTS */}
+        {/* ===================================================
+            PRODUCTS
+            =================================================== */}
 
         <Products
           products={
@@ -320,7 +422,9 @@ export default async function HomePage() {
           }
         />
 
-        {/* CUSTOM BUILDS */}
+        {/* ===================================================
+            CUSTOM BUILDS
+            =================================================== */}
 
         <Builds
           builds={
@@ -328,24 +432,43 @@ export default async function HomePage() {
           }
         />
 
-        {/* FEATURES */}
+        {/* ===================================================
+            FEATURES / WHY GAMEX
+            =================================================== */}
 
-        <Features />
+        <Features
+          settings={
+            featuresContent
+          }
+          features={
+            databaseFeatures
+          }
+        />
 
-        {/* SECOND MARQUEE */}
+        {/* ===================================================
+            SECOND MARQUEE
+            =================================================== */}
 
         <Marquee reverse />
 
-        {/* BLOG */}
+        {/* ===================================================
+            BLOG
+            =================================================== */}
 
         <Blog
           posts={posts}
         />
 
-        {/* CONTACT */}
+        {/* ===================================================
+            CONTACT
+            =================================================== */}
 
         <Contact />
       </main>
+
+      {/* =====================================================
+          FOOTER
+          ===================================================== */}
 
       <Footer />
     </>

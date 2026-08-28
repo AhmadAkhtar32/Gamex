@@ -886,3 +886,224 @@ export const homepageFeatures = pgTable(
       .notNull(),
   }
 );
+/* =========================================================
+   CONTACT SECTION SETTINGS
+   ========================================================= */
+
+export const contactSettings = pgTable(
+  "contact_settings",
+  {
+    /*
+     * One homepage Contact section.
+     *
+     * id = "main"
+     */
+    id: varchar("id", {
+      length: 50,
+    }).primaryKey(),
+
+    /* =====================================================
+       SECTION HEADING
+       ===================================================== */
+
+    eyebrow: varchar("eyebrow", {
+      length: 255,
+    }).notNull(),
+
+    title: varchar("title", {
+      length: 255,
+    }).notNull(),
+
+    subtitle: text(
+      "subtitle"
+    ).notNull(),
+
+    /* =====================================================
+       CONTACT INFORMATION
+       ===================================================== */
+
+    emailLabel: varchar(
+      "email_label",
+      {
+        length: 100,
+      }
+    ).notNull(),
+
+    email: varchar("email", {
+      length: 255,
+    }).notNull(),
+
+    phoneLabel: varchar(
+      "phone_label",
+      {
+        length: 100,
+      }
+    ).notNull(),
+
+    phone: varchar("phone", {
+      length: 100,
+    }).notNull(),
+
+    addressLabel: varchar(
+      "address_label",
+      {
+        length: 100,
+      }
+    ).notNull(),
+
+    address: text(
+      "address"
+    ).notNull(),
+
+    hoursLabel: varchar(
+      "hours_label",
+      {
+        length: 100,
+      }
+    ).notNull(),
+
+    hours: varchar("hours", {
+      length: 255,
+    }).notNull(),
+
+    /* =====================================================
+       SOCIAL MEDIA
+       ===================================================== */
+
+    socialHeading: varchar(
+      "social_heading",
+      {
+        length: 255,
+      }
+    ).notNull(),
+
+    xUrl: varchar("x_url", {
+      length: 1000,
+    })
+      .default("")
+      .notNull(),
+
+    instagramUrl: varchar(
+      "instagram_url",
+      {
+        length: 1000,
+      }
+    )
+      .default("")
+      .notNull(),
+
+    youtubeUrl: varchar(
+      "youtube_url",
+      {
+        length: 1000,
+      }
+    )
+      .default("")
+      .notNull(),
+
+    twitchUrl: varchar(
+      "twitch_url",
+      {
+        length: 1000,
+      }
+    )
+      .default("")
+      .notNull(),
+
+    /* =====================================================
+       CONTACT FORM TEXT
+       ===================================================== */
+
+    nameLabel: varchar(
+      "name_label",
+      {
+        length: 100,
+      }
+    ).notNull(),
+
+    namePlaceholder: varchar(
+      "name_placeholder",
+      {
+        length: 255,
+      }
+    ).notNull(),
+
+    formEmailLabel: varchar(
+      "form_email_label",
+      {
+        length: 100,
+      }
+    ).notNull(),
+
+    formEmailPlaceholder: varchar(
+      "form_email_placeholder",
+      {
+        length: 255,
+      }
+    ).notNull(),
+
+    subjectLabel: varchar(
+      "subject_label",
+      {
+        length: 100,
+      }
+    ).notNull(),
+
+    subjectPlaceholder: varchar(
+      "subject_placeholder",
+      {
+        length: 500,
+      }
+    ).notNull(),
+
+    messageLabel: varchar(
+      "message_label",
+      {
+        length: 100,
+      }
+    ).notNull(),
+
+    messagePlaceholder: text(
+      "message_placeholder"
+    ).notNull(),
+
+    submitButtonText: varchar(
+      "submit_button_text",
+      {
+        length: 120,
+      }
+    ).notNull(),
+
+    /* =====================================================
+       VISIBILITY
+       ===================================================== */
+
+    isVisible: boolean(
+      "is_visible"
+    )
+      .default(true)
+      .notNull(),
+
+    /* =====================================================
+       TIMESTAMPS
+       ===================================================== */
+
+    createdAt: timestamp(
+      "created_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+
+    updatedAt: timestamp(
+      "updated_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+  }
+);
