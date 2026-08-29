@@ -10,7 +10,6 @@ import {
   EyeOff,
   Gamepad2,
   ImageIcon,
-  Link2,
   Navigation,
   Plus,
   Save,
@@ -44,6 +43,8 @@ import {
   updateFooterLink,
   updateFooterSocialLink,
 } from "./actions";
+
+import DeleteFooterItemButton from "./DeleteFooterItemButton";
 
 /* =========================================================
    TYPES
@@ -214,6 +215,10 @@ export default async function FooterAdminPage({
         )
       );
 
+  /* =======================================================
+     PAGE
+     ======================================================= */
+
   return (
     <main className="min-h-screen bg-[#f7f9fc]">
       {/* =====================================================
@@ -254,7 +259,13 @@ export default async function FooterAdminPage({
               Gamex Admin
             </p>
 
-            <p className="mt-0.5 text-xs text-slate-500">
+            <p
+              className="
+                mt-0.5
+                text-xs
+                text-slate-500
+              "
+            >
               Footer Management
             </p>
           </div>
@@ -283,6 +294,7 @@ export default async function FooterAdminPage({
             "
           >
             <ArrowLeft className="h-4 w-4" />
+
             Dashboard
           </Link>
         </div>
@@ -302,6 +314,10 @@ export default async function FooterAdminPage({
           md:py-14
         "
       >
+        {/* ===================================================
+            PAGE HEADING
+            =================================================== */}
+
         <div>
           <p
             className="
@@ -428,7 +444,7 @@ export default async function FooterAdminPage({
         ) : null}
 
         {/* ===================================================
-            SETTINGS
+            FOOTER SETTINGS
             =================================================== */}
 
         <form
@@ -460,7 +476,9 @@ export default async function FooterAdminPage({
                   defaultValue={
                     settings.brandText
                   }
-                  className={inputClass}
+                  className={
+                    inputClass
+                  }
                 />
               </Field>
 
@@ -472,22 +490,26 @@ export default async function FooterAdminPage({
                   defaultValue={
                     settings.brandHref
                   }
-                  className={inputClass}
+                  className={
+                    inputClass
+                  }
                 />
               </Field>
             </div>
 
-            <Field label="Footer Description">
-              <textarea
-                name="description"
-                required
-                rows={4}
-                defaultValue={
-                  settings.description
-                }
-                className={`${inputClass} mt-6 resize-y`}
-              />
-            </Field>
+            <div className="mt-6">
+              <Field label="Footer Description">
+                <textarea
+                  name="description"
+                  required
+                  rows={4}
+                  defaultValue={
+                    settings.description
+                  }
+                  className={`${inputClass} resize-y`}
+                />
+              </Field>
+            </div>
 
             <div
               className="
@@ -499,7 +521,14 @@ export default async function FooterAdminPage({
                 p-4
               "
             >
-              <label className="flex cursor-pointer items-center gap-3">
+              <label
+                className="
+                  flex
+                  cursor-pointer
+                  items-center
+                  gap-3
+                "
+              >
                 <input
                   name="isVisible"
                   type="checkbox"
@@ -513,7 +542,13 @@ export default async function FooterAdminPage({
                   "
                 />
 
-                <span className="text-sm font-bold text-brand-deep">
+                <span
+                  className="
+                    text-sm
+                    font-bold
+                    text-brand-deep
+                  "
+                >
                   Show Footer on website
                 </span>
               </label>
@@ -535,8 +570,16 @@ export default async function FooterAdminPage({
                 lg:grid-cols-[280px_1fr]
               "
             >
+              {/* =============================================
+                  PREVIEW
+                  ============================================= */}
+
               <div>
-                <p className={labelClass}>
+                <p
+                  className={
+                    labelClass
+                  }
+                >
                   Current Logo
                 </p>
 
@@ -583,7 +626,9 @@ export default async function FooterAdminPage({
                           text-white
                         "
                       >
-                        <Gamepad2 className="h-8 w-8" />
+                        <Gamepad2
+                          className="h-8 w-8"
+                        />
                       </div>
 
                       <p
@@ -603,6 +648,10 @@ export default async function FooterAdminPage({
                 </div>
               </div>
 
+              {/* =============================================
+                  LOGO FIELDS
+                  ============================================= */}
+
               <div className="space-y-5">
                 <input
                   type="hidden"
@@ -620,7 +669,9 @@ export default async function FooterAdminPage({
                     defaultValue={
                       settings.logoAlt
                     }
-                    className={inputClass}
+                    className={
+                      inputClass
+                    }
                   />
                 </Field>
 
@@ -637,9 +688,17 @@ export default async function FooterAdminPage({
                       border-brand/25
                       bg-[#f7f9fc]
                       p-4
+                      transition-colors
+                      hover:border-brand/50
                     "
                   >
-                    <ImageIcon className="h-5 w-5 text-brand" />
+                    <ImageIcon
+                      className="
+                        h-5
+                        w-5
+                        text-brand
+                      "
+                    />
 
                     <span>
                       <span
@@ -679,7 +738,9 @@ export default async function FooterAdminPage({
                     type="url"
                     maxLength={1000}
                     placeholder="https://example.com/logo.png"
-                    className={inputClass}
+                    className={
+                      inputClass
+                    }
                   />
                 </Field>
 
@@ -707,7 +768,13 @@ export default async function FooterAdminPage({
                       "
                     />
 
-                    <span className="text-sm font-bold text-red-700">
+                    <span
+                      className="
+                        text-sm
+                        font-bold
+                        text-red-700
+                      "
+                    >
                       Remove current custom logo
                     </span>
                   </label>
@@ -717,7 +784,7 @@ export default async function FooterAdminPage({
           </SectionCard>
 
           {/* =================================================
-              CONTACT / HEADINGS
+              NAVIGATION / CONTACT
               ================================================= */}
 
           <SectionCard
@@ -739,7 +806,9 @@ export default async function FooterAdminPage({
                   defaultValue={
                     settings.navigationHeading
                   }
-                  className={inputClass}
+                  className={
+                    inputClass
+                  }
                 />
               </Field>
 
@@ -751,7 +820,9 @@ export default async function FooterAdminPage({
                   defaultValue={
                     settings.contactHeading
                   }
-                  className={inputClass}
+                  className={
+                    inputClass
+                  }
                 />
               </Field>
 
@@ -764,7 +835,9 @@ export default async function FooterAdminPage({
                   defaultValue={
                     settings.email
                   }
-                  className={inputClass}
+                  className={
+                    inputClass
+                  }
                 />
               </Field>
 
@@ -776,22 +849,26 @@ export default async function FooterAdminPage({
                   defaultValue={
                     settings.phone
                   }
-                  className={inputClass}
+                  className={
+                    inputClass
+                  }
                 />
               </Field>
             </div>
 
-            <Field label="Address">
-              <textarea
-                name="address"
-                required
-                rows={3}
-                defaultValue={
-                  settings.address
-                }
-                className={`${inputClass} mt-6 resize-y`}
-              />
-            </Field>
+            <div className="mt-6">
+              <Field label="Address">
+                <textarea
+                  name="address"
+                  required
+                  rows={3}
+                  defaultValue={
+                    settings.address
+                  }
+                  className={`${inputClass} resize-y`}
+                />
+              </Field>
+            </div>
           </SectionCard>
 
           {/* =================================================
@@ -817,7 +894,9 @@ export default async function FooterAdminPage({
                   defaultValue={
                     settings.ctaText
                   }
-                  className={inputClass}
+                  className={
+                    inputClass
+                  }
                 />
               </Field>
 
@@ -829,7 +908,9 @@ export default async function FooterAdminPage({
                   defaultValue={
                     settings.ctaHref
                   }
-                  className={inputClass}
+                  className={
+                    inputClass
+                  }
                 />
               </Field>
             </div>
@@ -844,7 +925,14 @@ export default async function FooterAdminPage({
                 p-4
               "
             >
-              <label className="flex cursor-pointer items-center gap-3">
+              <label
+                className="
+                  flex
+                  cursor-pointer
+                  items-center
+                  gap-3
+                "
+              >
                 <input
                   name="ctaVisible"
                   type="checkbox"
@@ -858,7 +946,13 @@ export default async function FooterAdminPage({
                   "
                 />
 
-                <span className="text-sm font-bold text-brand-deep">
+                <span
+                  className="
+                    text-sm
+                    font-bold
+                    text-brand-deep
+                  "
+                >
                   Show Footer CTA
                 </span>
               </label>
@@ -881,7 +975,9 @@ export default async function FooterAdminPage({
                 defaultValue={
                   settings.copyrightText
                 }
-                className={inputClass}
+                className={
+                  inputClass
+                }
               />
 
               <p
@@ -892,7 +988,12 @@ export default async function FooterAdminPage({
                 "
               >
                 Use{" "}
-                <code className="font-bold text-brand">
+                <code
+                  className="
+                    font-bold
+                    text-brand
+                  "
+                >
                   {"{year}"}
                 </code>{" "}
                 to automatically display the current year.
@@ -915,7 +1016,9 @@ export default async function FooterAdminPage({
                   defaultValue={
                     settings.backToTopText
                   }
-                  className={inputClass}
+                  className={
+                    inputClass
+                  }
                 />
               </Field>
 
@@ -927,14 +1030,16 @@ export default async function FooterAdminPage({
                   defaultValue={
                     settings.backToTopHref
                   }
-                  className={inputClass}
+                  className={
+                    inputClass
+                  }
                 />
               </Field>
             </div>
           </SectionCard>
 
           {/* =================================================
-              SAVE
+              SAVE SETTINGS
               ================================================= */}
 
           <div
@@ -968,7 +1073,10 @@ export default async function FooterAdminPage({
                 hover:bg-brand-soft
               "
             >
-              <Save className="h-4 w-4" />
+              <Save
+                className="h-4 w-4"
+              />
+
               Save Footer Settings
             </button>
           </div>
@@ -992,14 +1100,18 @@ export default async function FooterAdminPage({
         >
           <SectionHeading
             icon={
-              <Navigation className="h-5 w-5" />
+              <Navigation
+                className="h-5 w-5"
+              />
             }
             eyebrow="Navigation"
             title="Footer Links"
             description="Manage the links shown in the Footer navigation column."
           />
 
-          {/* ADD LINK */}
+          {/* =================================================
+              ADD LINK
+              ================================================= */}
 
           <form
             action={
@@ -1027,7 +1139,9 @@ export default async function FooterAdminPage({
                   required
                   maxLength={120}
                   placeholder="Support"
-                  className={inputClass}
+                  className={
+                    inputClass
+                  }
                 />
               </Field>
 
@@ -1037,7 +1151,9 @@ export default async function FooterAdminPage({
                   required
                   maxLength={500}
                   placeholder="#contact"
-                  className={inputClass}
+                  className={
+                    inputClass
+                  }
                 />
               </Field>
 
@@ -1050,7 +1166,9 @@ export default async function FooterAdminPage({
                   defaultValue={
                     links.length
                   }
-                  className={inputClass}
+                  className={
+                    inputClass
+                  }
                 />
               </Field>
             </div>
@@ -1066,7 +1184,13 @@ export default async function FooterAdminPage({
                 sm:justify-between
               "
             >
-              <label className="flex items-center gap-3">
+              <label
+                className="
+                  flex
+                  items-center
+                  gap-3
+                "
+              >
                 <input
                   name="isVisible"
                   type="checkbox"
@@ -1078,7 +1202,14 @@ export default async function FooterAdminPage({
                   "
                 />
 
-                <span className="text-xs font-bold uppercase text-slate-600">
+                <span
+                  className="
+                    text-xs
+                    font-bold
+                    uppercase
+                    text-slate-600
+                  "
+                >
                   Visible
                 </span>
               </label>
@@ -1097,15 +1228,22 @@ export default async function FooterAdminPage({
                   text-xs
                   font-bold
                   text-white
+                  transition-all
+                  hover:bg-brand-soft
                 "
               >
-                <Plus className="h-4 w-4" />
+                <Plus
+                  className="h-4 w-4"
+                />
+
                 Add Link
               </button>
             </div>
           </form>
 
-          {/* EMPTY */}
+          {/* =================================================
+              EMPTY LINKS
+              ================================================= */}
 
           {links.length === 0 ? (
             <div
@@ -1120,7 +1258,12 @@ export default async function FooterAdminPage({
                 text-center
               "
             >
-              <p className="font-bold text-brand-deep">
+              <p
+                className="
+                  font-bold
+                  text-brand-deep
+                "
+              >
                 No Footer links yet.
               </p>
 
@@ -1143,6 +1286,9 @@ export default async function FooterAdminPage({
                     font-bold
                     uppercase
                     text-brand
+                    transition-all
+                    hover:bg-brand
+                    hover:text-white
                   "
                 >
                   Import Default Links
@@ -1150,52 +1296,103 @@ export default async function FooterAdminPage({
               </form>
             </div>
           ) : (
-            <div className="mt-6 grid gap-4">
+            /* ===============================================
+               EXISTING LINKS
+               =============================================== */
+
+            <div
+              className="
+                mt-6
+                grid
+                gap-4
+              "
+            >
               {links.map(
-                (footerLink) => (
+                (
+                  footerLink
+                ) => (
                   <div
                     key={
                       footerLink.id
                     }
                     className="
+                      overflow-hidden
                       rounded-2xl
                       border
                       border-brand/10
                       bg-white
-                      p-5
                     "
                   >
+                    {/* =======================================
+                        LINK HEADER
+                        ======================================= */}
+
                     <div
                       className="
-                        mb-5
                         flex
                         flex-wrap
                         items-center
                         justify-between
                         gap-3
+                        border-b
+                        border-brand/10
+                        bg-[#f7f9fc]
+                        px-5
+                        py-4
                       "
                     >
                       <div>
-                        <p
+                        <div
                           className="
-                            font-display
-                            text-sm
-                            font-bold
-                            uppercase
-                            text-brand-deep
+                            flex
+                            flex-wrap
+                            items-center
+                            gap-2
                           "
                         >
-                          {
-                            footerLink.label
-                          }
-                        </p>
+                          <p
+                            className="
+                              font-display
+                              text-sm
+                              font-bold
+                              uppercase
+                              text-brand-deep
+                            "
+                          >
+                            {
+                              footerLink.label
+                            }
+                          </p>
 
-                        <p className="mt-1 text-xs text-slate-400">
+                          <VisibilityBadge
+                            visible={
+                              footerLink.isVisible
+                            }
+                          />
+
+                          <OrderBadge
+                            value={
+                              footerLink.sortOrder
+                            }
+                          />
+                        </div>
+
+                        <p
+                          className="
+                            mt-1
+                            text-xs
+                            text-slate-400
+                          "
+                        >
                           {
                             footerLink.href
                           }
                         </p>
                       </div>
+
+                      {/* =====================================
+                          SHOW / HIDE
+                          ===================================== */}
 
                       <form
                         action={
@@ -1210,41 +1407,26 @@ export default async function FooterAdminPage({
                           }
                         />
 
-                        <button
-                          type="submit"
-                          className="
-                            inline-flex
-                            items-center
-                            gap-2
-                            rounded-lg
-                            border
-                            border-brand/15
-                            px-3
-                            py-2
-                            text-xs
-                            font-bold
-                            text-brand
-                          "
-                        >
-                          {footerLink.isVisible ? (
-                            <>
-                              <EyeOff className="h-4 w-4" />
-                              Hide
-                            </>
-                          ) : (
-                            <>
-                              <Eye className="h-4 w-4" />
-                              Show
-                            </>
-                          )}
-                        </button>
+                        <VisibilityButton
+                          visible={
+                            footerLink.isVisible
+                          }
+                        />
                       </form>
                     </div>
+
+                    {/* =======================================
+                        EDIT LINK FORM
+                        ======================================= */}
 
                     <form
                       action={
                         updateFooterLink
                       }
+                      className="
+                        p-5
+                        md:p-6
+                      "
                     >
                       <input
                         type="hidden"
@@ -1265,10 +1447,15 @@ export default async function FooterAdminPage({
                           <input
                             name="label"
                             required
+                            maxLength={
+                              120
+                            }
                             defaultValue={
                               footerLink.label
                             }
-                            className={inputClass}
+                            className={
+                              inputClass
+                            }
                           />
                         </Field>
 
@@ -1276,10 +1463,15 @@ export default async function FooterAdminPage({
                           <input
                             name="href"
                             required
+                            maxLength={
+                              500
+                            }
                             defaultValue={
                               footerLink.href
                             }
-                            className={inputClass}
+                            className={
+                              inputClass
+                            }
                           />
                         </Field>
 
@@ -1288,10 +1480,13 @@ export default async function FooterAdminPage({
                             name="sortOrder"
                             type="number"
                             min="0"
+                            step="1"
                             defaultValue={
                               footerLink.sortOrder
                             }
-                            className={inputClass}
+                            className={
+                              inputClass
+                            }
                           />
                         </Field>
                       </div>
@@ -1300,11 +1495,23 @@ export default async function FooterAdminPage({
                         className="
                           mt-5
                           flex
-                          justify-between
+                          flex-col
                           gap-4
+                          border-t
+                          border-brand/10
+                          pt-5
+                          sm:flex-row
+                          sm:items-center
+                          sm:justify-between
                         "
                       >
-                        <label className="flex items-center gap-3">
+                        <label
+                          className="
+                            flex
+                            items-center
+                            gap-3
+                          "
+                        >
                           <input
                             name="isVisible"
                             type="checkbox"
@@ -1318,7 +1525,14 @@ export default async function FooterAdminPage({
                             "
                           />
 
-                          <span className="text-xs font-bold uppercase text-slate-600">
+                          <span
+                            className="
+                              text-xs
+                              font-bold
+                              uppercase
+                              text-slate-600
+                            "
+                          >
                             Visible
                           </span>
                         </label>
@@ -1328,6 +1542,7 @@ export default async function FooterAdminPage({
                           className="
                             inline-flex
                             items-center
+                            justify-center
                             gap-2
                             rounded-lg
                             bg-brand
@@ -1336,13 +1551,54 @@ export default async function FooterAdminPage({
                             text-xs
                             font-bold
                             text-white
+                            transition-all
+                            hover:bg-brand-soft
                           "
                         >
-                          <Save className="h-4 w-4" />
-                          Save
+                          <Save
+                            className="h-4 w-4"
+                          />
+
+                          Save Changes
                         </button>
                       </div>
                     </form>
+
+                    {/* =======================================
+                        DELETE
+
+                        IMPORTANT:
+                        This stays OUTSIDE the update <form>.
+                        Therefore the delete component can
+                        safely contain its own confirmation
+                        form without nested forms.
+                        ======================================= */}
+
+                    <div
+                      className="
+                        flex
+                        items-center
+                        justify-end
+                        border-t
+                        border-brand/10
+                        bg-red-50/30
+                        px-5
+                        py-4
+                      "
+                    >
+                      <DeleteFooterItemButton
+                        type="link"
+                        id={
+                          footerLink.id
+                        }
+                        label={
+                          footerLink.label
+                        }
+                        detail={
+                          footerLink.href
+                        }
+                      />
+                    </div>
                   </div>
                 )
               )}
@@ -1368,14 +1624,18 @@ export default async function FooterAdminPage({
         >
           <SectionHeading
             icon={
-              <Share2 className="h-5 w-5" />
+              <Share2
+                className="h-5 w-5"
+              />
             }
             eyebrow="Social"
             title="Social Profiles"
             description="Control the social icons displayed in the Footer."
           />
 
-          {/* ADD SOCIAL */}
+          {/* =================================================
+              ADD SOCIAL
+              ================================================= */}
 
           <form
             action={
@@ -1401,10 +1661,14 @@ export default async function FooterAdminPage({
                 <select
                   name="platform"
                   required
-                  className={inputClass}
+                  className={
+                    inputClass
+                  }
                 >
                   {SOCIAL_PLATFORMS.map(
-                    (platform) => (
+                    (
+                      platform
+                    ) => (
                       <option
                         key={
                           platform
@@ -1426,8 +1690,11 @@ export default async function FooterAdminPage({
                 <input
                   name="url"
                   required
+                  maxLength={1000}
                   placeholder="https://instagram.com/gamex"
-                  className={inputClass}
+                  className={
+                    inputClass
+                  }
                 />
               </Field>
 
@@ -1436,10 +1703,13 @@ export default async function FooterAdminPage({
                   name="sortOrder"
                   type="number"
                   min="0"
+                  step="1"
                   defaultValue={
                     socials.length
                   }
-                  className={inputClass}
+                  className={
+                    inputClass
+                  }
                 />
               </Field>
             </div>
@@ -1448,12 +1718,20 @@ export default async function FooterAdminPage({
               className="
                 mt-5
                 flex
-                items-center
-                justify-between
+                flex-col
                 gap-4
+                sm:flex-row
+                sm:items-center
+                sm:justify-between
               "
             >
-              <label className="flex items-center gap-3">
+              <label
+                className="
+                  flex
+                  items-center
+                  gap-3
+                "
+              >
                 <input
                   name="isVisible"
                   type="checkbox"
@@ -1465,7 +1743,14 @@ export default async function FooterAdminPage({
                   "
                 />
 
-                <span className="text-xs font-bold uppercase text-slate-600">
+                <span
+                  className="
+                    text-xs
+                    font-bold
+                    uppercase
+                    text-slate-600
+                  "
+                >
                   Visible
                 </span>
               </label>
@@ -1475,6 +1760,7 @@ export default async function FooterAdminPage({
                 className="
                   inline-flex
                   items-center
+                  justify-center
                   gap-2
                   rounded-xl
                   bg-brand
@@ -1483,15 +1769,22 @@ export default async function FooterAdminPage({
                   text-xs
                   font-bold
                   text-white
+                  transition-all
+                  hover:bg-brand-soft
                 "
               >
-                <Plus className="h-4 w-4" />
+                <Plus
+                  className="h-4 w-4"
+                />
+
                 Add Social
               </button>
             </div>
           </form>
 
-          {/* EXISTING SOCIALS */}
+          {/* =================================================
+              EMPTY SOCIALS
+              ================================================= */}
 
           {socials.length === 0 ? (
             <div
@@ -1511,57 +1804,105 @@ export default async function FooterAdminPage({
               No Footer social profiles yet.
             </div>
           ) : (
-            <div className="mt-6 grid gap-4">
+            /* ===============================================
+               EXISTING SOCIALS
+               =============================================== */
+
+            <div
+              className="
+                mt-6
+                grid
+                gap-4
+              "
+            >
               {socials.map(
-                (social) => (
+                (
+                  social
+                ) => (
                   <div
                     key={
                       social.id
                     }
                     className="
+                      overflow-hidden
                       rounded-2xl
                       border
                       border-brand/10
                       bg-white
-                      p-5
                     "
                   >
+                    {/* =======================================
+                        SOCIAL HEADER
+                        ======================================= */}
+
                     <div
                       className="
-                        mb-5
                         flex
+                        flex-wrap
                         items-center
                         justify-between
                         gap-4
+                        border-b
+                        border-brand/10
+                        bg-[#f7f9fc]
+                        px-5
+                        py-4
                       "
                     >
                       <div>
-                        <p
+                        <div
                           className="
-                            font-display
-                            text-sm
-                            font-bold
-                            uppercase
-                            text-brand-deep
+                            flex
+                            flex-wrap
+                            items-center
+                            gap-2
                           "
                         >
-                          {formatPlatform(
-                            social.platform
-                          )}
-                        </p>
+                          <p
+                            className="
+                              font-display
+                              text-sm
+                              font-bold
+                              uppercase
+                              text-brand-deep
+                            "
+                          >
+                            {formatPlatform(
+                              social.platform
+                            )}
+                          </p>
+
+                          <VisibilityBadge
+                            visible={
+                              social.isVisible
+                            }
+                          />
+
+                          <OrderBadge
+                            value={
+                              social.sortOrder
+                            }
+                          />
+                        </div>
 
                         <p
                           className="
                             mt-1
-                            max-w-lg
+                            max-w-xl
                             truncate
                             text-xs
                             text-slate-400
                           "
                         >
-                          {social.url}
+                          {
+                            social.url
+                          }
                         </p>
                       </div>
+
+                      {/* =====================================
+                          SHOW / HIDE
+                          ===================================== */}
 
                       <form
                         action={
@@ -1576,41 +1917,26 @@ export default async function FooterAdminPage({
                           }
                         />
 
-                        <button
-                          type="submit"
-                          className="
-                            inline-flex
-                            items-center
-                            gap-2
-                            rounded-lg
-                            border
-                            border-brand/15
-                            px-3
-                            py-2
-                            text-xs
-                            font-bold
-                            text-brand
-                          "
-                        >
-                          {social.isVisible ? (
-                            <>
-                              <EyeOff className="h-4 w-4" />
-                              Hide
-                            </>
-                          ) : (
-                            <>
-                              <Eye className="h-4 w-4" />
-                              Show
-                            </>
-                          )}
-                        </button>
+                        <VisibilityButton
+                          visible={
+                            social.isVisible
+                          }
+                        />
                       </form>
                     </div>
+
+                    {/* =======================================
+                        EDIT SOCIAL FORM
+                        ======================================= */}
 
                     <form
                       action={
                         updateFooterSocialLink
                       }
+                      className="
+                        p-5
+                        md:p-6
+                      "
                     >
                       <input
                         type="hidden"
@@ -1633,10 +1959,14 @@ export default async function FooterAdminPage({
                             defaultValue={
                               social.platform
                             }
-                            className={inputClass}
+                            className={
+                              inputClass
+                            }
                           >
                             {SOCIAL_PLATFORMS.map(
-                              (platform) => (
+                              (
+                                platform
+                              ) => (
                                 <option
                                   key={
                                     platform
@@ -1658,10 +1988,15 @@ export default async function FooterAdminPage({
                           <input
                             name="url"
                             required
+                            maxLength={
+                              1000
+                            }
                             defaultValue={
                               social.url
                             }
-                            className={inputClass}
+                            className={
+                              inputClass
+                            }
                           />
                         </Field>
 
@@ -1670,10 +2005,13 @@ export default async function FooterAdminPage({
                             name="sortOrder"
                             type="number"
                             min="0"
+                            step="1"
                             defaultValue={
                               social.sortOrder
                             }
-                            className={inputClass}
+                            className={
+                              inputClass
+                            }
                           />
                         </Field>
                       </div>
@@ -1682,12 +2020,23 @@ export default async function FooterAdminPage({
                         className="
                           mt-5
                           flex
-                          items-center
-                          justify-between
+                          flex-col
                           gap-4
+                          border-t
+                          border-brand/10
+                          pt-5
+                          sm:flex-row
+                          sm:items-center
+                          sm:justify-between
                         "
                       >
-                        <label className="flex items-center gap-3">
+                        <label
+                          className="
+                            flex
+                            items-center
+                            gap-3
+                          "
+                        >
                           <input
                             name="isVisible"
                             type="checkbox"
@@ -1701,7 +2050,14 @@ export default async function FooterAdminPage({
                             "
                           />
 
-                          <span className="text-xs font-bold uppercase text-slate-600">
+                          <span
+                            className="
+                              text-xs
+                              font-bold
+                              uppercase
+                              text-slate-600
+                            "
+                          >
                             Visible
                           </span>
                         </label>
@@ -1711,6 +2067,7 @@ export default async function FooterAdminPage({
                           className="
                             inline-flex
                             items-center
+                            justify-center
                             gap-2
                             rounded-lg
                             bg-brand
@@ -1719,13 +2076,50 @@ export default async function FooterAdminPage({
                             text-xs
                             font-bold
                             text-white
+                            transition-all
+                            hover:bg-brand-soft
                           "
                         >
-                          <Save className="h-4 w-4" />
-                          Save
+                          <Save
+                            className="h-4 w-4"
+                          />
+
+                          Save Changes
                         </button>
                       </div>
                     </form>
+
+                    {/* =======================================
+                        DELETE SOCIAL
+                        ======================================= */}
+
+                    <div
+                      className="
+                        flex
+                        items-center
+                        justify-end
+                        border-t
+                        border-brand/10
+                        bg-red-50/30
+                        px-5
+                        py-4
+                      "
+                    >
+                      <DeleteFooterItemButton
+                        type="social"
+                        id={
+                          social.id
+                        }
+                        label={
+                          formatPlatform(
+                            social.platform
+                          )
+                        }
+                        detail={
+                          social.url
+                        }
+                      />
+                    </div>
                   </div>
                 )
               )}
@@ -1923,12 +2317,128 @@ function Field({
 }) {
   return (
     <div>
-      <label className={labelClass}>
+      <label
+        className={
+          labelClass
+        }
+      >
         {label}
       </label>
 
       {children}
     </div>
+  );
+}
+
+/* =========================================================
+   VISIBILITY BADGE
+   ========================================================= */
+
+function VisibilityBadge({
+  visible,
+}: {
+  visible: boolean;
+}) {
+  return (
+    <span
+      className={`
+        rounded-full
+        px-2.5
+        py-1
+        text-[10px]
+        font-bold
+        uppercase
+        tracking-wider
+
+        ${
+          visible
+            ? "bg-emerald-50 text-emerald-700"
+            : "bg-slate-100 text-slate-500"
+        }
+      `}
+    >
+      {visible
+        ? "Visible"
+        : "Hidden"}
+    </span>
+  );
+}
+
+/* =========================================================
+   ORDER BADGE
+   ========================================================= */
+
+function OrderBadge({
+  value,
+}: {
+  value: number;
+}) {
+  return (
+    <span
+      className="
+        rounded-full
+        bg-brand/[0.07]
+        px-2.5
+        py-1
+        text-[10px]
+        font-bold
+        text-brand
+      "
+    >
+      Order {value}
+    </span>
+  );
+}
+
+/* =========================================================
+   SHOW / HIDE BUTTON
+   ========================================================= */
+
+function VisibilityButton({
+  visible,
+}: {
+  visible: boolean;
+}) {
+  return (
+    <button
+      type="submit"
+      className="
+        inline-flex
+        items-center
+        gap-2
+        rounded-lg
+        border
+        border-brand/15
+        bg-white
+        px-3
+        py-2
+        text-xs
+        font-bold
+        text-brand
+        transition-all
+        hover:border-brand
+        hover:bg-brand
+        hover:text-white
+      "
+    >
+      {visible ? (
+        <>
+          <EyeOff
+            className="h-4 w-4"
+          />
+
+          Hide
+        </>
+      ) : (
+        <>
+          <Eye
+            className="h-4 w-4"
+          />
+
+          Show
+        </>
+      )}
+    </button>
   );
 }
 
@@ -1940,19 +2450,32 @@ function formatPlatform(
   platform: string
 ) {
   const specialNames:
-    Record<string, string> = {
+    Record<
+      string,
+      string
+    > = {
       x: "X",
-      youtube: "YouTube",
-      whatsapp: "WhatsApp",
-      linkedin: "LinkedIn",
-      tiktok: "TikTok",
+
+      youtube:
+        "YouTube",
+
+      whatsapp:
+        "WhatsApp",
+
+      linkedin:
+        "LinkedIn",
+
+      tiktok:
+        "TikTok",
     };
 
   return (
     specialNames[
       platform
     ] ??
-    platform.charAt(0).toUpperCase() +
+    platform
+      .charAt(0)
+      .toUpperCase() +
       platform.slice(1)
   );
 }
