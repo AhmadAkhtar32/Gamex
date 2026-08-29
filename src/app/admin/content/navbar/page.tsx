@@ -41,6 +41,8 @@ import {
   updateNavbarLink,
 } from "./actions";
 
+import DeleteNavbarLinkButton from "./DeleteNavbarLinkButton";
+
 /* =========================================================
    PAGE TYPES
    ========================================================= */
@@ -291,7 +293,7 @@ export default async function NavbarAdminPage({
         </div>
 
         {/* ===================================================
-            MESSAGES
+            SUCCESS / ERROR MESSAGES
             =================================================== */}
 
         {query.saved === "1" ? (
@@ -350,7 +352,7 @@ export default async function NavbarAdminPage({
         ) : null}
 
         {/* ===================================================
-            NAVBAR SETTINGS
+            NAVBAR SETTINGS FORM
             =================================================== */}
 
         <form
@@ -374,6 +376,10 @@ export default async function NavbarAdminPage({
                 md:grid-cols-2
               "
             >
+              {/* =============================================
+                  BRAND TEXT
+                  ============================================= */}
+
               <Field label="Brand Text">
                 <input
                   name="brandText"
@@ -389,6 +395,10 @@ export default async function NavbarAdminPage({
                   }
                 />
               </Field>
+
+              {/* =============================================
+                  BRAND LINK
+                  ============================================= */}
 
               <Field label="Brand Link">
                 <div className="relative">
@@ -420,7 +430,7 @@ export default async function NavbarAdminPage({
             </div>
 
             {/* ===============================================
-                VISIBILITY
+                NAVBAR VISIBILITY
                 =============================================== */}
 
             <div
@@ -534,9 +544,6 @@ export default async function NavbarAdminPage({
                   "
                 >
                   {settings.logoImage ? (
-                    // Dynamic Admin URLs make a normal img
-                    // useful here without configuring remote
-                    // image hostnames in Next.js.
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={
@@ -600,6 +607,8 @@ export default async function NavbarAdminPage({
                   }
                 />
 
+                {/* LOGO ALT */}
+
                 <Field label="Logo Alt Text">
                   <input
                     name="logoAlt"
@@ -615,6 +624,8 @@ export default async function NavbarAdminPage({
                     }
                   />
                 </Field>
+
+                {/* FILE UPLOAD */}
 
                 <Field label="Upload Logo">
                   <label
@@ -683,6 +694,8 @@ export default async function NavbarAdminPage({
                   </label>
                 </Field>
 
+                {/* OR */}
+
                 <div
                   className="
                     flex
@@ -719,6 +732,8 @@ export default async function NavbarAdminPage({
                   />
                 </div>
 
+                {/* IMAGE URL */}
+
                 <Field label="Logo Image URL">
                   <input
                     name="logoImageUrl"
@@ -730,6 +745,8 @@ export default async function NavbarAdminPage({
                     }
                   />
                 </Field>
+
+                {/* REMOVE LOGO */}
 
                 {settings.logoImage ? (
                   <label
@@ -787,7 +804,7 @@ export default async function NavbarAdminPage({
           </SectionCard>
 
           {/* =================================================
-              CTA
+              CTA SETTINGS
               ================================================= */}
 
           <SectionCard
@@ -801,6 +818,8 @@ export default async function NavbarAdminPage({
                 md:grid-cols-2
               "
             >
+              {/* CTA TEXT */}
+
               <Field label="Button Text">
                 <input
                   name="ctaText"
@@ -816,6 +835,8 @@ export default async function NavbarAdminPage({
                   }
                 />
               </Field>
+
+              {/* CTA LINK */}
 
               <Field label="Button Link">
                 <div className="relative">
@@ -845,6 +866,8 @@ export default async function NavbarAdminPage({
                 </div>
               </Field>
             </div>
+
+            {/* CTA VISIBILITY */}
 
             <div
               className="
@@ -891,7 +914,7 @@ export default async function NavbarAdminPage({
           </SectionCard>
 
           {/* =================================================
-              SAVE SETTINGS
+              SAVE NAVBAR SETTINGS
               ================================================= */}
 
           <div
@@ -954,6 +977,10 @@ export default async function NavbarAdminPage({
             md:p-8
           "
         >
+          {/* =================================================
+              LINKS HEADING
+              ================================================= */}
+
           <div
             className="
               flex
@@ -1023,7 +1050,7 @@ export default async function NavbarAdminPage({
           </div>
 
           {/* =================================================
-              ADD LINK
+              ADD NEW NAVIGATION LINK
               ================================================= */}
 
           <div
@@ -1098,6 +1125,8 @@ export default async function NavbarAdminPage({
                   lg:grid-cols-[1fr_1.4fr_140px]
                 "
               >
+                {/* LABEL */}
+
                 <Field label="Label">
                   <input
                     name="label"
@@ -1110,6 +1139,8 @@ export default async function NavbarAdminPage({
                   />
                 </Field>
 
+                {/* LINK */}
+
                 <Field label="Link">
                   <input
                     name="href"
@@ -1121,6 +1152,8 @@ export default async function NavbarAdminPage({
                     }
                   />
                 </Field>
+
+                {/* ORDER */}
 
                 <Field label="Order">
                   <input
@@ -1149,6 +1182,8 @@ export default async function NavbarAdminPage({
                   sm:justify-between
                 "
               >
+                {/* VISIBILITY */}
+
                 <label
                   className="
                     flex
@@ -1180,6 +1215,8 @@ export default async function NavbarAdminPage({
                     Visible on website
                   </span>
                 </label>
+
+                {/* ADD */}
 
                 <button
                   type="submit"
@@ -1213,7 +1250,7 @@ export default async function NavbarAdminPage({
           </div>
 
           {/* =================================================
-              EMPTY NAVBAR
+              EMPTY NAVBAR LINKS
               ================================================= */}
 
           {links.length === 0 ? (
@@ -1313,7 +1350,7 @@ export default async function NavbarAdminPage({
             </div>
           ) : (
             /* ===============================================
-               EXISTING LINKS
+               EXISTING NAVIGATION LINKS
                =============================================== */
 
             <div
@@ -1338,7 +1375,7 @@ export default async function NavbarAdminPage({
                     "
                   >
                     {/* =======================================
-                        HEADER
+                        LINK HEADER
                         ======================================= */}
 
                     <div
@@ -1356,6 +1393,8 @@ export default async function NavbarAdminPage({
                         sm:justify-between
                       "
                     >
+                      {/* LINK DETAILS */}
+
                       <div
                         className="
                           flex
@@ -1403,6 +1442,8 @@ export default async function NavbarAdminPage({
                               }
                             </p>
 
+                            {/* VISIBLE / HIDDEN BADGE */}
+
                             <span
                               className={`
                                 rounded-full
@@ -1412,6 +1453,7 @@ export default async function NavbarAdminPage({
                                 font-bold
                                 uppercase
                                 tracking-wider
+
                                 ${
                                   navLink.isVisible
                                     ? "bg-emerald-50 text-emerald-700"
@@ -1423,6 +1465,8 @@ export default async function NavbarAdminPage({
                                 ? "Visible"
                                 : "Hidden"}
                             </span>
+
+                            {/* ORDER BADGE */}
 
                             <span
                               className="
@@ -1516,7 +1560,7 @@ export default async function NavbarAdminPage({
                     </div>
 
                     {/* =======================================
-                        EDIT
+                        EDIT NAVIGATION LINK
                         ======================================= */}
 
                     <form
@@ -1540,6 +1584,8 @@ export default async function NavbarAdminPage({
                           lg:grid-cols-[1fr_1.4fr_140px]
                         "
                       >
+                        {/* LABEL */}
+
                         <Field label="Label">
                           <input
                             name="label"
@@ -1555,6 +1601,8 @@ export default async function NavbarAdminPage({
                             }
                           />
                         </Field>
+
+                        {/* LINK */}
 
                         <Field label="Link">
                           <input
@@ -1572,6 +1620,8 @@ export default async function NavbarAdminPage({
                           />
                         </Field>
 
+                        {/* ORDER */}
+
                         <Field label="Order">
                           <input
                             name="sortOrder"
@@ -1588,6 +1638,10 @@ export default async function NavbarAdminPage({
                         </Field>
                       </div>
 
+                      {/* =====================================
+                          BOTTOM ACTION AREA
+                          ===================================== */}
+
                       <div
                         className="
                           mt-5
@@ -1602,6 +1656,8 @@ export default async function NavbarAdminPage({
                           sm:justify-between
                         "
                       >
+                        {/* VISIBILITY */}
+
                         <label
                           className="
                             flex
@@ -1636,30 +1692,55 @@ export default async function NavbarAdminPage({
                           </span>
                         </label>
 
-                        <button
-                          type="submit"
+                        {/* ===================================
+                            SAVE + DELETE
+                            =================================== */}
+
+                        <div
                           className="
-                            inline-flex
-                            items-center
-                            justify-center
+                            flex
+                            flex-col
                             gap-2
-                            rounded-lg
-                            bg-brand
-                            px-4
-                            py-2.5
-                            text-xs
-                            font-bold
-                            text-white
-                            transition-all
-                            hover:bg-brand-soft
+                            sm:flex-row
                           "
                         >
-                          <Save
-                            className="h-4 w-4"
-                          />
+                          <button
+                            type="submit"
+                            className="
+                              inline-flex
+                              items-center
+                              justify-center
+                              gap-2
+                              rounded-lg
+                              bg-brand
+                              px-4
+                              py-2.5
+                              text-xs
+                              font-bold
+                              text-white
+                              transition-all
+                              hover:bg-brand-soft
+                            "
+                          >
+                            <Save
+                              className="h-4 w-4"
+                            />
 
-                          Save Changes
-                        </button>
+                            Save Changes
+                          </button>
+
+                          <DeleteNavbarLinkButton
+                            id={
+                              navLink.id
+                            }
+                            label={
+                              navLink.label
+                            }
+                            href={
+                              navLink.href
+                            }
+                          />
+                        </div>
                       </div>
                     </form>
                   </div>
