@@ -83,7 +83,7 @@ const DEFAULT_NAVBAR_SETTINGS = {
     "Build Your Rig",
 
   ctaHref:
-    "#builds",
+  "#contact",
 
   ctaVisible:
     true,

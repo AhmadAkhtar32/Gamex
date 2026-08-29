@@ -13,10 +13,16 @@ import {
   heroSettings as heroSettingsTable,
   homepageFeatures as featuresTable,
   homepageStats as statsTable,
+  navbarLinks as navbarLinksTable,
+  navbarSettings as navbarSettingsTable,
   products as productsTable,
 } from "@/db/schema";
 
-import { Navbar } from "@/components/Navbar";
+import {
+  Navbar,
+  DEFAULT_NAVBAR_LINKS,
+  DEFAULT_NAVBAR_SETTINGS,
+} from "@/components/Navbar";
 
 import {
   Hero,
@@ -93,6 +99,110 @@ const DEFAULT_FEATURES_SETTINGS = {
 
 export default async function HomePage() {
   /* =======================================================
+     NAVBAR SETTINGS
+     ======================================================= */
+
+  const navbarSettingsRows =
+    await db
+      .select({
+        brandText:
+          navbarSettingsTable.brandText,
+
+        brandHref:
+          navbarSettingsTable.brandHref,
+
+        logoImage:
+          navbarSettingsTable.logoImage,
+
+        logoAlt:
+          navbarSettingsTable.logoAlt,
+
+        ctaText:
+          navbarSettingsTable.ctaText,
+
+        ctaHref:
+          navbarSettingsTable.ctaHref,
+
+        ctaVisible:
+          navbarSettingsTable.ctaVisible,
+
+        isVisible:
+          navbarSettingsTable.isVisible,
+      })
+      .from(
+        navbarSettingsTable
+      )
+      .where(
+        eq(
+          navbarSettingsTable.id,
+          "main"
+        )
+      )
+      .limit(1);
+
+  /* =======================================================
+     NAVBAR LINKS
+     ======================================================= */
+
+  const databaseNavbarLinks =
+    await db
+      .select({
+        id:
+          navbarLinksTable.id,
+
+        label:
+          navbarLinksTable.label,
+
+        href:
+          navbarLinksTable.href,
+      })
+      .from(
+        navbarLinksTable
+      )
+      .where(
+        eq(
+          navbarLinksTable.isVisible,
+          true
+        )
+      )
+      .orderBy(
+        asc(
+          navbarLinksTable.sortOrder
+        ),
+        asc(
+          navbarLinksTable.id
+        )
+      );
+
+  /*
+   * Before the Navbar has ever been configured in Admin,
+   * preserve the original website.
+   *
+   * Once Navbar settings exist in Neon, the database becomes
+   * the source of truth.
+   *
+   * This is important because an Admin may intentionally
+   * delete all navigation links.
+   */
+
+  const navbarHasDatabaseSettings =
+    Boolean(
+      navbarSettingsRows[0]
+    );
+
+  const navbarContent =
+    navbarSettingsRows[0] ??
+    DEFAULT_NAVBAR_SETTINGS;
+
+  const publicNavbarLinks =
+    navbarHasDatabaseSettings
+      ? databaseNavbarLinks
+      : databaseNavbarLinks.length >
+          0
+        ? databaseNavbarLinks
+        : DEFAULT_NAVBAR_LINKS;
+
+  /* =======================================================
      HERO
      ======================================================= */
 
@@ -130,7 +240,9 @@ export default async function HomePage() {
         label:
           statsTable.label,
       })
-      .from(statsTable)
+      .from(
+        statsTable
+      )
       .where(
         eq(
           statsTable.isVisible,
@@ -358,11 +470,6 @@ export default async function HomePage() {
       )
       .limit(1);
 
-  /*
-   * If the admin has not saved Contact settings yet,
-   * use the original website content.
-   */
-
   const contactContent =
     contactRows[0] ??
     DEFAULT_CONTACT_CONTENT;
@@ -409,7 +516,18 @@ export default async function HomePage() {
     <>
       <ScrollProgress />
 
-      <Navbar />
+      {/* ===================================================
+          DATABASE-DRIVEN NAVBAR
+          =================================================== */}
+
+      <Navbar
+        settings={
+          navbarContent
+        }
+        links={
+          publicNavbarLinks
+        }
+      />
 
       <main
         className="
@@ -476,12 +594,7 @@ export default async function HomePage() {
           }
         />
 
-        {/* ===============================================
-            CONTACT
-
-            Both Contact content and Social Links now
-            come from Neon.
-            =============================================== */}
+        {/* CONTACT */}
 
         <Contact
           content={

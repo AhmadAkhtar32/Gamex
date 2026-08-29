@@ -1,83 +1,319 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { Gamepad2, Menu, X, Zap } from "lucide-react";
-import { navLinks } from "@/lib/data";
-import { GlitchText, Magnetic } from "./ui";
+import {
+  useEffect,
+  useState,
+} from "react";
 
-export function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
-  const [open, setOpen] = useState(false);
-  const [active, setActive] = useState("#home");
+import {
+  AnimatePresence,
+  motion,
+} from "framer-motion";
 
-  /* =========================================================
-     NAVBAR SCROLL STATE
-     ========================================================= */
+import {
+  Gamepad2,
+  Menu,
+  X,
+  Zap,
+} from "lucide-react";
+
+import {
+  GlitchText,
+  Magnetic,
+} from "./ui";
+
+/* =========================================================
+   TYPES
+   ========================================================= */
+
+export type NavbarSettingsContent = {
+  brandText: string;
+  brandHref: string;
+
+  logoImage: string;
+  logoAlt: string;
+
+  ctaText: string;
+  ctaHref: string;
+  ctaVisible: boolean;
+
+  isVisible: boolean;
+};
+
+export type PublicNavbarLink = {
+  id:
+    | number
+    | string;
+
+  label: string;
+  href: string;
+};
+
+/* =========================================================
+   ORIGINAL NAVBAR DEFAULTS
+   ========================================================= */
+
+export const DEFAULT_NAVBAR_SETTINGS: NavbarSettingsContent = {
+  brandText:
+    "GAMEX",
+
+  brandHref:
+    "#home",
+
+  logoImage:
+    "",
+
+  logoAlt:
+    "Gamex",
+
+  ctaText:
+    "Build Your Rig",
+
+  /*
+   * This is the original Gamex Navbar CTA destination.
+   */
+  ctaHref:
+    "#contact",
+
+  ctaVisible:
+    true,
+
+  isVisible:
+    true,
+};
+
+/* =========================================================
+   ORIGINAL NAVIGATION LINKS
+   ========================================================= */
+
+export const DEFAULT_NAVBAR_LINKS: PublicNavbarLink[] = [
+  {
+    id: "default-home",
+    label: "Home",
+    href: "#home",
+  },
+
+  {
+    id: "default-products",
+    label: "Products",
+    href: "#products",
+  },
+
+  {
+    id: "default-builds",
+    label: "Custom Builds",
+    href: "#builds",
+  },
+
+  {
+    id: "default-features",
+    label: "Why Gamex",
+    href: "#features",
+  },
+
+  {
+    id: "default-blog",
+    label: "Blog",
+    href: "#blog",
+  },
+
+  {
+    id: "default-contact",
+    label: "Contact",
+    href: "#contact",
+  },
+];
+
+/* =========================================================
+   EXTERNAL LINK CHECK
+   ========================================================= */
+
+function isExternalLink(
+  href: string
+) {
+  return (
+    href.startsWith(
+      "https://"
+    ) ||
+    href.startsWith(
+      "http://"
+    )
+  );
+}
+
+/* =========================================================
+   NAVBAR
+   ========================================================= */
+
+export function Navbar({
+  settings =
+    DEFAULT_NAVBAR_SETTINGS,
+
+  links =
+    DEFAULT_NAVBAR_LINKS,
+}: {
+  settings?: NavbarSettingsContent;
+
+  links?: PublicNavbarLink[];
+}) {
+  /* =======================================================
+     STATE
+     ======================================================= */
+
+  const [
+    scrolled,
+    setScrolled,
+  ] = useState(false);
+
+  const [
+    open,
+    setOpen,
+  ] = useState(false);
+
+  const [
+    active,
+    setActive,
+  ] = useState(
+    "#home"
+  );
+
+  /* =======================================================
+     NAVBAR VISIBILITY
+     ======================================================= */
+
+  if (
+    !settings.isVisible
+  ) {
+    return null;
+  }
+
+  /* =======================================================
+     SCROLL EFFECT
+     ======================================================= */
 
   useEffect(() => {
-    const onScroll = () => {
-      setScrolled(window.scrollY > 24);
-    };
+    const onScroll = () =>
+      setScrolled(
+        window.scrollY >
+          24
+      );
 
     onScroll();
 
-    window.addEventListener("scroll", onScroll, {
-      passive: true,
-    });
-
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-    };
-  }, []);
-
-  /* =========================================================
-     ACTIVE SECTION DETECTION
-     ========================================================= */
-
-  useEffect(() => {
-    const ids = navLinks.map((link) =>
-      link.href.replace("#", "")
-    );
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActive(`#${entry.target.id}`);
-          }
-        });
-      },
+    window.addEventListener(
+      "scroll",
+      onScroll,
       {
-        rootMargin: "-45% 0px -50% 0px",
-        threshold: 0,
+        passive: true,
       }
     );
 
-    ids.forEach((id) => {
-      const element = document.getElementById(id);
-
-      if (element) {
-        observer.observe(element);
-      }
-    });
-
-    return () => {
-      observer.disconnect();
-    };
+    return () =>
+      window.removeEventListener(
+        "scroll",
+        onScroll
+      );
   }, []);
 
-  /* =========================================================
-     MOBILE MENU BODY LOCK
-     ========================================================= */
+  /* =======================================================
+     ACTIVE SECTION OBSERVER
+
+     Only homepage hash links participate.
+
+     Examples:
+
+     #home
+     #products
+     #contact
+
+     A link such as /shop or https://... is ignored by the
+     IntersectionObserver.
+     ======================================================= */
 
   useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
+    const ids =
+      links
+        .filter(
+          (link) =>
+            link.href.startsWith(
+              "#"
+            )
+        )
+        .map((link) =>
+          link.href.replace(
+            "#",
+            ""
+          )
+        )
+        .filter(Boolean);
+
+    if (
+      ids.length === 0
+    ) {
+      return;
+    }
+
+    const observer =
+      new IntersectionObserver(
+        (entries) => {
+          entries.forEach(
+            (entry) => {
+              if (
+                entry.isIntersecting
+              ) {
+                setActive(
+                  `#${entry.target.id}`
+                );
+              }
+            }
+          );
+        },
+        {
+          rootMargin:
+            "-45% 0px -50% 0px",
+
+          threshold: 0,
+        }
+      );
+
+    ids.forEach(
+      (id) => {
+        const element =
+          document.getElementById(
+            id
+          );
+
+        if (element) {
+          observer.observe(
+            element
+          );
+        }
+      }
+    );
+
+    return () =>
+      observer.disconnect();
+  }, [links]);
+
+  /* =======================================================
+     MOBILE MENU BODY LOCK
+     ======================================================= */
+
+  useEffect(() => {
+    document.body.style.overflow =
+      open
+        ? "hidden"
+        : "";
 
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.overflow =
+        "";
     };
   }, [open]);
+
+  /* =======================================================
+     RENDER
+     ======================================================= */
 
   return (
     <>
@@ -103,24 +339,14 @@ export function Navbar() {
           inset-x-0
           top-0
           z-50
-          transition-all
+          transition-colors
           duration-300
 
           ${
-            scrolled || open
-              ? `
-                border-b
-                border-brand/10
-                bg-white/90
-                shadow-[0_14px_45px_-32px_rgba(23,49,96,0.45)]
-                backdrop-blur-xl
-              `
-              : `
-                border-b
-                border-transparent
-                bg-white/55
-                backdrop-blur-md
-              `
+            scrolled ||
+            open
+              ? "border-b border-brand/10 bg-white/90 shadow-[0_12px_40px_-28px_rgba(23,49,96,0.35)] backdrop-blur-xl"
+              : "border-b border-transparent bg-transparent"
           }
         `}
       >
@@ -138,39 +364,74 @@ export function Navbar() {
           "
         >
           {/* =================================================
-              LOGO
+              BRAND
               ================================================= */}
 
           <a
-            href="#home"
-            className="group flex items-center gap-2.5"
-            aria-label="Gamex home"
+            href={
+              settings.brandHref
+            }
+            className="
+              group
+              flex
+              items-center
+              gap-2.5
+            "
           >
+            {/* ===============================================
+                LOGO / DEFAULT GAMEPAD
+                =============================================== */}
+
             <span
               className="
                 grid
                 h-9
                 w-9
                 place-items-center
+                overflow-hidden
                 rounded-lg
                 bg-brand
                 text-white
-
-                shadow-[0_10px_30px_-12px_rgba(23,49,96,0.65)]
-
-                transition-all
+                shadow-[0_0_22px_rgba(23,49,96,0.28)]
+                transition-transform
                 duration-300
-
                 group-hover:scale-110
                 group-hover:rotate-6
-                group-hover:bg-brand-soft
               "
             >
-              <Gamepad2 className="h-5 w-5" />
+              {settings.logoImage ? (
+                // Dynamic logo URLs are Admin-controlled,
+                // therefore normal img avoids Next remote
+                // hostname configuration requirements.
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={
+                    settings.logoImage
+                  }
+                  alt={
+                    settings.logoAlt
+                  }
+                  className="
+                    h-full
+                    w-full
+                    object-contain
+                  "
+                />
+              ) : (
+                <Gamepad2
+                  className="h-5 w-5"
+                />
+              )}
             </span>
 
+            {/* ===============================================
+                BRAND TEXT
+                =============================================== */}
+
             <GlitchText
-              text="GAMEX"
+              text={
+                settings.brandText
+              }
               className="
                 font-display
                 text-xl
@@ -182,149 +443,211 @@ export function Navbar() {
           </a>
 
           {/* =================================================
-              DESKTOP NAVIGATION
+              DESKTOP NAVIGATION LINKS
               ================================================= */}
 
-          <ul className="hidden items-center gap-1 lg:flex">
-            {navLinks.map((link) => {
-              const isActive =
-                active === link.href;
+          <ul
+            className="
+              hidden
+              items-center
+              gap-1
+              lg:flex
+            "
+          >
+            {links.map(
+              (link) => {
+                const isActive =
+                  active ===
+                  link.href;
 
-              return (
-                <li key={link.href}>
-                  <a
-                    href={link.href}
-                    className={`
-                      relative
-                      block
-                      rounded-md
-                      px-3.5
-                      py-2
+                const external =
+                  isExternalLink(
+                    link.href
+                  );
 
-                      text-sm
-                      font-semibold
-                      uppercase
-                      tracking-wider
-
-                      transition-colors
-                      duration-300
-
-                      ${
-                        isActive
-                          ? "text-brand"
-                          : "text-slate-600 hover:text-brand-deep"
-                      }
-                    `}
+                return (
+                  <li
+                    key={
+                      link.id
+                    }
                   >
-                    {link.label}
+                    <a
+                      href={
+                        link.href
+                      }
+                      target={
+                        external
+                          ? "_blank"
+                          : undefined
+                      }
+                      rel={
+                        external
+                          ? "noopener noreferrer"
+                          : undefined
+                      }
+                      className={`
+                        relative
+                        block
+                        rounded-md
+                        px-3.5
+                        py-2
+                        text-sm
+                        font-semibold
+                        uppercase
+                        tracking-wider
+                        transition-colors
 
-                    {isActive ? (
-                      <motion.span
-                        layoutId="nav-active"
-                        className="
-                          absolute
-                          inset-x-2
-                          -bottom-0.5
-                          h-0.5
-                          rounded-full
-                          bg-brand
-                          shadow-[0_0_10px_rgba(23,49,96,0.35)]
-                        "
-                      />
-                    ) : null}
-                  </a>
-                </li>
-              );
-            })}
+                        ${
+                          isActive
+                            ? "text-brand"
+                            : "text-slate-600 hover:text-brand"
+                        }
+                      `}
+                    >
+                      {
+                        link.label
+                      }
+
+                      {/* =====================================
+                          ACTIVE SECTION LINE
+                          ===================================== */}
+
+                      {isActive ? (
+                        <motion.span
+                          layoutId="nav-active"
+                          className="
+                            absolute
+                            inset-x-2
+                            -bottom-0.5
+                            h-0.5
+                            rounded-full
+                            bg-brand
+                            shadow-[0_0_10px_rgba(23,49,96,0.45)]
+                          "
+                        />
+                      ) : null}
+                    </a>
+                  </li>
+                );
+              }
+            )}
           </ul>
 
           {/* =================================================
-              CTA + MOBILE BUTTON
+              RIGHT SIDE
               ================================================= */}
 
-          <div className="flex items-center gap-3">
-            <Magnetic
-              strength={0.3}
-              className="hidden sm:inline-block"
-            >
-              <a
-                href="#contact"
+          <div
+            className="
+              flex
+              items-center
+              gap-3
+            "
+          >
+            {/* ===============================================
+                DESKTOP CTA
+                =============================================== */}
+
+            {settings.ctaVisible ? (
+              <Magnetic
+                strength={0.3}
                 className="
-                  cta-pulse
-                  inline-flex
-                  items-center
-                  gap-2
-                  rounded-lg
-
-                  bg-brand
-                  px-5
-                  py-2.5
-
-                  font-display
-                  text-xs
-                  font-bold
-                  uppercase
-                  tracking-widest
-                  text-white
-
-                  shadow-[0_12px_30px_-16px_rgba(23,49,96,0.65)]
-
-                  transition-all
-                  duration-300
-
-                  hover:-translate-y-0.5
-                  hover:bg-brand-soft
-                  hover:shadow-[0_16px_38px_-16px_rgba(23,49,96,0.7)]
+                  hidden
+                  sm:inline-block
                 "
               >
-                <Zap className="h-4 w-4" />
+                <a
+                  href={
+                    settings.ctaHref
+                  }
+                  target={
+                    isExternalLink(
+                      settings.ctaHref
+                    )
+                      ? "_blank"
+                      : undefined
+                  }
+                  rel={
+                    isExternalLink(
+                      settings.ctaHref
+                    )
+                      ? "noopener noreferrer"
+                      : undefined
+                  }
+                  className="
+                    cta-pulse
+                    inline-flex
+                    items-center
+                    gap-2
+                    rounded-lg
+                    bg-brand
+                    px-5
+                    py-2.5
+                    font-display
+                    text-xs
+                    font-bold
+                    uppercase
+                    tracking-widest
+                    text-white
+                    transition-all
+                    duration-300
+                    hover:bg-brand-soft
+                  "
+                >
+                  <Zap
+                    className="h-4 w-4"
+                  />
 
-                Build Your Rig
-              </a>
-            </Magnetic>
+                  {
+                    settings.ctaText
+                  }
+                </a>
+              </Magnetic>
+            ) : null}
+
+            {/* ===============================================
+                MOBILE MENU BUTTON
+                =============================================== */}
 
             <button
               type="button"
               onClick={() =>
-                setOpen((value) => !value)
+                setOpen(
+                  (value) =>
+                    !value
+                )
               }
               className="
                 grid
                 h-10
                 w-10
                 place-items-center
-
                 rounded-lg
-
                 border
-                border-brand/15
-
+                border-brand/20
                 bg-white/80
-                text-brand-deep
-
-                shadow-sm
-
-                transition-all
-                duration-300
-
-                hover:border-brand/40
-                hover:bg-brand/[0.06]
-                hover:text-brand
-
+                text-brand
+                transition-colors
+                hover:border-brand/50
                 lg:hidden
               "
               aria-label={
                 open
-                  ? "Close navigation menu"
-                  : "Open navigation menu"
+                  ? "Close menu"
+                  : "Open menu"
               }
-              aria-expanded={open}
-              aria-controls="mobile-navigation"
+              aria-expanded={
+                open
+              }
             >
               {open ? (
-                <X className="h-5 w-5" />
+                <X
+                  className="h-5 w-5"
+                />
               ) : (
-                <Menu className="h-5 w-5" />
+                <Menu
+                  className="h-5 w-5"
+                />
               )}
             </button>
           </div>
@@ -338,7 +661,6 @@ export function Navbar() {
       <AnimatePresence>
         {open ? (
           <motion.div
-            id="mobile-navigation"
             initial={{
               opacity: 0,
             }}
@@ -355,60 +677,13 @@ export function Navbar() {
               fixed
               inset-0
               z-40
-
-              overflow-hidden
-
-              bg-white/96
-              backdrop-blur-2xl
-
+              bg-white/95
+              backdrop-blur-xl
               lg:hidden
             "
           >
-            {/* Background grid */}
             <div
               className="
-                bg-grid
-                pointer-events-none
-                absolute
-                inset-0
-                opacity-50
-              "
-            />
-
-            {/* Top ambient glow */}
-            <div
-              className="
-                pointer-events-none
-                absolute
-                -left-24
-                top-12
-                h-72
-                w-72
-                rounded-full
-                bg-brand/[0.08]
-                blur-[100px]
-              "
-            />
-
-            {/* Bottom ambient glow */}
-            <div
-              className="
-                pointer-events-none
-                absolute
-                -right-24
-                bottom-10
-                h-80
-                w-80
-                rounded-full
-                bg-brand-soft/[0.07]
-                blur-[110px]
-              "
-            />
-
-            <div
-              className="
-                relative
-                z-10
                 flex
                 h-full
                 flex-col
@@ -418,17 +693,42 @@ export function Navbar() {
                 px-8
               "
             >
-              {navLinks.map(
-                (link, index) => {
-                  const isActive =
-                    active === link.href;
+              {/* =============================================
+                  MOBILE LINKS
+                  ============================================= */}
+
+              {links.map(
+                (
+                  link,
+                  index
+                ) => {
+                  const external =
+                    isExternalLink(
+                      link.href
+                    );
 
                   return (
                     <motion.a
-                      key={link.href}
-                      href={link.href}
+                      key={
+                        link.id
+                      }
+                      href={
+                        link.href
+                      }
+                      target={
+                        external
+                          ? "_blank"
+                          : undefined
+                      }
+                      rel={
+                        external
+                          ? "noopener noreferrer"
+                          : undefined
+                      }
                       onClick={() =>
-                        setOpen(false)
+                        setOpen(
+                          false
+                        )
                       }
                       initial={{
                         opacity: 0,
@@ -444,129 +744,113 @@ export function Navbar() {
                       }}
                       transition={{
                         delay:
-                          0.08 * index +
+                          0.08 *
+                            index +
                           0.08,
-                        duration: 0.4,
-                        ease: "easeOut",
-                      }}
-                      className={`
-                        relative
-                        py-2
 
+                        duration:
+                          0.4,
+
+                        ease:
+                          "easeOut",
+                      }}
+                      className="
                         font-display
                         text-3xl
                         font-extrabold
                         uppercase
                         tracking-wider
-
+                        text-brand-deep
                         transition-colors
-                        duration-300
-
-                        ${
-                          isActive
-                            ? "text-brand"
-                            : "text-brand-deep hover:text-brand"
-                        }
-                      `}
+                        hover:text-brand
+                      "
                     >
-                      {link.label}
-
-                      {isActive ? (
-                        <span
-                          className="
-                            absolute
-                            -bottom-0.5
-                            left-1/2
-                            h-0.5
-                            w-8
-                            -translate-x-1/2
-                            rounded-full
-                            bg-brand
-                          "
-                        />
-                      ) : null}
+                      {
+                        link.label
+                      }
                     </motion.a>
                   );
                 }
               )}
 
-              {/* Mobile CTA */}
+              {/* =============================================
+                  MOBILE CTA
+                  ============================================= */}
 
-              <motion.a
-                href="#contact"
-                onClick={() =>
-                  setOpen(false)
-                }
-                initial={{
-                  opacity: 0,
-                  y: 24,
-                }}
-                animate={{
-                  opacity: 1,
-                  y: 0,
-                }}
-                exit={{
-                  opacity: 0,
-                }}
-                transition={{
-                  delay: 0.6,
-                  duration: 0.4,
-                }}
-                className="
-                  cta-pulse
-                  mt-8
-                  inline-flex
-                  items-center
-                  gap-2
+              {settings.ctaVisible ? (
+                <motion.a
+                  href={
+                    settings.ctaHref
+                  }
+                  target={
+                    isExternalLink(
+                      settings.ctaHref
+                    )
+                      ? "_blank"
+                      : undefined
+                  }
+                  rel={
+                    isExternalLink(
+                      settings.ctaHref
+                    )
+                      ? "noopener noreferrer"
+                      : undefined
+                  }
+                  onClick={() =>
+                    setOpen(
+                      false
+                    )
+                  }
+                  initial={{
+                    opacity: 0,
+                    y: 24,
+                  }}
+                  animate={{
+                    opacity: 1,
+                    y: 0,
+                  }}
+                  exit={{
+                    opacity: 0,
+                  }}
+                  transition={{
+                    delay:
+                      Math.min(
+                        0.08 *
+                          links.length +
+                          0.12,
+                        0.65
+                      ),
 
-                  rounded-lg
+                    duration:
+                      0.4,
+                  }}
+                  className="
+                    cta-pulse
+                    mt-8
+                    inline-flex
+                    items-center
+                    gap-2
+                    rounded-lg
+                    bg-brand
+                    px-8
+                    py-3.5
+                    font-display
+                    text-sm
+                    font-bold
+                    uppercase
+                    tracking-widest
+                    text-white
+                  "
+                >
+                  <Zap
+                    className="h-4 w-4"
+                  />
 
-                  bg-brand
-                  px-8
-                  py-3.5
-
-                  font-display
-                  text-sm
-                  font-bold
-                  uppercase
-                  tracking-widest
-                  text-white
-
-                  shadow-[0_14px_34px_-16px_rgba(23,49,96,0.7)]
-
-                  transition-all
-                  duration-300
-
-                  hover:bg-brand-soft
-                "
-              >
-                <Zap className="h-4 w-4" />
-
-                Build Your Rig
-              </motion.a>
-
-              {/* Decorative line */}
-              <motion.div
-                initial={{
-                  opacity: 0,
-                }}
-                animate={{
-                  opacity: 1,
-                }}
-                transition={{
-                  delay: 0.72,
-                  duration: 0.4,
-                }}
-                className="
-                  mt-7
-                  h-px
-                  w-24
-                  bg-gradient-to-r
-                  from-transparent
-                  via-brand/25
-                  to-transparent
-                "
-              />
+                  {
+                    settings.ctaText
+                  }
+                </motion.a>
+              ) : null}
             </div>
           </motion.div>
         ) : null}
