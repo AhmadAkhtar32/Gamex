@@ -1395,3 +1395,330 @@ export const navbarLinks = pgTable(
       .notNull(),
   }
 );
+/* =========================================================
+   FOOTER SETTINGS
+   ========================================================= */
+
+export const footerSettings = pgTable(
+  "footer_settings",
+  {
+    /*
+     * Main website Footer.
+     *
+     * id = "main"
+     */
+    id: varchar("id", {
+      length: 50,
+    }).primaryKey(),
+
+    /* =====================================================
+       BRAND
+       ===================================================== */
+
+    brandText: varchar(
+      "brand_text",
+      {
+        length: 120,
+      }
+    ).notNull(),
+
+    brandHref: varchar(
+      "brand_href",
+      {
+        length: 500,
+      }
+    )
+      .default("#home")
+      .notNull(),
+
+    /*
+     * Optional custom logo.
+     *
+     * Empty string = use the existing Gamepad icon.
+     */
+    logoImage: varchar(
+      "logo_image",
+      {
+        length: 1000,
+      }
+    )
+      .default("")
+      .notNull(),
+
+    logoAlt: varchar(
+      "logo_alt",
+      {
+        length: 255,
+      }
+    )
+      .default("Gamex")
+      .notNull(),
+
+    description: text(
+      "description"
+    ).notNull(),
+
+    /* =====================================================
+       COLUMN HEADINGS
+       ===================================================== */
+
+    navigationHeading: varchar(
+      "navigation_heading",
+      {
+        length: 120,
+      }
+    ).notNull(),
+
+    contactHeading: varchar(
+      "contact_heading",
+      {
+        length: 120,
+      }
+    ).notNull(),
+
+    /* =====================================================
+       CONTACT INFORMATION
+       ===================================================== */
+
+    email: varchar(
+      "email",
+      {
+        length: 255,
+      }
+    ).notNull(),
+
+    phone: varchar(
+      "phone",
+      {
+        length: 120,
+      }
+    ).notNull(),
+
+    address: text(
+      "address"
+    ).notNull(),
+
+    /* =====================================================
+       CTA
+       ===================================================== */
+
+    ctaText: varchar(
+      "cta_text",
+      {
+        length: 120,
+      }
+    ).notNull(),
+
+    ctaHref: varchar(
+      "cta_href",
+      {
+        length: 500,
+      }
+    ).notNull(),
+
+    ctaVisible: boolean(
+      "cta_visible"
+    )
+      .default(true)
+      .notNull(),
+
+    /* =====================================================
+       BOTTOM BAR
+       ===================================================== */
+
+    /*
+     * Use {year} anywhere in this text.
+     *
+     * Example:
+     *
+     * © {year} Gamex. All rights reserved. Play hard.
+     */
+    copyrightText: varchar(
+      "copyright_text",
+      {
+        length: 500,
+      }
+    ).notNull(),
+
+    backToTopText: varchar(
+      "back_to_top_text",
+      {
+        length: 120,
+      }
+    ).notNull(),
+
+    backToTopHref: varchar(
+      "back_to_top_href",
+      {
+        length: 500,
+      }
+    )
+      .default("#home")
+      .notNull(),
+
+    /* =====================================================
+       VISIBILITY
+       ===================================================== */
+
+    isVisible: boolean(
+      "is_visible"
+    )
+      .default(true)
+      .notNull(),
+
+    /* =====================================================
+       TIMESTAMPS
+       ===================================================== */
+
+    createdAt: timestamp(
+      "created_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+
+    updatedAt: timestamp(
+      "updated_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+  }
+);
+
+/* =========================================================
+   FOOTER NAVIGATION LINKS
+   ========================================================= */
+
+export const footerLinks = pgTable(
+  "footer_links",
+  {
+    id: serial("id")
+      .primaryKey(),
+
+    label: varchar(
+      "label",
+      {
+        length: 120,
+      }
+    ).notNull(),
+
+    /*
+     * Examples:
+     *
+     * #products
+     * #contact
+     * /shop
+     * https://example.com
+     */
+    href: varchar(
+      "href",
+      {
+        length: 500,
+      }
+    ).notNull(),
+
+    isVisible: boolean(
+      "is_visible"
+    )
+      .default(true)
+      .notNull(),
+
+    sortOrder: integer(
+      "sort_order"
+    )
+      .default(0)
+      .notNull(),
+
+    createdAt: timestamp(
+      "created_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+
+    updatedAt: timestamp(
+      "updated_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+  }
+);
+
+/* =========================================================
+   FOOTER SOCIAL LINKS
+   ========================================================= */
+
+export const footerSocialLinks = pgTable(
+  "footer_social_links",
+  {
+    id: serial("id")
+      .primaryKey(),
+
+    /*
+     * Supported initially:
+     *
+     * instagram
+     * tiktok
+     * facebook
+     * youtube
+     * x
+     * twitch
+     * discord
+     * whatsapp
+     * linkedin
+     */
+    platform: varchar(
+      "platform",
+      {
+        length: 50,
+      }
+    ).notNull(),
+
+    url: varchar(
+      "url",
+      {
+        length: 1000,
+      }
+    ).notNull(),
+
+    isVisible: boolean(
+      "is_visible"
+    )
+      .default(true)
+      .notNull(),
+
+    sortOrder: integer(
+      "sort_order"
+    )
+      .default(0)
+      .notNull(),
+
+    createdAt: timestamp(
+      "created_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+
+    updatedAt: timestamp(
+      "updated_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+  }
+);
