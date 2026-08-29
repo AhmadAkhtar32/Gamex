@@ -57,6 +57,13 @@
       "when": 1787929983699,
       "tag": "0007_add-contact-social-links",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1787989359024,
+      "tag": "0008_add-navbar",
+      "breakpoints": true
     }
   ]
 }
