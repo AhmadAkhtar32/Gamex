@@ -1190,3 +1190,208 @@ export const contactSocialLinks = pgTable(
       .notNull(),
   }
 );
+/* =========================================================
+   NAVBAR SETTINGS
+   ========================================================= */
+
+export const navbarSettings = pgTable(
+  "navbar_settings",
+  {
+    /*
+     * One main website navbar.
+     *
+     * id = "main"
+     */
+    id: varchar("id", {
+      length: 50,
+    }).primaryKey(),
+
+    /* =====================================================
+       BRAND
+       ===================================================== */
+
+    brandText: varchar(
+      "brand_text",
+      {
+        length: 120,
+      }
+    ).notNull(),
+
+    brandHref: varchar(
+      "brand_href",
+      {
+        length: 500,
+      }
+    )
+      .default("#home")
+      .notNull(),
+
+    /*
+     * Optional logo image.
+     *
+     * Empty string means:
+     * use the existing Gamepad icon.
+     *
+     * Later the Admin page will support:
+     *
+     * - Upload image
+     * - Enter image URL
+     */
+    logoImage: varchar(
+      "logo_image",
+      {
+        length: 1000,
+      }
+    )
+      .default("")
+      .notNull(),
+
+    logoAlt: varchar(
+      "logo_alt",
+      {
+        length: 255,
+      }
+    )
+      .default("Gamex")
+      .notNull(),
+
+    /* =====================================================
+       CTA BUTTON
+       ===================================================== */
+
+    ctaText: varchar(
+      "cta_text",
+      {
+        length: 120,
+      }
+    ).notNull(),
+
+    ctaHref: varchar(
+      "cta_href",
+      {
+        length: 500,
+      }
+    ).notNull(),
+
+    ctaVisible: boolean(
+      "cta_visible"
+    )
+      .default(true)
+      .notNull(),
+
+    /* =====================================================
+       NAVBAR VISIBILITY
+       ===================================================== */
+
+    isVisible: boolean(
+      "is_visible"
+    )
+      .default(true)
+      .notNull(),
+
+    /* =====================================================
+       TIMESTAMPS
+       ===================================================== */
+
+    createdAt: timestamp(
+      "created_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+
+    updatedAt: timestamp(
+      "updated_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+  }
+);
+
+/* =========================================================
+   NAVBAR LINKS
+   ========================================================= */
+
+export const navbarLinks = pgTable(
+  "navbar_links",
+  {
+    id: serial("id")
+      .primaryKey(),
+
+    /*
+     * Text shown in the menu.
+     *
+     * Examples:
+     *
+     * Home
+     * Products
+     * Custom Builds
+     */
+    label: varchar(
+      "label",
+      {
+        length: 120,
+      }
+    ).notNull(),
+
+    /*
+     * Supports both homepage anchors:
+     *
+     * #products
+     * #contact
+     *
+     * and normal paths:
+     *
+     * /shop
+     * /about
+     */
+    href: varchar(
+      "href",
+      {
+        length: 500,
+      }
+    ).notNull(),
+
+    isVisible: boolean(
+      "is_visible"
+    )
+      .default(true)
+      .notNull(),
+
+    /*
+     * Determines Navbar order.
+     *
+     * 0 = first
+     * 1 = second
+     * etc.
+     */
+    sortOrder: integer(
+      "sort_order"
+    )
+      .default(0)
+      .notNull(),
+
+    createdAt: timestamp(
+      "created_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+
+    updatedAt: timestamp(
+      "updated_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+  }
+);
