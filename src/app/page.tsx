@@ -10,6 +10,9 @@ import {
   contactSocialLinks as contactSocialLinksTable,
   customBuilds as buildsTable,
   featuresSettings as featuresSettingsTable,
+  footerLinks as footerLinksTable,
+  footerSettings as footerSettingsTable,
+  footerSocialLinks as footerSocialLinksTable,
   heroSettings as heroSettingsTable,
   homepageFeatures as featuresTable,
   homepageStats as statsTable,
@@ -58,6 +61,9 @@ import {
 
 import {
   Footer,
+  DEFAULT_FOOTER_CONTENT,
+  DEFAULT_FOOTER_LINKS,
+  DEFAULT_FOOTER_SOCIAL_LINKS,
 } from "@/components/Footer";
 
 import {
@@ -173,17 +179,6 @@ export default async function HomePage() {
           navbarLinksTable.id
         )
       );
-
-  /*
-   * Before the Navbar has ever been configured in Admin,
-   * preserve the original website.
-   *
-   * Once Navbar settings exist in Neon, the database becomes
-   * the source of truth.
-   *
-   * This is important because an Admin may intentionally
-   * delete all navigation links.
-   */
 
   const navbarHasDatabaseSettings =
     Boolean(
@@ -309,7 +304,7 @@ export default async function HomePage() {
       );
 
   /* =======================================================
-     FEATURES SECTION SETTINGS
+     FEATURES SETTINGS
      ======================================================= */
 
   const featuresSettingsRows =
@@ -509,6 +504,187 @@ export default async function HomePage() {
       );
 
   /* =======================================================
+     FOOTER SETTINGS
+     ======================================================= */
+
+  const footerSettingsRows =
+    await db
+      .select({
+        brandText:
+          footerSettingsTable.brandText,
+
+        brandHref:
+          footerSettingsTable.brandHref,
+
+        logoImage:
+          footerSettingsTable.logoImage,
+
+        logoAlt:
+          footerSettingsTable.logoAlt,
+
+        description:
+          footerSettingsTable.description,
+
+        navigationHeading:
+          footerSettingsTable.navigationHeading,
+
+        contactHeading:
+          footerSettingsTable.contactHeading,
+
+        email:
+          footerSettingsTable.email,
+
+        phone:
+          footerSettingsTable.phone,
+
+        address:
+          footerSettingsTable.address,
+
+        ctaText:
+          footerSettingsTable.ctaText,
+
+        ctaHref:
+          footerSettingsTable.ctaHref,
+
+        ctaVisible:
+          footerSettingsTable.ctaVisible,
+
+        copyrightText:
+          footerSettingsTable.copyrightText,
+
+        backToTopText:
+          footerSettingsTable.backToTopText,
+
+        backToTopHref:
+          footerSettingsTable.backToTopHref,
+
+        isVisible:
+          footerSettingsTable.isVisible,
+      })
+      .from(
+        footerSettingsTable
+      )
+      .where(
+        eq(
+          footerSettingsTable.id,
+          "main"
+        )
+      )
+      .limit(1);
+
+  const footerHasDatabaseSettings =
+    Boolean(
+      footerSettingsRows[0]
+    );
+
+  const footerContent =
+    footerSettingsRows[0] ??
+    DEFAULT_FOOTER_CONTENT;
+
+  /* =======================================================
+     FOOTER NAVIGATION LINKS
+     ======================================================= */
+
+  const databaseFooterLinks =
+    await db
+      .select({
+        id:
+          footerLinksTable.id,
+
+        label:
+          footerLinksTable.label,
+
+        href:
+          footerLinksTable.href,
+      })
+      .from(
+        footerLinksTable
+      )
+      .where(
+        eq(
+          footerLinksTable.isVisible,
+          true
+        )
+      )
+      .orderBy(
+        asc(
+          footerLinksTable.sortOrder
+        ),
+        asc(
+          footerLinksTable.id
+        )
+      );
+
+  /*
+   * If Footer settings have been saved, Neon becomes the
+   * source of truth.
+   *
+   * This means an empty database list intentionally renders
+   * no Footer navigation links.
+   */
+
+  const publicFooterLinks =
+    footerHasDatabaseSettings
+      ? databaseFooterLinks
+      : databaseFooterLinks.length >
+          0
+        ? databaseFooterLinks
+        : DEFAULT_FOOTER_LINKS;
+
+  /* =======================================================
+     FOOTER SOCIAL LINKS
+     ======================================================= */
+
+  const databaseFooterSocialLinks =
+    await db
+      .select({
+        id:
+          footerSocialLinksTable.id,
+
+        platform:
+          footerSocialLinksTable.platform,
+
+        url:
+          footerSocialLinksTable.url,
+      })
+      .from(
+        footerSocialLinksTable
+      )
+      .where(
+        eq(
+          footerSocialLinksTable.isVisible,
+          true
+        )
+      )
+      .orderBy(
+        asc(
+          footerSocialLinksTable.sortOrder
+        ),
+        asc(
+          footerSocialLinksTable.id
+        )
+      );
+
+  /*
+   * Same behavior as Footer navigation:
+   *
+   * Before Footer configuration:
+   * use the original fallback socials.
+   *
+   * After Footer settings are saved:
+   * Neon is authoritative, including an intentionally empty
+   * social list.
+   */
+
+  const publicFooterSocialLinks =
+    footerHasDatabaseSettings
+      ? databaseFooterSocialLinks
+      : databaseFooterSocialLinks.length >
+          0
+        ? databaseFooterSocialLinks
+        : DEFAULT_FOOTER_SOCIAL_LINKS;
+
+  /* =======================================================
      HOMEPAGE
      ======================================================= */
 
@@ -517,7 +693,7 @@ export default async function HomePage() {
       <ScrollProgress />
 
       {/* ===================================================
-          DATABASE-DRIVEN NAVBAR
+          NAVBAR
           =================================================== */}
 
       <Navbar
@@ -606,7 +782,21 @@ export default async function HomePage() {
         />
       </main>
 
-      <Footer />
+      {/* ===================================================
+          DATABASE-DRIVEN FOOTER
+          =================================================== */}
+
+      <Footer
+        content={
+          footerContent
+        }
+        links={
+          publicFooterLinks
+        }
+        socialLinks={
+          publicFooterSocialLinks
+        }
+      />
     </>
   );
 }
