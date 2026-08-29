@@ -36,6 +36,8 @@ import {
   updateBlogPost,
 } from "../../actions";
 
+import BlogContentEditor from "../../BlogContentEditor";
+
 import DeleteBlogPostButton from "../../DeleteBlogPostButton";
 
 /* =========================================================
@@ -112,17 +114,13 @@ export default async function EditBlogPostPage({
   }
 
   /* =======================================================
-     DATE FOR INPUT
+     DATE
      ======================================================= */
 
   const publishedDate =
     post.publishedAt
       .toISOString()
       .slice(0, 10);
-
-  /* =======================================================
-     PAGE
-     ======================================================= */
 
   return (
     <main className="min-h-screen bg-[#f7f9fc]">
@@ -253,7 +251,6 @@ export default async function EditBlogPostPage({
                 font-bold
                 uppercase
                 tracking-wider
-
                 ${
                   post.isVisible
                     ? "bg-emerald-50 text-emerald-700"
@@ -375,8 +372,6 @@ export default async function EditBlogPostPage({
                 </Field>
               </div>
 
-              {/* SLUG */}
-
               <Field label="URL Slug">
                 <input
                   name="slug"
@@ -391,12 +386,10 @@ export default async function EditBlogPostPage({
                 />
 
                 <p className={helperClass}>
-                  Changing this also changes the public article
-                  URL.
+                  Changing the slug also changes the public
+                  article URL.
                 </p>
               </Field>
-
-              {/* CATEGORY */}
 
               <Field label="Category">
                 <input
@@ -411,8 +404,6 @@ export default async function EditBlogPostPage({
                   }
                 />
               </Field>
-
-              {/* READ TIME */}
 
               <Field label="Read Time">
                 <input
@@ -431,8 +422,6 @@ export default async function EditBlogPostPage({
                   Example: 6 min read
                 </p>
               </Field>
-
-              {/* ORDER */}
 
               <Field label="Display Order">
                 <input
@@ -454,8 +443,6 @@ export default async function EditBlogPostPage({
               </Field>
             </div>
 
-            {/* EXCERPT */}
-
             <div className="mt-6">
               <Field label="Excerpt">
                 <textarea
@@ -465,7 +452,10 @@ export default async function EditBlogPostPage({
                   defaultValue={
                     post.excerpt
                   }
-                  className={`${inputClass} resize-y`}
+                  className={`
+                    ${inputClass}
+                    resize-y
+                  `}
                 />
 
                 <p className={helperClass}>
@@ -488,20 +478,31 @@ export default async function EditBlogPostPage({
             title="Full Content"
           >
             <Field label="Article Content">
-              <textarea
-                name="content"
-                rows={20}
+              <BlogContentEditor
                 defaultValue={
                   post.content
                 }
-                placeholder="Write the complete Blog article..."
-                className={`
-                  ${inputClass}
-                  min-h-[460px]
-                  resize-y
-                  font-mono
-                  leading-relaxed
-                `}
+                placeholder={`Write the complete Blog article here.
+
+Example:
+
+## Choosing the Right Processor
+
+Your CPU determines how well your system handles games and other workloads.
+
+## Choosing a Graphics Card
+
+The GPU has the biggest impact on gaming performance.
+
+### Cooling Matters
+
+Good airflow helps your components maintain higher performance.
+
+- Use intake fans
+- Use exhaust fans
+- Keep cables organized
+
+You can also use **bold text** for important information.`}
               />
             </Field>
 
@@ -522,16 +523,10 @@ export default async function EditBlogPostPage({
                   text-slate-500
                 "
               >
-                This content will be used on the dedicated{" "}
-                <code
-                  className="
-                    font-bold
-                    text-brand
-                  "
-                >
-                  /blog/{post.slug}
-                </code>{" "}
-                article page.
+                Select text and use the formatting toolbar.
+                Headings, bold text, bullet lists and numbered
+                lists will be rendered on the public article
+                page.
               </p>
             </div>
           </SectionCard>
@@ -554,9 +549,7 @@ export default async function EditBlogPostPage({
                 lg:grid-cols-[320px_1fr]
               "
             >
-              {/* =============================================
-                  CURRENT IMAGE
-                  ============================================= */}
+              {/* CURRENT IMAGE */}
 
               <div>
                 <p className={labelClass}>
@@ -605,9 +598,7 @@ export default async function EditBlogPostPage({
                 </p>
               </div>
 
-              {/* =============================================
-                  REPLACE IMAGE
-                  ============================================= */}
+              {/* REPLACEMENT */}
 
               <div className="space-y-6">
                 <Field label="Upload Replacement Image">
@@ -674,8 +665,6 @@ export default async function EditBlogPostPage({
                   </label>
                 </Field>
 
-                {/* IMAGE URL */}
-
                 <Field label="Or Replace Using Image URL">
                   <div className="relative">
                     <Link2
@@ -695,14 +684,17 @@ export default async function EditBlogPostPage({
                       type="url"
                       maxLength={1000}
                       placeholder="https://example.com/new-blog-image.jpg"
-                      className={`${inputClass} pl-11`}
+                      className={`
+                        ${inputClass}
+                        pl-11
+                      `}
                     />
                   </div>
 
                   <p className={helperClass}>
-                    Leave this blank to keep the current image.
-                    If both URL and uploaded file are supplied,
-                    the uploaded file wins.
+                    Leave this blank to keep the current
+                    image. If both URL and uploaded file are
+                    supplied, the uploaded file is used.
                   </p>
                 </Field>
               </div>
@@ -727,8 +719,6 @@ export default async function EditBlogPostPage({
                 md:grid-cols-2
               "
             >
-              {/* DATE */}
-
               <Field label="Publication Date">
                 <input
                   name="publishedDate"
@@ -741,8 +731,6 @@ export default async function EditBlogPostPage({
                   }
                 />
               </Field>
-
-              {/* VISIBILITY */}
 
               <div>
                 <p className={labelClass}>
@@ -761,6 +749,7 @@ export default async function EditBlogPostPage({
                     border-brand/15
                     bg-[#f7f9fc]
                     px-4
+                    py-3
                   "
                 >
                   <input
@@ -799,7 +788,8 @@ export default async function EditBlogPostPage({
                         text-slate-400
                       "
                     >
-                      Uncheck this to keep the article hidden.
+                      Uncheck this to keep the article hidden
+                      from visitors.
                     </p>
                   </div>
                 </label>
@@ -884,10 +874,6 @@ export default async function EditBlogPostPage({
 
         {/* ===================================================
             DANGER ZONE
-
-            IMPORTANT:
-            This is outside the update <form> because the
-            DeleteBlogPostButton contains its own delete form.
             =================================================== */}
 
         <section
@@ -946,9 +932,10 @@ export default async function EditBlogPostPage({
                   text-slate-500
                 "
               >
-                Deleting this post permanently removes it
+                Deleting this article permanently removes it
                 from Neon. Use visibility instead if you only
-                want to temporarily remove it from the site.
+                want to temporarily remove it from the public
+                website.
               </p>
             </div>
 
@@ -1070,11 +1057,7 @@ function Field({
 }) {
   return (
     <div>
-      <label
-        className={
-          labelClass
-        }
-      >
+      <label className={labelClass}>
         {label}
       </label>
 
@@ -1084,7 +1067,7 @@ function Field({
 }
 
 /* =========================================================
-   STYLES
+   SHARED STYLES
    ========================================================= */
 
 const labelClass = `

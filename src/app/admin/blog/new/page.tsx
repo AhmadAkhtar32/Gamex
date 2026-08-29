@@ -21,6 +21,8 @@ import {
   createBlogPost,
 } from "../actions";
 
+import BlogContentEditor from "../BlogContentEditor";
+
 /* =========================================================
    TYPES
    ========================================================= */
@@ -88,7 +90,13 @@ export default async function NewBlogPostPage({
               Gamex Admin
             </p>
 
-            <p className="mt-0.5 text-xs text-slate-500">
+            <p
+              className="
+                mt-0.5
+                text-xs
+                text-slate-500
+              "
+            >
               Create Blog Post
             </p>
           </div>
@@ -178,7 +186,8 @@ export default async function NewBlogPostPage({
             "
           >
             Create a new Gamex article with its own title,
-            category, image, excerpt and full article content.
+            category, featured image, excerpt and full article
+            content.
           </p>
         </div>
 
@@ -206,7 +215,7 @@ export default async function NewBlogPostPage({
         ) : null}
 
         {/* ===================================================
-            FORM
+            CREATE FORM
             =================================================== */}
 
         <form
@@ -236,6 +245,8 @@ export default async function NewBlogPostPage({
                 md:grid-cols-2
               "
             >
+              {/* TITLE */}
+
               <div className="md:col-span-2">
                 <Field label="Post Title">
                   <input
@@ -243,24 +254,33 @@ export default async function NewBlogPostPage({
                     required
                     maxLength={255}
                     placeholder="The Ultimate 2026 PC Build for 4K Gaming"
-                    className={inputClass}
+                    className={
+                      inputClass
+                    }
                   />
                 </Field>
               </div>
+
+              {/* SLUG */}
 
               <Field label="URL Slug">
                 <input
                   name="slug"
                   maxLength={255}
                   placeholder="ultimate-2026-4k-gaming-build"
-                  className={inputClass}
+                  className={
+                    inputClass
+                  }
                 />
 
                 <p className={helperClass}>
-                  Optional. Leave blank and Gamex will
-                  automatically create one from the title.
+                  Optional. Leave this blank and Gamex will
+                  automatically create the URL slug from the
+                  article title.
                 </p>
               </Field>
+
+              {/* CATEGORY */}
 
               <Field label="Category">
                 <input
@@ -268,7 +288,9 @@ export default async function NewBlogPostPage({
                   required
                   maxLength={100}
                   placeholder="Build Guide"
-                  className={inputClass}
+                  className={
+                    inputClass
+                  }
                 />
 
                 <p className={helperClass}>
@@ -277,15 +299,25 @@ export default async function NewBlogPostPage({
                 </p>
               </Field>
 
+              {/* READ TIME */}
+
               <Field label="Read Time">
                 <input
                   name="readTime"
                   required
                   maxLength={60}
                   placeholder="6 min read"
-                  className={inputClass}
+                  className={
+                    inputClass
+                  }
                 />
+
+                <p className={helperClass}>
+                  Example: 6 min read
+                </p>
               </Field>
+
+              {/* SORT ORDER */}
 
               <Field label="Display Order">
                 <input
@@ -294,7 +326,9 @@ export default async function NewBlogPostPage({
                   min="0"
                   step="1"
                   defaultValue="0"
-                  className={inputClass}
+                  className={
+                    inputClass
+                  }
                 />
 
                 <p className={helperClass}>
@@ -303,6 +337,8 @@ export default async function NewBlogPostPage({
               </Field>
             </div>
 
+            {/* EXCERPT */}
+
             <div className="mt-6">
               <Field label="Excerpt">
                 <textarea
@@ -310,12 +346,16 @@ export default async function NewBlogPostPage({
                   required
                   rows={4}
                   placeholder="Write a short summary that will appear on the homepage Blog card..."
-                  className={`${inputClass} resize-y`}
+                  className={`
+                    ${inputClass}
+                    resize-y
+                  `}
                 />
 
                 <p className={helperClass}>
-                  Keep this short. It is the preview text
-                  customers see before opening the article.
+                  This is the short preview shown on the Blog
+                  card before the visitor opens the complete
+                  article.
                 </p>
               </Field>
             </div>
@@ -333,24 +373,28 @@ export default async function NewBlogPostPage({
             title="Full Content"
           >
             <Field label="Article Content">
-              <textarea
-                name="content"
-                rows={18}
+              <BlogContentEditor
                 placeholder={`Write the full Blog article here.
 
 Example:
 
-Building a gaming PC is easier when you understand how each component works together.
+## Choosing the Right Processor
 
-1. Choose the right processor
-Start by deciding what games and applications you plan to use...
+Your CPU determines how well your system handles games and other workloads.
 
-2. Match your graphics card
-Your GPU will have the biggest impact on gaming performance...
+## Choosing a Graphics Card
 
-3. Don't ignore cooling
-Good airflow keeps your components performing consistently...`}
-                className={`${inputClass} min-h-[420px] resize-y font-mono leading-relaxed`}
+The GPU has the biggest impact on gaming performance.
+
+### Cooling Matters
+
+Good airflow helps your components maintain higher performance.
+
+- Use intake fans
+- Use exhaust fans
+- Keep cables organized
+
+You can also use **bold text** for important information.`}
               />
             </Field>
 
@@ -371,19 +415,17 @@ Good airflow keeps your components performing consistently...`}
                   text-slate-500
                 "
               >
-                For now this is stored as plain article text.
-                Later we will build the public{" "}
-                <code className="font-bold text-brand">
-                  /blog/[slug]
-                </code>{" "}
-                page and format paragraphs, headings and lists
-                nicely.
+                Use the formatting toolbar to add headings,
+                subheadings, bold text, bullet lists and
+                numbered lists. The article will later be
+                formatted automatically on the public Blog
+                page.
               </p>
             </div>
           </SectionCard>
 
           {/* =================================================
-              IMAGE
+              FEATURED IMAGE
               ================================================= */}
 
           <SectionCard
@@ -400,7 +442,9 @@ Good airflow keeps your components performing consistently...`}
                 md:grid-cols-2
               "
             >
-              {/* UPLOAD */}
+              {/* =============================================
+                  FILE UPLOAD
+                  ============================================= */}
 
               <div>
                 <p className={labelClass}>
@@ -410,7 +454,7 @@ Good airflow keeps your components performing consistently...`}
                 <label
                   className="
                     flex
-                    min-h-40
+                    min-h-44
                     cursor-pointer
                     flex-col
                     items-center
@@ -481,7 +525,9 @@ Good airflow keeps your components performing consistently...`}
                 </label>
               </div>
 
-              {/* URL */}
+              {/* =============================================
+                  IMAGE URL
+                  ============================================= */}
 
               <div>
                 <p className={labelClass}>
@@ -491,7 +537,7 @@ Good airflow keeps your components performing consistently...`}
                 <div
                   className="
                     flex
-                    min-h-40
+                    min-h-44
                     flex-col
                     justify-center
                     rounded-2xl
@@ -529,12 +575,15 @@ Good airflow keeps your components performing consistently...`}
                     type="url"
                     maxLength={1000}
                     placeholder="https://example.com/blog-image.jpg"
-                    className={inputClass}
+                    className={
+                      inputClass
+                    }
                   />
 
                   <p className={helperClass}>
-                    If you upload a file and also provide a
-                    URL, the uploaded file will be used.
+                    You only need an uploaded file or an image
+                    URL. If both are supplied, the uploaded
+                    file will be used.
                   </p>
                 </div>
               </div>
@@ -559,12 +608,18 @@ Good airflow keeps your components performing consistently...`}
                 md:grid-cols-2
               "
             >
+              {/* DATE */}
+
               <Field label="Publication Date">
                 <input
                   name="publishedDate"
                   type="date"
-                  defaultValue={today}
-                  className={inputClass}
+                  defaultValue={
+                    today
+                  }
+                  className={
+                    inputClass
+                  }
                 />
 
                 <p className={helperClass}>
@@ -572,6 +627,8 @@ Good airflow keeps your components performing consistently...`}
                   article.
                 </p>
               </Field>
+
+              {/* VISIBILITY */}
 
               <div>
                 <p className={labelClass}>
@@ -581,7 +638,7 @@ Good airflow keeps your components performing consistently...`}
                 <label
                   className="
                     flex
-                    min-h-[52px]
+                    min-h-[54px]
                     cursor-pointer
                     items-center
                     gap-3
@@ -590,6 +647,7 @@ Good airflow keeps your components performing consistently...`}
                     border-brand/15
                     bg-[#f7f9fc]
                     px-4
+                    py-3
                   "
                 >
                   <input
@@ -616,11 +674,13 @@ Good airflow keeps your components performing consistently...`}
 
                     <p
                       className="
+                        mt-0.5
                         text-xs
                         text-slate-400
                       "
                     >
-                      Turn this off to save the article hidden.
+                      Turn this off to create the article but
+                      keep it hidden from visitors.
                     </p>
                   </div>
                 </label>
@@ -629,7 +689,7 @@ Good airflow keeps your components performing consistently...`}
           </SectionCard>
 
           {/* =================================================
-              SUBMIT
+              SUBMIT AREA
               ================================================= */}
 
           <div
@@ -647,6 +707,8 @@ Good airflow keeps your components performing consistently...`}
               sm:justify-between
             "
           >
+            {/* CANCEL */}
+
             <Link
               href="/admin/blog"
               className="
@@ -673,6 +735,8 @@ Good airflow keeps your components performing consistently...`}
 
               Cancel
             </Link>
+
+            {/* CREATE */}
 
             <button
               type="submit"
@@ -807,7 +871,11 @@ function Field({
 }) {
   return (
     <div>
-      <label className={labelClass}>
+      <label
+        className={
+          labelClass
+        }
+      >
         {label}
       </label>
 
@@ -817,7 +885,7 @@ function Field({
 }
 
 /* =========================================================
-   STYLES
+   SHARED STYLES
    ========================================================= */
 
 const labelClass = `

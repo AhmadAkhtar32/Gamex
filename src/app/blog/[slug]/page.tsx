@@ -2,6 +2,10 @@ import type {
   Metadata,
 } from "next";
 
+import type {
+  ReactNode,
+} from "react";
+
 import Link from "next/link";
 
 import {
@@ -27,7 +31,7 @@ import {
 } from "@/db/schema";
 
 /* =========================================================
-   ALWAYS USE CURRENT DATABASE CONTENT
+   ALWAYS LOAD CURRENT BLOG DATA
    ========================================================= */
 
 export const dynamic =
@@ -42,6 +46,28 @@ type BlogArticlePageProps = {
     slug: string;
   }>;
 };
+
+type ArticleBlock =
+  | {
+      type: "h2";
+      text: string;
+    }
+  | {
+      type: "h3";
+      text: string;
+    }
+  | {
+      type: "paragraph";
+      text: string;
+    }
+  | {
+      type: "bullet-list";
+      items: string[];
+    }
+  | {
+      type: "number-list";
+      items: string[];
+    };
 
 /* =========================================================
    GET BLOG POST
@@ -74,7 +100,7 @@ async function getBlogPost(
 }
 
 /* =========================================================
-   PAGE METADATA
+   METADATA
    ========================================================= */
 
 export async function generateMetadata({
@@ -102,11 +128,29 @@ export async function generateMetadata({
 
     description:
       post.excerpt,
+
+    openGraph: {
+      title:
+        post.title,
+
+      description:
+        post.excerpt,
+
+      images:
+        post.image
+          ? [
+              {
+                url:
+                  post.image,
+              },
+            ]
+          : [],
+    },
   };
 }
 
 /* =========================================================
-   BLOG ARTICLE PAGE
+   PAGE
    ========================================================= */
 
 export default async function BlogArticlePage({
@@ -147,34 +191,20 @@ export default async function BlogArticlePage({
     );
 
   /* =======================================================
-     ARTICLE CONTENT
+     CONTENT
 
-     Old posts may not yet have full content because the
-     content column was added after those posts existed.
-
-     In that case we use the excerpt rather than displaying
-     a completely empty article.
+     Existing posts may have an empty content field.
+     In that case we display their excerpt.
      ======================================================= */
 
   const articleText =
     post.content.trim() ||
     post.excerpt;
 
-  /*
-   * Separate the article into paragraphs whenever the admin
-   * enters an empty line.
-   */
-
-  const contentBlocks =
-    articleText
-      .split(
-        /\n{2,}/
-      )
-      .map(
-        (block) =>
-          block.trim()
-      )
-      .filter(Boolean);
+  const blocks =
+    parseArticleContent(
+      articleText
+    );
 
   return (
     <main
@@ -185,7 +215,7 @@ export default async function BlogArticlePage({
       "
     >
       {/* =====================================================
-          TOP BAR
+          TOP NAVIGATION
           ===================================================== */}
 
       <header
@@ -305,7 +335,7 @@ export default async function BlogArticlePage({
             md:pt-16
           "
         >
-          {/* BACK TO BLOG */}
+          {/* BACK */}
 
           <Link
             href="/#blog"
@@ -500,26 +530,14 @@ export default async function BlogArticlePage({
           md:py-20
         "
       >
-        <div
-          className="
-            space-y-7
-          "
-        >
-          {contentBlocks.map(
-            (
-              block,
-              index
-            ) => (
-              <ArticleBlock
-                key={index}
-                text={block}
-              />
-            )
-          )}
-        </div>
+        <ArticleContent
+          blocks={
+            blocks
+          }
+        />
 
         {/* ===================================================
-            END DIVIDER
+            ARTICLE END
             =================================================== */}
 
         <div
@@ -628,7 +646,7 @@ export default async function BlogArticlePage({
       </article>
 
       {/* =====================================================
-          SIMPLE FOOTER
+          FOOTER
           ===================================================== */}
 
       <footer
@@ -687,113 +705,543 @@ export default async function BlogArticlePage({
 }
 
 /* =========================================================
-   ARTICLE BLOCK
-
-   This provides a little intelligent formatting while the
-   Blog editor is still plain text.
-
-   Example:
-
-   1. Choose the right processor
-
-   becomes a heading automatically.
+   ARTICLE CONTENT
    ========================================================= */
 
-function ArticleBlock({
-  text,
+function ArticleContent({
+  blocks,
 }: {
-  text: string;
+  blocks: ArticleBlock[];
 }) {
+  return (
+    <div
+      className="
+        space-y-7
+      "
+    >
+      {blocks.map(
+        (
+          block,
+          index
+        ) => {
+          /* ===============================================
+             HEADING 2
+             =============================================== */
+
+          if (
+            block.type ===
+            "h2"
+          ) {
+            return (
+              <h2
+                key={index}
+                className="
+                  pt-5
+                  font-display
+                  text-2xl
+                  font-extrabold
+                  leading-tight
+                  text-brand-deep
+                  md:text-3xl
+                "
+              >
+                {renderInlineFormatting(
+                  block.text
+                )}
+              </h2>
+            );
+          }
+
+          /* ===============================================
+             HEADING 3
+             =============================================== */
+
+          if (
+            block.type ===
+            "h3"
+          ) {
+            return (
+              <h3
+                key={index}
+                className="
+                  pt-3
+                  font-display
+                  text-xl
+                  font-bold
+                  leading-tight
+                  text-brand-deep
+                  md:text-2xl
+                "
+              >
+                {renderInlineFormatting(
+                  block.text
+                )}
+              </h3>
+            );
+          }
+
+          /* ===============================================
+             BULLET LIST
+             =============================================== */
+
+          if (
+            block.type ===
+            "bullet-list"
+          ) {
+            return (
+              <ul
+                key={index}
+                className="
+                  space-y-3
+                  pl-1
+                "
+              >
+                {block.items.map(
+                  (
+                    item,
+                    itemIndex
+                  ) => (
+                    <li
+                      key={
+                        itemIndex
+                      }
+                      className="
+                        flex
+                        gap-3
+                        text-base
+                        leading-8
+                        text-slate-600
+                        md:text-lg
+                      "
+                    >
+                      <span
+                        className="
+                          mt-[13px]
+                          h-2
+                          w-2
+                          shrink-0
+                          rounded-full
+                          bg-brand
+                        "
+                      />
+
+                      <span>
+                        {renderInlineFormatting(
+                          item
+                        )}
+                      </span>
+                    </li>
+                  )
+                )}
+              </ul>
+            );
+          }
+
+          /* ===============================================
+             NUMBERED LIST
+             =============================================== */
+
+          if (
+            block.type ===
+            "number-list"
+          ) {
+            return (
+              <ol
+                key={index}
+                className="
+                  space-y-3
+                "
+              >
+                {block.items.map(
+                  (
+                    item,
+                    itemIndex
+                  ) => (
+                    <li
+                      key={
+                        itemIndex
+                      }
+                      className="
+                        flex
+                        gap-4
+                        text-base
+                        leading-8
+                        text-slate-600
+                        md:text-lg
+                      "
+                    >
+                      <span
+                        className="
+                          mt-1
+                          grid
+                          h-7
+                          w-7
+                          shrink-0
+                          place-items-center
+                          rounded-lg
+                          bg-brand/[0.08]
+                          text-xs
+                          font-bold
+                          text-brand
+                        "
+                      >
+                        {itemIndex +
+                          1}
+                      </span>
+
+                      <span>
+                        {renderInlineFormatting(
+                          item
+                        )}
+                      </span>
+                    </li>
+                  )
+                )}
+              </ol>
+            );
+          }
+
+          /* ===============================================
+             PARAGRAPH
+             =============================================== */
+
+          return (
+            <p
+              key={index}
+              className="
+                whitespace-pre-line
+                text-base
+                leading-8
+                text-slate-600
+                md:text-lg
+              "
+            >
+              {renderInlineFormatting(
+                block.text
+              )}
+            </p>
+          );
+        }
+      )}
+    </div>
+  );
+}
+
+/* =========================================================
+   PARSE ARTICLE CONTENT
+
+   Supported syntax:
+
+   ## Heading
+
+   ### Subheading
+
+   **bold text**
+
+   - Bullet
+   - Bullet
+
+   1. Number
+   2. Number
+   ========================================================= */
+
+function parseArticleContent(
+  content: string
+): ArticleBlock[] {
+  const normalized =
+    content.replace(
+      /\r\n/g,
+      "\n"
+    );
+
   const lines =
-    text.split("\n");
-
-  const firstLine =
-    lines[0]?.trim() ??
-    "";
-
-  const rest =
-    lines
-      .slice(1)
-      .join("\n")
-      .trim();
-
-  /*
-   * Detect headings such as:
-   *
-   * 1. Choose the right CPU
-   * 2. Pick your GPU
-   */
-
-  const numberedHeading =
-    /^\d+\.\s+/.test(
-      firstLine
+    normalized.split(
+      "\n"
     );
 
-  /*
-   * Detect Markdown-style headings:
-   *
-   * ## Cooling
-   */
+  const blocks:
+    ArticleBlock[] =
+    [];
 
-  const markdownHeading =
-    /^#{1,3}\s+/.test(
-      firstLine
-    );
+  let paragraphLines:
+    string[] =
+    [];
 
-  if (
-    numberedHeading ||
-    markdownHeading
+  let bulletItems:
+    string[] =
+    [];
+
+  let numberItems:
+    string[] =
+    [];
+
+  /* =======================================================
+     FLUSH PARAGRAPH
+     ======================================================= */
+
+  function flushParagraph() {
+    if (
+      paragraphLines.length ===
+      0
+    ) {
+      return;
+    }
+
+    const text =
+      paragraphLines
+        .join("\n")
+        .trim();
+
+    if (text) {
+      blocks.push({
+        type:
+          "paragraph",
+
+        text,
+      });
+    }
+
+    paragraphLines =
+      [];
+  }
+
+  /* =======================================================
+     FLUSH BULLETS
+     ======================================================= */
+
+  function flushBullets() {
+    if (
+      bulletItems.length ===
+      0
+    ) {
+      return;
+    }
+
+    blocks.push({
+      type:
+        "bullet-list",
+
+      items:
+        bulletItems,
+    });
+
+    bulletItems =
+      [];
+  }
+
+  /* =======================================================
+     FLUSH NUMBERS
+     ======================================================= */
+
+  function flushNumbers() {
+    if (
+      numberItems.length ===
+      0
+    ) {
+      return;
+    }
+
+    blocks.push({
+      type:
+        "number-list",
+
+      items:
+        numberItems,
+    });
+
+    numberItems =
+      [];
+  }
+
+  /* =======================================================
+     FLUSH EVERYTHING
+     ======================================================= */
+
+  function flushAll() {
+    flushParagraph();
+    flushBullets();
+    flushNumbers();
+  }
+
+  /* =======================================================
+     PARSE LINES
+     ======================================================= */
+
+  for (
+    const rawLine
+    of lines
   ) {
-    const cleanHeading =
-      firstLine.replace(
-        /^#{1,3}\s+/,
-        ""
+    const line =
+      rawLine.trim();
+
+    /* EMPTY LINE */
+
+    if (!line) {
+      flushAll();
+
+      continue;
+    }
+
+    /* H3 */
+
+    if (
+      line.startsWith(
+        "### "
+      )
+    ) {
+      flushAll();
+
+      blocks.push({
+        type:
+          "h3",
+
+        text:
+          line
+            .slice(4)
+            .trim(),
+      });
+
+      continue;
+    }
+
+    /* H2 */
+
+    if (
+      line.startsWith(
+        "## "
+      )
+    ) {
+      flushAll();
+
+      blocks.push({
+        type:
+          "h2",
+
+        text:
+          line
+            .slice(3)
+            .trim(),
+      });
+
+      continue;
+    }
+
+    /* BULLET */
+
+    if (
+      /^-\s+/.test(
+        line
+      )
+    ) {
+      flushParagraph();
+      flushNumbers();
+
+      bulletItems.push(
+        line.replace(
+          /^-\s+/,
+          ""
+        )
       );
 
-    return (
-      <section>
-        <h2
-          className="
-            font-display
-            text-2xl
-            font-extrabold
-            leading-tight
-            text-brand-deep
-            md:text-3xl
-          "
-        >
-          {cleanHeading}
-        </h2>
+      continue;
+    }
 
-        {rest ? (
-          <p
-            className="
-              mt-4
-              whitespace-pre-line
-              text-base
-              leading-8
-              text-slate-600
-              md:text-lg
-            "
-          >
-            {rest}
-          </p>
-        ) : null}
-      </section>
+    /* NUMBER */
+
+    if (
+      /^\d+\.\s+/.test(
+        line
+      )
+    ) {
+      flushParagraph();
+      flushBullets();
+
+      numberItems.push(
+        line.replace(
+          /^\d+\.\s+/,
+          ""
+        )
+      );
+
+      continue;
+    }
+
+    /* NORMAL PARAGRAPH */
+
+    flushBullets();
+    flushNumbers();
+
+    paragraphLines.push(
+      rawLine.trim()
     );
   }
 
-  return (
-    <p
-      className="
-        whitespace-pre-line
-        text-base
-        leading-8
-        text-slate-600
-        md:text-lg
-      "
-    >
-      {text}
-    </p>
+  flushAll();
+
+  return blocks;
+}
+
+/* =========================================================
+   INLINE FORMATTING
+
+   Converts:
+
+   **graphics card**
+
+   into:
+
+   <strong>graphics card</strong>
+
+   We do NOT use dangerouslySetInnerHTML, so Admin content
+   remains safely escaped by React.
+   ========================================================= */
+
+function renderInlineFormatting(
+  text: string
+): ReactNode[] {
+  const parts =
+    text.split(
+      /(\*\*.+?\*\*)/g
+    );
+
+  return parts.map(
+    (
+      part,
+      index
+    ) => {
+      if (
+        part.startsWith(
+          "**"
+        ) &&
+        part.endsWith(
+          "**"
+        ) &&
+        part.length >
+          4
+      ) {
+        return (
+          <strong
+            key={index}
+            className="
+              font-bold
+              text-brand-deep
+            "
+          >
+            {part.slice(
+              2,
+              -2
+            )}
+          </strong>
+        );
+      }
+
+      return (
+        <span
+          key={index}
+        >
+          {part}
+        </span>
+      );
+    }
   );
 }
