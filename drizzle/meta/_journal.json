@@ -71,6 +71,13 @@
       "when": 1788033228852,
       "tag": "0009_add-footer",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788035067506,
+      "tag": "0010_upgrade-blog",
+      "breakpoints": true
     }
   ]
 }

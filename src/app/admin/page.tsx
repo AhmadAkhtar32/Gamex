@@ -1,25 +1,114 @@
 import Link from "next/link";
 
-import type { LucideIcon } from "lucide-react";
-
 import {
+  ArrowUpRight,
+  BarChart3,
   Boxes,
-  FileText,
-  Gauge,
-  Mail,
-  MonitorCog,
-  Settings,
+  ContactRound,
+  FileImage,
+  Footprints,
+  LayoutDashboard,
+  Menu,
+  Monitor,
+  Package,
+  PanelsTopLeft,
+  Sparkles,
+  Wrench,
 } from "lucide-react";
 
-import { requireAdmin } from "@/lib/admin-auth";
-import { logoutAdmin } from "./actions";
+import {
+  requireAdmin,
+} from "@/lib/admin-auth";
+
+/* =========================================================
+   DASHBOARD ITEMS
+   ========================================================= */
+
+const catalogueItems = [
+  {
+    title: "Products",
+    description:
+      "Manage gaming components, categories, specifications, images and visibility.",
+    href: "/admin/products",
+    icon: Package,
+    eyebrow: "Catalogue",
+  },
+
+  {
+    title: "Custom Builds",
+    description:
+      "Manage pre-built gaming PCs, specifications, images and display order.",
+    href: "/admin/builds",
+    icon: Boxes,
+    eyebrow: "Catalogue",
+  },
+];
+
+const homepageItems = [
+  {
+    title: "Navbar",
+    description:
+      "Control branding, logo, CTA and every navigation link shown at the top of the website.",
+    href: "/admin/content/navbar",
+    icon: Menu,
+    eyebrow: "Website Chrome",
+  },
+
+  {
+    title: "Hero",
+    description:
+      "Edit the main homepage headline, rotating text, buttons, trust points and hero artwork.",
+    href: "/admin/content/hero",
+    icon: FileImage,
+    eyebrow: "Homepage",
+  },
+
+  {
+    title: "Stats",
+    description:
+      "Manage homepage statistics such as gamers equipped, builds and support figures.",
+    href: "/admin/content/stats",
+    icon: BarChart3,
+    eyebrow: "Homepage",
+  },
+
+  {
+    title: "Why Gamex",
+    description:
+      "Manage the feature cards, icons and section heading used to explain why customers choose Gamex.",
+    href: "/admin/content/features",
+    icon: Sparkles,
+    eyebrow: "Homepage",
+  },
+
+  {
+    title: "Contact",
+    description:
+      "Edit contact information, form labels, social profiles and section visibility.",
+    href: "/admin/content/contact",
+    icon: ContactRound,
+    eyebrow: "Homepage",
+  },
+
+  {
+    title: "Footer",
+    description:
+      "Manage footer branding, navigation, contact details, social profiles, CTA and copyright.",
+    href: "/admin/content/footer",
+    icon: Footprints,
+    eyebrow: "Website Chrome",
+  },
+];
+
+/* =========================================================
+   ADMIN DASHBOARD
+   ========================================================= */
 
 export default async function AdminPage() {
-  /* =========================================================
-     SECURITY
-     ========================================================= */
-
-  const admin = await requireAdmin();
+  /*
+   * Protect the entire dashboard.
+   */
+  await requireAdmin();
 
   return (
     <main className="min-h-screen bg-[#f7f9fc]">
@@ -27,7 +116,13 @@ export default async function AdminPage() {
           TOP BAR
           ===================================================== */}
 
-      <header className="border-b border-brand/10 bg-white">
+      <header
+        className="
+          border-b
+          border-brand/10
+          bg-white
+        "
+      >
         <div
           className="
             mx-auto
@@ -35,78 +130,95 @@ export default async function AdminPage() {
             max-w-7xl
             items-center
             justify-between
-            gap-4
+            gap-5
             px-5
             py-4
             md:px-8
           "
         >
-          {/* Logo / title */}
+          {/* BRAND */}
 
-          <div>
-            <p
+          <div
+            className="
+              flex
+              items-center
+              gap-3
+            "
+          >
+            <div
               className="
-                font-display
-                text-lg
-                font-extrabold
-                uppercase
-                tracking-widest
-                text-brand-deep
+                grid
+                h-10
+                w-10
+                place-items-center
+                rounded-xl
+                bg-brand
+                text-white
+                shadow-[0_12px_28px_-14px_rgba(23,49,96,0.65)]
               "
             >
-              Gamex Admin
-            </p>
-
-            <p className="mt-0.5 text-xs text-slate-500">
-              Website Management
-            </p>
-          </div>
-
-          {/* Admin account */}
-
-          <div className="flex items-center gap-4">
-            <div className="hidden text-right sm:block">
-              <p className="text-sm font-semibold text-brand-deep">
-                {admin.name}
-              </p>
-
-              <p className="text-xs text-slate-500">
-                {admin.email}
-              </p>
+              <LayoutDashboard className="h-5 w-5" />
             </div>
 
-            <form action={logoutAdmin}>
-              <button
-                type="submit"
+            <div>
+              <p
                 className="
-                  rounded-lg
-                  border
-                  border-brand/15
-                  bg-white
-                  px-4
-                  py-2.5
                   font-display
-                  text-xs
-                  font-bold
+                  text-lg
+                  font-extrabold
                   uppercase
-                  tracking-wider
-                  text-brand
-                  transition-all
-                  duration-300
-                  hover:border-brand
-                  hover:bg-brand
-                  hover:text-white
+                  tracking-widest
+                  text-brand-deep
                 "
               >
-                Logout
-              </button>
-            </form>
+                Gamex Admin
+              </p>
+
+              <p className="mt-0.5 text-xs text-slate-500">
+                Website Management
+              </p>
+            </div>
           </div>
+
+          {/* VIEW WEBSITE */}
+
+          <Link
+            href="/"
+            target="_blank"
+            className="
+              inline-flex
+              items-center
+              gap-2
+              rounded-lg
+              border
+              border-brand/15
+              bg-white
+              px-4
+              py-2.5
+              text-xs
+              font-bold
+              uppercase
+              tracking-wider
+              text-brand
+              transition-all
+              hover:border-brand
+              hover:bg-brand
+              hover:text-white
+            "
+          >
+            <Monitor className="h-4 w-4" />
+
+            <span className="hidden sm:inline">
+              View Website
+            </span>
+
+            <ArrowUpRight className="h-3.5 w-3.5" />
+          </Link>
         </div>
       </header>
 
       {/* =====================================================
-          DASHBOARD
+          PAGE CONTENT
           ===================================================== */}
 
       <div
@@ -120,10 +232,14 @@ export default async function AdminPage() {
         "
       >
         {/* ===================================================
-            WELCOME
+            PAGE HEADING
             =================================================== */}
 
-        <div>
+        <div
+          className="
+            max-w-3xl
+          "
+        >
           <p
             className="
               text-xs
@@ -133,7 +249,7 @@ export default async function AdminPage() {
               text-brand
             "
           >
-            Dashboard
+            Control Center
           </p>
 
           <h1
@@ -143,166 +259,223 @@ export default async function AdminPage() {
               text-3xl
               font-extrabold
               uppercase
-              tracking-tight
+              leading-tight
               text-brand-deep
               md:text-4xl
             "
           >
-            Welcome, {admin.name}
+            Website Dashboard
           </h1>
 
           <p
             className="
-              mt-3
+              mt-4
               max-w-2xl
-              text-slate-600
+              text-sm
+              leading-relaxed
+              text-slate-500
+              md:text-base
             "
           >
-            Manage the products, custom builds, website content,
-            blog, messages and settings of the Gamex website.
+            Manage the Gamex catalogue and homepage content
+            from one central admin panel.
           </p>
         </div>
 
         {/* ===================================================
-            MANAGEMENT CARDS
+            QUICK SUMMARY
             =================================================== */}
 
         <div
           className="
-            mt-10
+            mt-8
             grid
-            gap-5
+            gap-4
             sm:grid-cols-2
             lg:grid-cols-3
           "
         >
-          {/* PRODUCTS */}
-
-          <DashboardCard
-            icon={Boxes}
-            title="Products"
-            description="Add, edit, show, hide and delete products."
-            href="/admin/products"
-            active
+          <SummaryCard
+            icon={
+              <Package className="h-5 w-5" />
+            }
+            value="2"
+            label="Catalogue Areas"
           />
 
-          {/* CUSTOM BUILDS */}
-
-          <DashboardCard
-            icon={MonitorCog}
-            title="Custom Builds"
-            description="Manage Titan, Vortex, Stealth and future custom builds."
+          <SummaryCard
+            icon={
+              <PanelsTopLeft className="h-5 w-5" />
+            }
+            value="6"
+            label="Content Areas"
           />
 
-          {/* WEBSITE CONTENT */}
-
-          <DashboardCard
-            icon={Gauge}
-            title="Website Content"
-            description="Control hero, statistics, features and homepage sections."
-          />
-
-          {/* BLOG */}
-
-          <DashboardCard
-            icon={FileText}
-            title="Blog"
-            description="Create, edit and manage Gamex articles."
-          />
-
-          {/* MESSAGES */}
-
-          <DashboardCard
-            icon={Mail}
-            title="Messages"
-            description="Read and manage customer contact-form submissions."
-          />
-
-          {/* SETTINGS */}
-
-          <DashboardCard
-            icon={Settings}
-            title="Settings"
-            description="Manage navigation, contact details, footer and site information."
+          <SummaryCard
+            icon={
+              <Wrench className="h-5 w-5" />
+            }
+            value="8"
+            label="Management Tools"
           />
         </div>
 
         {/* ===================================================
-            DEVELOPMENT STATUS
+            CATALOGUE MANAGEMENT
+            =================================================== */}
+
+        <section className="mt-12">
+          <SectionHeading
+            eyebrow="Store"
+            title="Catalogue Management"
+            description="Create and manage the hardware and custom systems shown to customers."
+          />
+
+          <div
+            className="
+              mt-6
+              grid
+              gap-5
+              md:grid-cols-2
+            "
+          >
+            {catalogueItems.map(
+              (item) => (
+                <DashboardCard
+                  key={item.href}
+                  {...item}
+                />
+              )
+            )}
+          </div>
+        </section>
+
+        {/* ===================================================
+            WEBSITE CONTENT
+            =================================================== */}
+
+        <section className="mt-14">
+          <SectionHeading
+            eyebrow="Content"
+            title="Website Content"
+            description="Control the individual sections that make up the public Gamex website."
+          />
+
+          <div
+            className="
+              mt-6
+              grid
+              gap-5
+              md:grid-cols-2
+              xl:grid-cols-3
+            "
+          >
+            {homepageItems.map(
+              (item) => (
+                <DashboardCard
+                  key={item.href}
+                  {...item}
+                />
+              )
+            )}
+          </div>
+        </section>
+
+        {/* ===================================================
+            HELP PANEL
             =================================================== */}
 
         <div
           className="
-            mt-10
+            mt-14
+            overflow-hidden
             rounded-2xl
             border
             border-brand/10
             bg-white
-            p-6
-            shadow-[0_20px_55px_-38px_rgba(23,49,96,0.3)]
           "
         >
-          <h2
-            className="
-              font-display
-              text-lg
-              font-bold
-              uppercase
-              text-brand-deep
-            "
-          >
-            Admin System Status
-          </h2>
-
           <div
             className="
-              mt-5
-              grid
-              gap-3
-              text-sm
-              sm:grid-cols-2
+              flex
+              flex-col
+              gap-5
+              p-6
+              md:flex-row
+              md:items-center
+              md:justify-between
+              md:p-8
             "
           >
-            <StatusItem
-              label="Secure login"
-              completed
-            />
+            <div>
+              <p
+                className="
+                  text-xs
+                  font-bold
+                  uppercase
+                  tracking-[0.2em]
+                  text-brand
+                "
+              >
+                Public Website
+              </p>
 
-            <StatusItem
-              label="Database sessions"
-              completed
-            />
+              <h2
+                className="
+                  mt-2
+                  font-display
+                  text-xl
+                  font-extrabold
+                  uppercase
+                  text-brand-deep
+                  md:text-2xl
+                "
+              >
+                Preview Your Changes
+              </h2>
 
-            <StatusItem
-              label="Protected dashboard"
-              completed
-            />
+              <p
+                className="
+                  mt-2
+                  max-w-xl
+                  text-sm
+                  leading-relaxed
+                  text-slate-500
+                "
+              >
+                After saving content in any section, open the
+                public website to verify the result.
+              </p>
+            </div>
 
-            <StatusItem
-              label="Logout"
-              completed
-            />
+            <Link
+              href="/"
+              target="_blank"
+              className="
+                inline-flex
+                shrink-0
+                items-center
+                justify-center
+                gap-2
+                rounded-xl
+                bg-brand
+                px-6
+                py-3.5
+                font-display
+                text-xs
+                font-bold
+                uppercase
+                tracking-wider
+                text-white
+                transition-all
+                hover:-translate-y-0.5
+                hover:bg-brand-soft
+              "
+            >
+              Open Website
 
-            <StatusItem
-              label="Product management"
-              completed
-            />
-
-            <StatusItem
-              label="Custom build management"
-            />
-
-            <StatusItem
-              label="Website settings"
-            />
-
-            <StatusItem
-              label="Blog management"
-            />
-
-            <StatusItem
-              label="Message management"
-            />
+              <ArrowUpRight className="h-4 w-4" />
+            </Link>
           </div>
         </div>
       </div>
@@ -311,34 +484,125 @@ export default async function AdminPage() {
 }
 
 /* =========================================================
+   SECTION HEADING
+   ========================================================= */
+
+function SectionHeading({
+  eyebrow,
+  title,
+  description,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div>
+      <p
+        className="
+          text-xs
+          font-bold
+          uppercase
+          tracking-[0.2em]
+          text-brand
+        "
+      >
+        {eyebrow}
+      </p>
+
+      <h2
+        className="
+          mt-2
+          font-display
+          text-2xl
+          font-extrabold
+          uppercase
+          text-brand-deep
+        "
+      >
+        {title}
+      </h2>
+
+      <p
+        className="
+          mt-2
+          max-w-2xl
+          text-sm
+          leading-relaxed
+          text-slate-500
+        "
+      >
+        {description}
+      </p>
+    </div>
+  );
+}
+
+/* =========================================================
    DASHBOARD CARD
    ========================================================= */
 
 function DashboardCard({
-  icon: Icon,
   title,
   description,
   href,
-  active = false,
+  icon: Icon,
+  eyebrow,
 }: {
-  icon: LucideIcon;
   title: string;
   description: string;
-  href?: string;
-  active?: boolean;
+  href: string;
+  icon: typeof Package;
+  eyebrow: string;
 }) {
-  const content = (
-    <>
-      {/* Icon */}
+  return (
+    <Link
+      href={href}
+      className="
+        group
+        relative
+        overflow-hidden
+        rounded-2xl
+        border
+        border-brand/10
+        bg-white
+        p-6
+        transition-all
+        duration-300
+        hover:-translate-y-1
+        hover:border-brand/30
+        hover:shadow-[0_22px_48px_-32px_rgba(23,49,96,0.4)]
+      "
+    >
+      {/* DECORATION */}
 
       <div
         className="
+          pointer-events-none
+          absolute
+          -right-14
+          -top-14
+          h-36
+          w-36
+          rounded-full
+          bg-brand/[0.04]
+          transition-transform
+          duration-500
+          group-hover:scale-125
+        "
+      />
+
+      {/* ICON */}
+
+      <div
+        className="
+          relative
           grid
-          h-11
-          w-11
+          h-12
+          w-12
           place-items-center
           rounded-xl
-          bg-brand/[0.07]
+          bg-brand/[0.08]
           text-brand
           transition-all
           duration-300
@@ -349,168 +613,143 @@ function DashboardCard({
         <Icon className="h-5 w-5" />
       </div>
 
-      {/* Text */}
+      {/* CONTENT */}
 
-      <h2
-        className="
-          mt-5
-          font-display
-          text-lg
-          font-bold
-          text-brand-deep
-        "
-      >
-        {title}
-      </h2>
+      <div className="relative mt-5">
+        <p
+          className="
+            text-[10px]
+            font-bold
+            uppercase
+            tracking-[0.18em]
+            text-brand
+          "
+        >
+          {eyebrow}
+        </p>
 
-      <p
-        className="
-          mt-2
-          text-sm
-          leading-relaxed
-          text-slate-500
-        "
-      >
-        {description}
-      </p>
+        <h3
+          className="
+            mt-2
+            font-display
+            text-xl
+            font-extrabold
+            uppercase
+            text-brand-deep
+          "
+        >
+          {title}
+        </h3>
 
-      {/* Status */}
+        <p
+          className="
+            mt-3
+            min-h-[66px]
+            text-sm
+            leading-relaxed
+            text-slate-500
+          "
+        >
+          {description}
+        </p>
 
-      <div
-        className="
-          mt-5
-          border-t
-          border-brand/[0.08]
-          pt-4
-        "
-      >
-        {active ? (
-          <span
+        <div
+          className="
+            mt-5
+            flex
+            items-center
+            gap-2
+            text-xs
+            font-bold
+            uppercase
+            tracking-wider
+            text-brand
+          "
+        >
+          Manage
+
+          <ArrowUpRight
             className="
-              text-xs
-              font-bold
-              uppercase
-              tracking-wider
-              text-brand
+              h-4
+              w-4
+              transition-transform
+              duration-300
+              group-hover:translate-x-1
+              group-hover:-translate-y-1
             "
-          >
-            Open Management →
-          </span>
-        ) : (
-          <span
-            className="
-              text-xs
-              font-semibold
-              uppercase
-              tracking-wider
-              text-slate-400
-            "
-          >
-            Coming Next
-          </span>
-        )}
+          />
+        </div>
       </div>
-    </>
-  );
-
-  /* =======================================================
-     CLICKABLE CARD
-     ======================================================= */
-
-  if (href) {
-    return (
-      <Link
-        href={href}
-        className="
-          group
-          block
-          rounded-2xl
-          border
-          border-brand/10
-          bg-white
-          p-6
-          shadow-[0_18px_50px_-38px_rgba(23,49,96,0.32)]
-          transition-all
-          duration-300
-          hover:-translate-y-1
-          hover:border-brand/25
-          hover:shadow-[0_26px_60px_-38px_rgba(23,49,96,0.42)]
-        "
-      >
-        {content}
-      </Link>
-    );
-  }
-
-  /* =======================================================
-     NON-CLICKABLE CARD
-     ======================================================= */
-
-  return (
-    <div
-      className="
-        group
-        rounded-2xl
-        border
-        border-brand/10
-        bg-white
-        p-6
-        opacity-80
-        shadow-[0_18px_50px_-38px_rgba(23,49,96,0.25)]
-      "
-    >
-      {content}
-    </div>
+    </Link>
   );
 }
 
 /* =========================================================
-   STATUS ITEM
+   SUMMARY CARD
    ========================================================= */
 
-function StatusItem({
+function SummaryCard({
+  icon,
+  value,
   label,
-  completed = false,
 }: {
+  icon: React.ReactNode;
+  value: string;
   label: string;
-  completed?: boolean;
 }) {
   return (
     <div
       className="
         flex
         items-center
-        gap-3
-        rounded-xl
-        bg-[#f7f9fc]
-        px-4
-        py-3
+        gap-4
+        rounded-2xl
+        border
+        border-brand/10
+        bg-white
+        p-5
       "
     >
-      <span
-        className={`
-          h-2.5
-          w-2.5
+      <div
+        className="
+          grid
+          h-11
+          w-11
           shrink-0
-          rounded-full
-
-          ${
-            completed
-              ? "bg-emerald-500"
-              : "bg-slate-300"
-          }
-        `}
-      />
-
-      <span
-        className={
-          completed
-            ? "font-medium text-slate-700"
-            : "text-slate-500"
-        }
+          place-items-center
+          rounded-xl
+          bg-brand/[0.08]
+          text-brand
+        "
       >
-        {label}
-      </span>
+        {icon}
+      </div>
+
+      <div>
+        <p
+          className="
+            font-display
+            text-2xl
+            font-extrabold
+            text-brand-deep
+          "
+        >
+          {value}
+        </p>
+
+        <p
+          className="
+            mt-0.5
+            text-xs
+            font-semibold
+            uppercase
+            tracking-wider
+            text-slate-400
+          "
+        >
+          {label}
+        </p>
+      </div>
     </div>
   );
 }

@@ -43,38 +43,113 @@ export const contactMessages = pgTable(
    BLOG POSTS
    ========================================================= */
 
+/* =========================================================
+   BLOG POSTS
+   ========================================================= */
+
 export const blogPosts = pgTable(
   "blog_posts",
   {
-    id: serial("id").primaryKey(),
+    id: serial("id")
+      .primaryKey(),
 
-    title: varchar("title", {
-      length: 255,
-    }).notNull(),
+    title: varchar(
+      "title",
+      {
+        length: 255,
+      }
+    ).notNull(),
 
-    slug: varchar("slug", {
-      length: 255,
-    })
+    slug: varchar(
+      "slug",
+      {
+        length: 255,
+      }
+    )
       .notNull()
       .unique(),
 
-    category: varchar("category", {
-      length: 100,
-    }).notNull(),
+    category: varchar(
+      "category",
+      {
+        length: 100,
+      }
+    ).notNull(),
 
-    excerpt: text("excerpt").notNull(),
+    excerpt: text(
+      "excerpt"
+    ).notNull(),
 
-    image: varchar("image", {
-      length: 600,
-    }).notNull(),
+    /*
+     * Full article body.
+     *
+     * Later we will use this for:
+     *
+     * /blog/[slug]
+     */
+    content: text(
+      "content"
+    )
+      .default("")
+      .notNull(),
 
-    readTime: varchar("read_time", {
-      length: 60,
-    }).notNull(),
+    image: varchar(
+      "image",
+      {
+        length: 1000,
+      }
+    ).notNull(),
 
-    publishedAt: timestamp("published_at", {
-      withTimezone: true,
-    })
+    readTime: varchar(
+      "read_time",
+      {
+        length: 60,
+      }
+    ).notNull(),
+
+    /*
+     * Admin can hide a post without deleting it.
+     */
+    isVisible: boolean(
+      "is_visible"
+    )
+      .default(true)
+      .notNull(),
+
+    /*
+     * Lower numbers appear first when we choose
+     * manual ordering.
+     */
+    sortOrder: integer(
+      "sort_order"
+    )
+      .default(0)
+      .notNull(),
+
+    publishedAt: timestamp(
+      "published_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+
+    createdAt: timestamp(
+      "created_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+
+    updatedAt: timestamp(
+      "updated_at",
+      {
+        withTimezone: true,
+      }
+    )
       .defaultNow()
       .notNull(),
   }
@@ -1701,6 +1776,97 @@ export const footerSocialLinks = pgTable(
       "sort_order"
     )
       .default(0)
+      .notNull(),
+
+    createdAt: timestamp(
+      "created_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+
+    updatedAt: timestamp(
+      "updated_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+  }
+);
+/* =========================================================
+   BLOG SECTION SETTINGS
+   ========================================================= */
+
+export const blogSettings = pgTable(
+  "blog_settings",
+  {
+    /*
+     * We use a single row:
+     *
+     * id = "main"
+     */
+    id: varchar(
+      "id",
+      {
+        length: 50,
+      }
+    ).primaryKey(),
+
+    eyebrow: varchar(
+      "eyebrow",
+      {
+        length: 255,
+      }
+    ).notNull(),
+
+    title: varchar(
+      "title",
+      {
+        length: 255,
+      }
+    ).notNull(),
+
+    /*
+     * Word highlighted in blue inside the title.
+     *
+     * Example:
+     *
+     * title  = Intel from the bench
+     * accent = bench
+     */
+    accent: varchar(
+      "accent",
+      {
+        length: 120,
+      }
+    )
+      .default("")
+      .notNull(),
+
+    subtitle: text(
+      "subtitle"
+    ).notNull(),
+
+    /*
+     * Text displayed on each Blog card.
+     */
+    readMoreText: varchar(
+      "read_more_text",
+      {
+        length: 100,
+      }
+    )
+      .default("Read Story")
+      .notNull(),
+
+    isVisible: boolean(
+      "is_visible"
+    )
+      .default(true)
       .notNull(),
 
     createdAt: timestamp(
