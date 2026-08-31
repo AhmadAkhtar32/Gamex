@@ -9,86 +9,201 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import Lenis from "lenis";
-import { GlitchText } from "./ui";
-import { GlobalBackground, GrainOverlay } from "./backgrounds";
 
-const ReadyContext = createContext(false);
+import {
+  AnimatePresence,
+  motion,
+} from "framer-motion";
+
+import Lenis from "lenis";
+
+import {
+  GlitchText,
+} from "./ui";
+
+import {
+  GlobalBackground,
+  GrainOverlay,
+} from "./backgrounds";
+
+/* =========================================================
+   READY CONTEXT
+   ========================================================= */
+
+const ReadyContext =
+  createContext(false);
+
+/* =========================================================
+   USE READY
+   ========================================================= */
 
 export function useReady() {
-  return useContext(ReadyContext);
+  return useContext(
+    ReadyContext
+  );
 }
 
-export function Chrome({ children }: { children: ReactNode }) {
-  const [ready, setReady] = useState(false);
+/* =========================================================
+   CHROME WRAPPER
+   ========================================================= */
 
-  const onDone = useCallback(() => {
-    setReady(true);
-  }, []);
+export function Chrome({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const [
+    ready,
+    setReady,
+  ] = useState(false);
+
+  const onDone =
+    useCallback(
+      () => {
+        setReady(true);
+      },
+      []
+    );
 
   return (
-    <ReadyContext.Provider value={ready}>
+    <ReadyContext.Provider
+      value={ready}
+    >
       <CustomCursor />
+
       <SmoothScroll />
+
       <GlobalBackground />
-      <Preloader onDone={onDone} />
+
+      <Preloader
+        onDone={
+          onDone
+        }
+      />
+
       {children}
+
       <GrainOverlay />
     </ReadyContext.Provider>
   );
 }
 
-
 /* =========================================================
    PRELOADER
    ========================================================= */
 
-function Preloader({ onDone }: { onDone: () => void }) {
-  const [count, setCount] = useState(0);
-  const [done, setDone] = useState(false);
+function Preloader({
+  onDone,
+}: {
+  onDone: () => void;
+}) {
+  const [
+    count,
+    setCount,
+  ] = useState(0);
+
+  const [
+    done,
+    setDone,
+  ] = useState(false);
+
+  /* =======================================================
+     LOADING COUNTER
+     ======================================================= */
 
   useEffect(() => {
-    let raf = 0;
-    let start: number | null = null;
+    let raf =
+      0;
 
-    const duration = 950;
+    let start:
+      number | null =
+      null;
 
-    const tick = (time: number) => {
-      if (start === null) {
-        start = time;
+    const dur =
+      950;
+
+    const tick = (
+      t: number
+    ) => {
+      if (
+        start === null
+      ) {
+        start =
+          t;
       }
 
-      const progress = Math.min(1, (time - start) / duration);
+      const p =
+        Math.min(
+          1,
+          (t - start) /
+            dur
+        );
 
-      const eased = 1 - Math.pow(1 - progress, 3);
+      const eased =
+        1 -
+        Math.pow(
+          1 - p,
+          3
+        );
 
-      setCount(Math.round(eased * 100));
+      setCount(
+        Math.round(
+          eased * 100
+        )
+      );
 
-      if (progress < 1) {
-        raf = requestAnimationFrame(tick);
+      if (
+        p < 1
+      ) {
+        raf =
+          requestAnimationFrame(
+            tick
+          );
       } else {
-        setTimeout(() => {
-          setDone(true);
-          onDone();
-        }, 220);
+        setTimeout(
+          () => {
+            setDone(
+              true
+            );
+
+            onDone();
+          },
+          220
+        );
       }
     };
 
-    raf = requestAnimationFrame(tick);
+    raf =
+      requestAnimationFrame(
+        tick
+      );
 
     return () => {
-      cancelAnimationFrame(raf);
+      cancelAnimationFrame(
+        raf
+      );
     };
   }, [onDone]);
 
+  /* =======================================================
+     LOCK SCROLL DURING PRELOADER
+     ======================================================= */
+
   useEffect(() => {
-    document.body.style.overflow = done ? "" : "hidden";
+    document.body.style.overflow =
+      done
+        ? ""
+        : "hidden";
 
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.overflow =
+        "";
     };
   }, [done]);
+
+  /* =======================================================
+     PRELOADER UI
+     ======================================================= */
 
   return (
     <AnimatePresence>
@@ -102,43 +217,27 @@ function Preloader({ onDone }: { onDone: () => void }) {
             flex-col
             items-center
             justify-center
-            overflow-hidden
             bg-white
           "
           exit={{
             y: "-100%",
+
             transition: {
-              duration: 0.7,
-              ease: [0.76, 0, 0.24, 1],
+              duration:
+                0.7,
+
+              ease: [
+                0.76,
+                0,
+                0.24,
+                1,
+              ],
             },
           }}
         >
-          {/* Soft background glow */}
-          <div
-            className="
-              pointer-events-none
-              absolute
-              left-1/2
-              top-1/2
-              h-[420px]
-              w-[420px]
-              -translate-x-1/2
-              -translate-y-1/2
-              rounded-full
-              bg-brand/[0.07]
-              blur-[110px]
-            "
-          />
-
-          {/* Subtle grid */}
-          <div className="bg-grid pointer-events-none absolute inset-0 opacity-40" />
-
-          {/* Brand */}
           <GlitchText
             text="GAMEX"
             className="
-              relative
-              z-10
               font-display
               text-5xl
               font-black
@@ -148,11 +247,8 @@ function Preloader({ onDone }: { onDone: () => void }) {
             "
           />
 
-          {/* Progress bar */}
           <div
             className="
-              relative
-              z-10
               mt-8
               h-1
               w-56
@@ -164,24 +260,20 @@ function Preloader({ onDone }: { onDone: () => void }) {
             <motion.div
               className="
                 h-full
-                rounded-full
                 bg-gradient-to-r
                 from-brand-deep
                 via-brand
                 to-brand-soft
-                shadow-[0_0_18px_rgba(23,49,96,0.28)]
               "
               style={{
-                width: `${count}%`,
+                width:
+                  `${count}%`,
               }}
             />
           </div>
 
-          {/* Percentage */}
           <div
             className="
-              relative
-              z-10
               mt-4
               font-display
               text-sm
@@ -192,78 +284,281 @@ function Preloader({ onDone }: { onDone: () => void }) {
           >
             {count}%
           </div>
-
-          {/* Small decorative line */}
-          <div
-            className="
-              relative
-              z-10
-              mt-6
-              h-px
-              w-16
-              bg-gradient-to-r
-              from-transparent
-              via-brand/30
-              to-transparent
-            "
-          />
         </motion.div>
       )}
     </AnimatePresence>
   );
 }
 
-
 /* =========================================================
    CUSTOM CURSOR
+
+   Goals:
+
+   Desktop:
+   - show custom Gamex cursor
+   - hide normal website cursor
+   - hide custom cursor when mouse leaves webpage
+
+   Mobile / touch:
+   - do not render custom cursor at all
    ========================================================= */
 
-/**
- * Gamex custom cursor.
- *
- * Active only on desktop / mouse devices.
- * Touch devices retain normal browser behavior.
- */
 function CustomCursor() {
-  const cursorRef = useRef<HTMLDivElement>(null);
+  const cursorRef =
+    useRef<HTMLDivElement>(
+      null
+    );
+
+  const [
+    enabled,
+    setEnabled,
+  ] = useState(false);
+
+  const [
+    visible,
+    setVisible,
+  ] = useState(false);
+
+  /* =======================================================
+     DETECT REAL MOUSE / TRACKPAD
+
+     This deliberately excludes normal touch screens.
+     ======================================================= */
 
   useEffect(() => {
-    if (!window.matchMedia("(pointer: fine)").matches) {
+    const mediaQuery =
+      window.matchMedia(
+        "(hover: hover) and (pointer: fine)"
+      );
+
+    const updatePointerMode =
+      () => {
+        setEnabled(
+          mediaQuery.matches
+        );
+      };
+
+    updatePointerMode();
+
+    mediaQuery.addEventListener(
+      "change",
+      updatePointerMode
+    );
+
+    return () => {
+      mediaQuery.removeEventListener(
+        "change",
+        updatePointerMode
+      );
+    };
+  }, []);
+
+  /* =======================================================
+     CURSOR MOVEMENT / VISIBILITY
+     ======================================================= */
+
+  useEffect(() => {
+    /* =====================================================
+       TOUCH / MOBILE
+       ===================================================== */
+
+    if (!enabled) {
+      document.documentElement.classList.remove(
+        "custom-cursor"
+      );
+
+      setVisible(
+        false
+      );
+
       return;
     }
 
-    document.documentElement.classList.add("custom-cursor");
+    /* =====================================================
+       DESKTOP
+       ===================================================== */
 
-    const cursor = cursorRef.current;
+    const cursor =
+      cursorRef.current;
 
     if (!cursor) {
       return;
     }
 
-    const onMove = (event: MouseEvent) => {
-      cursor.style.transform = `translate(${event.clientX}px, ${event.clientY}px)`;
+    /*
+     * The CSS uses this class to hide the normal browser
+     * pointer while it is inside the webpage.
+     */
+
+    document.documentElement.classList.add(
+      "custom-cursor"
+    );
+
+    /* =====================================================
+       MOVE
+       ===================================================== */
+
+    const onMove = (
+      event: MouseEvent
+    ) => {
+      cursor.style.transform =
+        `translate3d(${event.clientX}px, ${event.clientY}px, 0)`;
+
+      /*
+       * Only make it visible once we know the current
+       * mouse position.
+       */
+
+      setVisible(
+        true
+      );
     };
 
-    window.addEventListener("mousemove", onMove);
+    /* =====================================================
+       MOUSE LEAVES WEBPAGE
+
+       This is important.
+
+       When the mouse moves upward into Chrome's toolbar,
+       the custom cursor disappears instead of remaining
+       frozen at the top of the webpage.
+
+       Therefore you no longer see:
+       system cursor + custom cursor
+       at the same time.
+       ===================================================== */
+
+    const onMouseLeave =
+      () => {
+        setVisible(
+          false
+        );
+      };
+
+    /* =====================================================
+       WINDOW LOSES FOCUS
+
+       For example:
+       - Alt+Tab
+       - click another window
+       - browser loses focus
+       ===================================================== */
+
+    const onWindowBlur =
+      () => {
+        setVisible(
+          false
+        );
+      };
+
+    /* =====================================================
+       WINDOW REGAINS FOCUS
+
+       Keep it hidden until the next real mousemove.
+       This prevents the cursor appearing at an old position.
+       ===================================================== */
+
+    const onWindowFocus =
+      () => {
+        setVisible(
+          false
+        );
+      };
+
+    /* =====================================================
+       REGISTER EVENTS
+       ===================================================== */
+
+    window.addEventListener(
+      "mousemove",
+      onMove
+    );
+
+    document.documentElement.addEventListener(
+      "mouseleave",
+      onMouseLeave
+    );
+
+    window.addEventListener(
+      "blur",
+      onWindowBlur
+    );
+
+    window.addEventListener(
+      "focus",
+      onWindowFocus
+    );
+
+    /* =====================================================
+       CLEANUP
+       ===================================================== */
 
     return () => {
-      document.documentElement.classList.remove("custom-cursor");
+      document.documentElement.classList.remove(
+        "custom-cursor"
+      );
 
-      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener(
+        "mousemove",
+        onMove
+      );
+
+      document.documentElement.removeEventListener(
+        "mouseleave",
+        onMouseLeave
+      );
+
+      window.removeEventListener(
+        "blur",
+        onWindowBlur
+      );
+
+      window.removeEventListener(
+        "focus",
+        onWindowFocus
+      );
     };
-  }, []);
+  }, [enabled]);
+
+  /* =======================================================
+     MOBILE / TOUCH
+
+     Do not even create the custom cursor element.
+     ======================================================= */
+
+  if (!enabled) {
+    return null;
+  }
+
+  /* =======================================================
+     DESKTOP CURSOR
+     ======================================================= */
 
   return (
     <div
-      ref={cursorRef}
-      className="custom-cursor-dot"
+      ref={
+        cursorRef
+      }
       aria-hidden="true"
+      className={`
+        custom-cursor-dot
+        transition-opacity
+        duration-100
+
+        ${
+          visible
+            ? "opacity-100"
+            : "opacity-0"
+        }
+      `}
     >
       <svg
         width="22"
         height="22"
         viewBox="0 0 320 512"
         fill="none"
+        aria-hidden="true"
       >
         <path
           d="M0 55.2V426c0 12.2 9.9 22 22 22c6.3 0 12.4-2.7 16.6-7.5L121.2 346l58.1 116.3c7.9 15.8 27.1 22.2 42.9 14.3s22.2-27.1 14.3-42.9L179.4 320H297.9c12.2 0 22.1-9.9 22.1-22.1c0-6.3-2.7-12.3-7.4-16.5L38.6 37.9C34.3 34.1 28.9 32 23.2 32C10.4 32 0 42.4 0 55.2z"
@@ -274,64 +569,139 @@ function CustomCursor() {
   );
 }
 
-
 /* =========================================================
    SMOOTH SCROLL
    ========================================================= */
 
 function SmoothScroll() {
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    /* =====================================================
+       ACCESSIBILITY:
+       respect reduced-motion setting
+       ===================================================== */
+
+    if (
+      window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches
+    ) {
       return;
     }
 
-    const lenis = new Lenis({
-      lerp: 0.1,
-      smoothWheel: true,
-    });
+    /* =====================================================
+       LENIS
+       ===================================================== */
 
-    let raf = 0;
+    const lenis =
+      new Lenis({
+        lerp:
+          0.1,
 
-    const loop = (time: number) => {
-      lenis.raf(time);
+        smoothWheel:
+          true,
+      });
 
-      raf = requestAnimationFrame(loop);
+    let raf =
+      0;
+
+    /* =====================================================
+       ANIMATION LOOP
+       ===================================================== */
+
+    const loop = (
+      time: number
+    ) => {
+      lenis.raf(
+        time
+      );
+
+      raf =
+        requestAnimationFrame(
+          loop
+        );
     };
 
-    raf = requestAnimationFrame(loop);
+    raf =
+      requestAnimationFrame(
+        loop
+      );
 
-    const onClick = (event: MouseEvent) => {
-      const anchor = (event.target as HTMLElement).closest?.(
-        'a[href^="#"]'
-      ) as HTMLAnchorElement | null;
+    /* =====================================================
+       SMOOTH INTERNAL ANCHOR LINKS
+
+       Examples:
+       #products
+       #builds
+       #contact
+       ===================================================== */
+
+    const onClick = (
+      event: MouseEvent
+    ) => {
+      const anchor =
+        (
+          event.target as HTMLElement
+        ).closest?.(
+          'a[href^="#"]'
+        ) as
+          | HTMLAnchorElement
+          | null;
 
       if (!anchor) {
         return;
       }
 
-      const href = anchor.getAttribute("href");
+      const href =
+        anchor.getAttribute(
+          "href"
+        );
 
-      if (!href || href.length < 2) {
+      if (
+        !href ||
+        href.length <
+          2
+      ) {
         return;
       }
 
-      const target = document.querySelector(href);
+      const target =
+        document.querySelector(
+          href
+        );
 
-      if (target) {
-        event.preventDefault();
-
-        lenis.scrollTo(target as HTMLElement, {
-          offset: -70,
-        });
+      if (!target) {
+        return;
       }
+
+      event.preventDefault();
+
+      lenis.scrollTo(
+        target as HTMLElement,
+        {
+          offset:
+            -70,
+        }
+      );
     };
 
-    document.addEventListener("click", onClick);
+    document.addEventListener(
+      "click",
+      onClick
+    );
+
+    /* =====================================================
+       CLEANUP
+       ===================================================== */
 
     return () => {
-      cancelAnimationFrame(raf);
+      cancelAnimationFrame(
+        raf
+      );
 
-      document.removeEventListener("click", onClick);
+      document.removeEventListener(
+        "click",
+        onClick
+      );
 
       lenis.destroy();
     };

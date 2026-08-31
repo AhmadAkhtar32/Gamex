@@ -99,10 +99,10 @@ export const DEFAULT_FOOTER_CONTENT: FooterContent = {
     "hello@gamex.gg",
 
   phone:
-    "+1 (555) 010-1234",
+    "0303-6009123",
 
   address:
-    "Neon District, Tech City",
+    "17-A Divine Garden Lahore",
 
   ctaText:
     "Start Your Build",
