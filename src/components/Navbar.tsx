@@ -69,9 +69,6 @@ export const DEFAULT_NAVBAR_SETTINGS: NavbarSettingsContent = {
   ctaText:
     "Build Your Rig",
 
-  /*
-   * This is the original Gamex Navbar CTA destination.
-   */
   ctaHref:
     "#contact",
 
@@ -88,39 +85,69 @@ export const DEFAULT_NAVBAR_SETTINGS: NavbarSettingsContent = {
 
 export const DEFAULT_NAVBAR_LINKS: PublicNavbarLink[] = [
   {
-    id: "default-home",
-    label: "Home",
-    href: "#home",
+    id:
+      "default-home",
+
+    label:
+      "Home",
+
+    href:
+      "#home",
   },
 
   {
-    id: "default-products",
-    label: "Products",
-    href: "#products",
+    id:
+      "default-products",
+
+    label:
+      "Products",
+
+    href:
+      "#products",
   },
 
   {
-    id: "default-builds",
-    label: "Custom Builds",
-    href: "#builds",
+    id:
+      "default-builds",
+
+    label:
+      "Custom Builds",
+
+    href:
+      "#builds",
   },
 
   {
-    id: "default-features",
-    label: "Why Gamex",
-    href: "#features",
+    id:
+      "default-features",
+
+    label:
+      "Why Gamex",
+
+    href:
+      "#features",
   },
 
   {
-    id: "default-blog",
-    label: "Blog",
-    href: "#blog",
+    id:
+      "default-blog",
+
+    label:
+      "Blog",
+
+    href:
+      "#blog",
   },
 
   {
-    id: "default-contact",
-    label: "Contact",
-    href: "#contact",
+    id:
+      "default-contact",
+
+    label:
+      "Contact",
+
+    href:
+      "#contact",
   },
 ];
 
@@ -178,25 +205,17 @@ export function Navbar({
   );
 
   /* =======================================================
-     NAVBAR VISIBILITY
-     ======================================================= */
-
-  if (
-    !settings.isVisible
-  ) {
-    return null;
-  }
-
-  /* =======================================================
      SCROLL EFFECT
      ======================================================= */
 
   useEffect(() => {
-    const onScroll = () =>
-      setScrolled(
-        window.scrollY >
-          24
-      );
+    const onScroll =
+      () => {
+        setScrolled(
+          window.scrollY >
+            24
+        );
+      };
 
     onScroll();
 
@@ -204,30 +223,21 @@ export function Navbar({
       "scroll",
       onScroll,
       {
-        passive: true,
+        passive:
+          true,
       }
     );
 
-    return () =>
+    return () => {
       window.removeEventListener(
         "scroll",
         onScroll
       );
+    };
   }, []);
 
   /* =======================================================
      ACTIVE SECTION OBSERVER
-
-     Only homepage hash links participate.
-
-     Examples:
-
-     #home
-     #products
-     #contact
-
-     A link such as /shop or https://... is ignored by the
-     IntersectionObserver.
      ======================================================= */
 
   useEffect(() => {
@@ -239,25 +249,33 @@ export function Navbar({
               "#"
             )
         )
-        .map((link) =>
-          link.href.replace(
-            "#",
-            ""
-          )
+        .map(
+          (link) =>
+            link.href.replace(
+              "#",
+              ""
+            )
         )
-        .filter(Boolean);
+        .filter(
+          Boolean
+        );
 
     if (
-      ids.length === 0
+      ids.length ===
+      0
     ) {
       return;
     }
 
     const observer =
       new IntersectionObserver(
-        (entries) => {
+        (
+          entries
+        ) => {
           entries.forEach(
-            (entry) => {
+            (
+              entry
+            ) => {
               if (
                 entry.isIntersecting
               ) {
@@ -272,18 +290,23 @@ export function Navbar({
           rootMargin:
             "-45% 0px -50% 0px",
 
-          threshold: 0,
+          threshold:
+            0,
         }
       );
 
     ids.forEach(
-      (id) => {
+      (
+        id
+      ) => {
         const element =
           document.getElementById(
             id
           );
 
-        if (element) {
+        if (
+          element
+        ) {
           observer.observe(
             element
           );
@@ -291,8 +314,9 @@ export function Navbar({
       }
     );
 
-    return () =>
+    return () => {
       observer.disconnect();
+    };
   }, [links]);
 
   /* =======================================================
@@ -312,27 +336,48 @@ export function Navbar({
   }, [open]);
 
   /* =======================================================
+     NAVBAR VISIBILITY
+
+     Keep this AFTER hooks.
+     ======================================================= */
+
+  if (
+    !settings.isVisible
+  ) {
+    return null;
+  }
+
+  /* =======================================================
      RENDER
      ======================================================= */
 
   return (
     <>
       {/* =====================================================
-          DESKTOP / TOP NAVBAR
+          TOP NAVBAR
           ===================================================== */}
 
       <motion.header
         initial={{
-          y: -90,
-          opacity: 0,
+          y:
+            -90,
+
+          opacity:
+            0,
         }}
         animate={{
-          y: 0,
-          opacity: 1,
+          y:
+            0,
+
+          opacity:
+            1,
         }}
         transition={{
-          duration: 0.7,
-          ease: "easeOut",
+          duration:
+            0.7,
+
+          ease:
+            "easeOut",
         }}
         className={`
           fixed
@@ -358,6 +403,7 @@ export function Navbar({
             max-w-7xl
             items-center
             justify-between
+            gap-4
             px-5
             md:h-20
             md:px-8
@@ -371,75 +417,109 @@ export function Navbar({
             href={
               settings.brandHref
             }
+            aria-label={
+              settings.logoAlt ||
+              settings.brandText ||
+              "Gamex"
+            }
             className="
               group
               flex
+              min-w-0
+              shrink-0
               items-center
-              gap-2.5
             "
           >
             {/* ===============================================
-                LOGO / DEFAULT GAMEPAD
+                CUSTOM HORIZONTAL LOGO
                 =============================================== */}
 
-            <span
-              className="
-                grid
-                h-9
-                w-9
-                place-items-center
-                overflow-hidden
-                rounded-lg
-                bg-brand
-                text-white
-                shadow-[0_0_22px_rgba(23,49,96,0.28)]
-                transition-transform
-                duration-300
-                group-hover:scale-110
-                group-hover:rotate-6
-              "
-            >
-              {settings.logoImage ? (
-                // Dynamic logo URLs are Admin-controlled,
-                // therefore normal img avoids Next remote
-                // hostname configuration requirements.
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={
-                    settings.logoImage
-                  }
-                  alt={
-                    settings.logoAlt
+            {settings.logoImage ? (
+              // Admin-controlled URL.
+              // Normal img avoids remote Next/Image
+              // hostname configuration.
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={
+                  settings.logoImage
+                }
+                alt={
+                  settings.logoAlt ||
+                  "Gamex"
+                }
+                className="
+                  h-9
+                  w-auto
+                  max-w-[140px]
+                  object-contain
+                  object-left
+                  transition-transform
+                  duration-300
+
+                  group-hover:scale-[1.03]
+
+                  sm:h-10
+                  sm:max-w-[160px]
+
+                  md:h-11
+                  md:max-w-[185px]
+
+                  xl:h-12
+                  xl:max-w-[205px]
+                "
+              />
+            ) : (
+              /* =============================================
+                 FALLBACK:
+                 OLD GAMEPAD + BRAND TEXT
+                 ============================================= */
+
+              <div
+                className="
+                  flex
+                  items-center
+                  gap-2.5
+                "
+              >
+                <span
+                  className="
+                    grid
+                    h-9
+                    w-9
+                    shrink-0
+                    place-items-center
+                    rounded-lg
+                    bg-brand
+                    text-white
+                    shadow-[0_0_22px_rgba(23,49,96,0.28)]
+                    transition-transform
+                    duration-300
+                    group-hover:scale-110
+                    group-hover:rotate-6
+                  "
+                >
+                  <Gamepad2
+                    className="
+                      h-5
+                      w-5
+                    "
+                  />
+                </span>
+
+                <GlitchText
+                  text={
+                    settings.brandText
                   }
                   className="
-                    h-full
-                    w-full
-                    object-contain
+                    font-display
+                    text-xl
+                    font-extrabold
+                    tracking-widest
+                    text-brand-deep
                   "
                 />
-              ) : (
-                <Gamepad2
-                  className="h-5 w-5"
-                />
-              )}
-            </span>
-
-            {/* ===============================================
-                BRAND TEXT
-                =============================================== */}
-
-            <GlitchText
-              text={
-                settings.brandText
-              }
-              className="
-                font-display
-                text-xl
-                font-extrabold
-                tracking-widest
-                text-brand-deep
-              "
-            />
+              </div>
+            )}
           </a>
 
           {/* =================================================
@@ -449,13 +529,17 @@ export function Navbar({
           <ul
             className="
               hidden
+              min-w-0
               items-center
-              gap-1
+              gap-0.5
               lg:flex
+              xl:gap-1
             "
           >
             {links.map(
-              (link) => {
+              (
+                link
+              ) => {
                 const isActive =
                   active ===
                   link.href;
@@ -489,13 +573,16 @@ export function Navbar({
                         relative
                         block
                         rounded-md
-                        px-3.5
+                        px-2.5
                         py-2
-                        text-sm
+                        text-xs
                         font-semibold
                         uppercase
                         tracking-wider
                         transition-colors
+
+                        xl:px-3.5
+                        xl:text-sm
 
                         ${
                           isActive
@@ -540,6 +627,7 @@ export function Navbar({
           <div
             className="
               flex
+              shrink-0
               items-center
               gap-3
             "
@@ -550,7 +638,9 @@ export function Navbar({
 
             {settings.ctaVisible ? (
               <Magnetic
-                strength={0.3}
+                strength={
+                  0.3
+                }
                 className="
                   hidden
                   sm:inline-block
@@ -581,10 +671,10 @@ export function Navbar({
                     gap-2
                     rounded-lg
                     bg-brand
-                    px-5
+                    px-4
                     py-2.5
                     font-display
-                    text-xs
+                    text-[10px]
                     font-bold
                     uppercase
                     tracking-widest
@@ -592,10 +682,16 @@ export function Navbar({
                     transition-all
                     duration-300
                     hover:bg-brand-soft
+
+                    md:px-5
+                    md:text-xs
                   "
                 >
                   <Zap
-                    className="h-4 w-4"
+                    className="
+                      h-4
+                      w-4
+                    "
                   />
 
                   {
@@ -613,7 +709,9 @@ export function Navbar({
               type="button"
               onClick={() =>
                 setOpen(
-                  (value) =>
+                  (
+                    value
+                  ) =>
                     !value
                 )
               }
@@ -642,11 +740,17 @@ export function Navbar({
             >
               {open ? (
                 <X
-                  className="h-5 w-5"
+                  className="
+                    h-5
+                    w-5
+                  "
                 />
               ) : (
                 <Menu
-                  className="h-5 w-5"
+                  className="
+                    h-5
+                    w-5
+                  "
                 />
               )}
             </button>
@@ -662,16 +766,20 @@ export function Navbar({
         {open ? (
           <motion.div
             initial={{
-              opacity: 0,
+              opacity:
+                0,
             }}
             animate={{
-              opacity: 1,
+              opacity:
+                1,
             }}
             exit={{
-              opacity: 0,
+              opacity:
+                0,
             }}
             transition={{
-              duration: 0.3,
+              duration:
+                0.3,
             }}
             className="
               fixed
@@ -691,8 +799,73 @@ export function Navbar({
                 justify-center
                 gap-3
                 px-8
+                pt-16
               "
             >
+              {/* =============================================
+                  MOBILE BRAND
+                  ============================================= */}
+
+              {settings.logoImage ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={
+                    settings.logoImage
+                  }
+                  alt={
+                    settings.logoAlt ||
+                    "Gamex"
+                  }
+                  className="
+                    mb-7
+                    h-auto
+                    w-[170px]
+                    object-contain
+                  "
+                />
+              ) : (
+                <div
+                  className="
+                    mb-7
+                    flex
+                    items-center
+                    gap-3
+                  "
+                >
+                  <span
+                    className="
+                      grid
+                      h-10
+                      w-10
+                      place-items-center
+                      rounded-xl
+                      bg-brand
+                      text-white
+                    "
+                  >
+                    <Gamepad2
+                      className="
+                        h-5
+                        w-5
+                      "
+                    />
+                  </span>
+
+                  <GlitchText
+                    text={
+                      settings.brandText
+                    }
+                    className="
+                      font-display
+                      text-2xl
+                      font-extrabold
+                      tracking-widest
+                      text-brand-deep
+                    "
+                  />
+                </div>
+              )}
+
               {/* =============================================
                   MOBILE LINKS
                   ============================================= */}
@@ -731,16 +904,25 @@ export function Navbar({
                         )
                       }
                       initial={{
-                        opacity: 0,
-                        y: 24,
+                        opacity:
+                          0,
+
+                        y:
+                          24,
                       }}
                       animate={{
-                        opacity: 1,
-                        y: 0,
+                        opacity:
+                          1,
+
+                        y:
+                          0,
                       }}
                       exit={{
-                        opacity: 0,
-                        y: -12,
+                        opacity:
+                          0,
+
+                        y:
+                          -12,
                       }}
                       transition={{
                         delay:
@@ -756,13 +938,15 @@ export function Navbar({
                       }}
                       className="
                         font-display
-                        text-3xl
+                        text-2xl
                         font-extrabold
                         uppercase
                         tracking-wider
                         text-brand-deep
                         transition-colors
                         hover:text-brand
+
+                        sm:text-3xl
                       "
                     >
                       {
@@ -802,15 +986,22 @@ export function Navbar({
                     )
                   }
                   initial={{
-                    opacity: 0,
-                    y: 24,
+                    opacity:
+                      0,
+
+                    y:
+                      24,
                   }}
                   animate={{
-                    opacity: 1,
-                    y: 0,
+                    opacity:
+                      1,
+
+                    y:
+                      0,
                   }}
                   exit={{
-                    opacity: 0,
+                    opacity:
+                      0,
                   }}
                   transition={{
                     delay:
@@ -843,7 +1034,10 @@ export function Navbar({
                   "
                 >
                   <Zap
-                    className="h-4 w-4"
+                    className="
+                      h-4
+                      w-4
+                    "
                   />
 
                   {

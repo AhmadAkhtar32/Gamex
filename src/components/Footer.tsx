@@ -346,13 +346,7 @@ function isExternalLink(
 }
 
 /* =========================================================
-   BRAND TEXT
-
-   Original design:
-   GAME + blue X
-
-   For any custom brand text, the final character receives
-   the blue highlight.
+   BRAND TEXT FALLBACK
    ========================================================= */
 
 function BrandText({
@@ -381,7 +375,9 @@ function BrandText({
     );
 
   const accentCharacter =
-    text.slice(-1);
+    text.slice(
+      -1
+    );
 
   return (
     <>
@@ -408,22 +404,8 @@ export function Footer({
 }: {
   content?: FooterContent;
 
-  /*
-   * undefined:
-   * use original Footer links
-   *
-   * []:
-   * intentionally show no navigation links
-   */
   links?: PublicFooterLink[];
 
-  /*
-   * undefined:
-   * use original four social icons
-   *
-   * []:
-   * intentionally show no social icons
-   */
   socialLinks?: PublicFooterSocialLink[];
 }) {
   /* =======================================================
@@ -437,7 +419,7 @@ export function Footer({
   }
 
   /* =======================================================
-     SOURCE OF LINKS
+     LINK SOURCES
      ======================================================= */
 
   const visibleLinks =
@@ -460,7 +442,9 @@ export function Footer({
   const copyright =
     content.copyrightText.replaceAll(
       "{year}",
-      String(currentYear)
+      String(
+        currentYear
+      )
     );
 
   /* =======================================================
@@ -515,73 +499,98 @@ export function Footer({
                   ? "noopener noreferrer"
                   : undefined
               }
+              aria-label={
+                content.logoAlt ||
+                content.brandText ||
+                "Gamex"
+              }
               className="
-                flex
+                group
+                inline-flex
                 items-center
-                gap-2.5
               "
             >
               {/* ===============================================
-                  LOGO
+                  CUSTOM HORIZONTAL LOGO
                   =============================================== */}
 
-              <span
-                className="
-                  grid
-                  h-9
-                  w-9
-                  place-items-center
-                  overflow-hidden
-                  rounded-lg
-                  bg-brand
-                  text-white
-                  shadow-[0_0_22px_rgba(23,49,96,0.28)]
-                "
-              >
-                {content.logoImage ? (
-                  // Admin-controlled image URLs can come from
-                  // different hosts, so normal img avoids
-                  // Next Image hostname configuration.
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={
-                      content.logoImage
-                    }
-                    alt={
-                      content.logoAlt
-                    }
-                    className="
-                      h-full
-                      w-full
-                      object-contain
-                    "
-                  />
-                ) : (
-                  <Gamepad2
-                    className="h-5 w-5"
-                  />
-                )}
-              </span>
-
-              {/* ===============================================
-                  BRAND NAME
-                  =============================================== */}
-
-              <span
-                className="
-                  font-display
-                  text-xl
-                  font-extrabold
-                  tracking-widest
-                  text-brand-deep
-                "
-              >
-                <BrandText
-                  text={
-                    content.brandText
+              {content.logoImage ? (
+                // Admin-controlled logo URL.
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={
+                    content.logoImage
                   }
+                  alt={
+                    content.logoAlt ||
+                    "Gamex"
+                  }
+                  className="
+                    h-auto
+                    w-[150px]
+                    object-contain
+                    object-left
+                    transition-transform
+                    duration-300
+                    group-hover:scale-[1.03]
+
+                    sm:w-[165px]
+
+                    md:w-[175px]
+
+                    lg:w-[190px]
+                  "
                 />
-              </span>
+              ) : (
+                /* =============================================
+                   FALLBACK OLD BRAND
+                   ============================================= */
+
+                <div
+                  className="
+                    flex
+                    items-center
+                    gap-2.5
+                  "
+                >
+                  <span
+                    className="
+                      grid
+                      h-9
+                      w-9
+                      shrink-0
+                      place-items-center
+                      rounded-lg
+                      bg-brand
+                      text-white
+                      shadow-[0_0_22px_rgba(23,49,96,0.28)]
+                    "
+                  >
+                    <Gamepad2
+                      className="
+                        h-5
+                        w-5
+                      "
+                    />
+                  </span>
+
+                  <span
+                    className="
+                      font-display
+                      text-xl
+                      font-extrabold
+                      tracking-widest
+                      text-brand-deep
+                    "
+                  >
+                    <BrandText
+                      text={
+                        content.brandText
+                      }
+                    />
+                  </span>
+                </div>
+              )}
             </a>
 
             {/* ===============================================
@@ -590,7 +599,7 @@ export function Footer({
 
             <p
               className="
-                mt-4
+                mt-5
                 max-w-xs
                 text-sm
                 leading-relaxed
@@ -628,12 +637,9 @@ export function Footer({
                         platform
                       ];
 
-                    /*
-                     * If an unsupported platform somehow
-                     * reaches the component, simply don't
-                     * render a broken icon.
-                     */
-                    if (!Icon) {
+                    if (
+                      !Icon
+                    ) {
                       return null;
                     }
 
@@ -689,7 +695,10 @@ export function Footer({
                         "
                       >
                         <Icon
-                          className="h-4 w-4"
+                          className="
+                            h-4
+                            w-4
+                          "
                         />
                       </a>
                     );
@@ -805,23 +814,54 @@ export function Footer({
                 text-slate-500
               "
             >
-              <li>
-                {
-                  content.email
-                }
-              </li>
+              {/* EMAIL */}
 
-              <li>
-                {
-                  content.phone
-                }
-              </li>
+              {content.email ? (
+                <li>
+                  <a
+                    href={`mailto:${content.email}`}
+                    className="
+                      transition-colors
+                      hover:text-brand
+                    "
+                  >
+                    {
+                      content.email
+                    }
+                  </a>
+                </li>
+              ) : null}
 
-              <li>
-                {
-                  content.address
-                }
-              </li>
+              {/* PHONE */}
+
+              {content.phone ? (
+                <li>
+                  <a
+                    href={`tel:${content.phone.replace(
+                      /[\s()-]/g,
+                      ""
+                    )}`}
+                    className="
+                      transition-colors
+                      hover:text-brand
+                    "
+                  >
+                    {
+                      content.phone
+                    }
+                  </a>
+                </li>
+              ) : null}
+
+              {/* ADDRESS */}
+
+              {content.address ? (
+                <li>
+                  {
+                    content.address
+                  }
+                </li>
+              ) : null}
             </ul>
 
             {/* ===============================================
@@ -894,22 +934,22 @@ export function Footer({
             sm:flex-row
           "
         >
-          {/* =================================================
-              COPYRIGHT
-              ================================================= */}
+          {/* COPYRIGHT */}
 
           <p
             className="
+              text-center
               text-sm
               text-slate-500
+              sm:text-left
             "
           >
-            {copyright}
+            {
+              copyright
+            }
           </p>
 
-          {/* =================================================
-              BACK TO TOP
-              ================================================= */}
+          {/* BACK TO TOP */}
 
           <a
             href={
@@ -947,7 +987,10 @@ export function Footer({
             }
 
             <ArrowUp
-              className="h-4 w-4"
+              className="
+                h-4
+                w-4
+              "
             />
           </a>
         </div>
