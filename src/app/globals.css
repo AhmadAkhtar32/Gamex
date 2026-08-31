@@ -590,10 +590,15 @@ section[id] {
    CUSTOM CURSOR
    ========================================================= */
 
-.custom-cursor {
-  cursor: none;
-}
-
+/*
+ * The custom cursor element is positioned by chrome.tsx
+ * using:
+ *
+ * translate3d(mouseX, mouseY, 0)
+ *
+ * It is only rendered for devices that have a real
+ * mouse/trackpad.
+ */
 
 .custom-cursor-dot {
   position: fixed;
@@ -605,46 +610,86 @@ section[id] {
 
   z-index: 999999;
 
-  transform: translate(0, 0);
+  /*
+   * Position is updated directly from chrome.tsx.
+   */
+  transform: translate3d(0, 0, 0);
+
+  /*
+   * Improves cursor movement performance.
+   */
+  will-change: transform;
+
+  /*
+   * Cursor arrow begins exactly from the mouse position.
+   */
+  transform-origin: top left;
 }
 
 
-.custom-ring {
-  position: fixed;
+/* =========================================================
+   OLD CURSOR ELEMENTS
 
-  top: 0;
-  left: 0;
+   These classes existed in the earlier implementation.
+   Hide them so an old ring/dot cannot accidentally produce
+   a second custom cursor.
+   ========================================================= */
 
-  width: 36px;
-  height: 36px;
-
-  border-radius: 9999px;
-
-  border: 1.5px solid rgba(23, 49, 96, 0.32);
-
-  pointer-events: none;
-
-  z-index: 9998;
-
-  opacity: 0;
-
-  transition:
-    opacity 0.3s,
-    border-color 0.3s,
-    box-shadow 0.3s;
+.custom-ring,
+.custom-dot {
+  display: none !important;
 }
 
 
-html.custom-cursor .custom-dot,
-html.custom-cursor .custom-ring {
-  opacity: 1;
-}
+/* =========================================================
+   DESKTOP MOUSE / TRACKPAD ONLY
+   ========================================================= */
 
+@media (hover: hover) and (pointer: fine) {
 
-@media (pointer: fine) {
+  /*
+   * chrome.tsx adds "custom-cursor" to <html> only when
+   * the device actually has a precise pointing device.
+   */
+
   html.custom-cursor,
+  html.custom-cursor body,
   html.custom-cursor * {
     cursor: none !important;
+  }
+}
+
+
+/* =========================================================
+   MOBILE / TOUCH DEVICES
+
+   The JavaScript already prevents CustomCursor from being
+   rendered on touch devices.
+
+   These rules are an additional safety layer.
+   ========================================================= */
+
+@media (hover: none), (pointer: coarse) {
+
+  .custom-cursor-dot,
+  .custom-ring,
+  .custom-dot {
+    display: none !important;
+  }
+
+  /*
+   * Make sure normal browser/touch behavior is restored.
+   */
+
+  html,
+  body,
+  a,
+  button,
+  input,
+  textarea,
+  select,
+  label {
+    cursor: auto !important;
   }
 }
 
