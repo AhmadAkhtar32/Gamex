@@ -1,64 +1,226 @@
-import type { Metadata, Viewport } from "next";
-import type { ReactNode } from "react";
-import { Orbitron, Rajdhani } from "next/font/google";
-import { Chrome } from "@/components/chrome";
+import type {
+  Metadata,
+} from "next";
+
+import {
+  Orbitron,
+  Rajdhani,
+} from "next/font/google";
+
 import "./globals.css";
 
-const orbitron = Orbitron({
-  subsets: ["latin"],
-  variable: "--font-orbitron",
-  weight: ["400", "500", "600", "700", "800", "900"],
-  display: "swap",
-});
+import {
+  Chrome,
+} from "@/components/chrome";
 
-const rajdhani = Rajdhani({
-  subsets: ["latin"],
-  variable: "--font-rajdhani",
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
+import {
+  WhatsAppFloat,
+} from "@/components/WhatsAppFloat";
+
+/* =========================================================
+   FONTS
+   ========================================================= */
+
+const orbitron =
+  Orbitron({
+    subsets: [
+      "latin",
+    ],
+
+    variable:
+      "--font-orbitron",
+
+    display:
+      "swap",
+  });
+
+const rajdhani =
+  Rajdhani({
+    subsets: [
+      "latin",
+    ],
+
+    weight: [
+      "300",
+      "400",
+      "500",
+      "600",
+      "700",
+    ],
+
+    variable:
+      "--font-rajdhani",
+
+    display:
+      "swap",
+  });
+
+/* =========================================================
+   SITE METADATA
+   ========================================================= */
 
 export const metadata: Metadata = {
-  title: "Gamex Custom Gaming PCs, GPUs, RAM, CPUs & Pro Accessories",
+  metadataBase:
+    new URL(
+      "https://gamex.pk"
+    ),
+
+  title: {
+    default:
+      "Gamex Custom Gaming",
+
+    template:
+      "%s | Gamex",
+  },
+
   description:
-    "Gamex is a premium gaming hardware brand. Custom-built PCs, graphics cards, memory, processors and pro-grade accessories — engineered for players who refuse to lose.",
+    "Gamex offers high-performance gaming hardware, custom gaming PCs, GPUs, processors, memory, accessories and expert gaming support.",
+
+  applicationName:
+    "Gamex",
+
   keywords: [
     "Gamex",
-    "custom gaming PC",
-    "graphics cards",
-    "GPU",
-    "RAM",
-    "memory",
-    "processors",
-    "gaming accessories",
-    "esports",
+    "Gaming PC Pakistan",
+    "Custom Gaming PC",
+    "Gaming Hardware",
+    "Graphics Cards",
+    "GPU Pakistan",
+    "Gaming Accessories",
+    "PC Components",
+    "Custom PC Lahore",
   ],
+
+  authors: [
+    {
+      name:
+        "Gamex",
+    },
+  ],
+
+  creator:
+    "Gamex",
+
+  publisher:
+    "Gamex",
+
+  /* =======================================================
+     OPEN GRAPH
+     ======================================================= */
+
   openGraph: {
-    title: "Gamex — Forge Your Victory",
+    type:
+      "website",
+
+    locale:
+      "en_PK",
+
+    url:
+      "https://gamex.pk",
+
+    siteName:
+      "Gamex",
+
+    title:
+      "Gamex Custom Gaming",
+
     description:
-      "Custom-built gaming PCs and pro-grade components. Graphics cards, memory, processors and accessories engineered for peak performance.",
-    type: "website",
+      "High-performance gaming hardware and custom gaming PCs built for gamers who demand more.",
+  },
+
+  /* =======================================================
+     TWITTER / X
+     ======================================================= */
+
+  twitter: {
+    card:
+      "summary_large_image",
+
+    title:
+      "Gamex Custom Gaming",
+
+    description:
+      "High-performance gaming hardware and custom gaming PCs.",
+  },
+
+  /* =======================================================
+     FAVICON
+
+     Next.js will also automatically detect:
+     src/app/icon.png
+     src/app/apple-icon.png
+     ======================================================= */
+
+  icons: {
+    icon:
+      "/icon.png",
+
+    apple:
+      "/apple-icon.png",
   },
 };
 
-export const viewport: Viewport = {
-  themeColor: "#ffffff",
-  width: "device-width",
-  initialScale: 1,
+/* =========================================================
+   VIEWPORT
+   ========================================================= */
+
+export const viewport = {
+  width:
+    "device-width",
+
+  initialScale:
+    1,
+
+  maximumScale:
+    5,
+
+  themeColor:
+    "#ffffff",
 };
+
+/* =========================================================
+   ROOT LAYOUT
+   ========================================================= */
 
 export default function RootLayout({
   children,
-}: {
-  children: ReactNode;
-}) {
+}: Readonly<{
+  children:
+    React.ReactNode;
+}>) {
   return (
     <html
       lang="en"
-      className={`${orbitron.variable} ${rajdhani.variable}`}
+      className={`
+        ${orbitron.variable}
+        ${rajdhani.variable}
+      `}
+      suppressHydrationWarning
     >
-      <body className="bg-white font-body text-slate-700 antialiased">
-        <Chrome>{children}</Chrome>
+      <body
+        className="
+          min-h-screen
+          bg-white
+          text-slate-800
+          antialiased
+        "
+      >
+        <Chrome>
+          {children}
+
+          {/* ===============================================
+              GLOBAL WHATSAPP BUTTON
+
+              This renders on every page:
+              /
+              /blog
+              /blog/...
+              /admin
+              etc.
+              =============================================== */}
+
+          <WhatsAppFloat />
+        </Chrome>
       </body>
     </html>
   );
