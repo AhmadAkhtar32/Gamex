@@ -25,7 +25,7 @@ export function WhatsAppFloat() {
    */
 
   const whatsappNumber =
-    "923001234567";
+    "923036009123";
 
   const message =
     "Hi Gamex! I would like to know more about your gaming products and custom PC builds.";
