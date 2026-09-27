@@ -133,10 +133,6 @@ function buildWhatsAppMessage(
     );
   }
 
-  /*
-   * Include product/build image URL
-   * in WhatsApp inquiry.
-   */
   if (imageUrl) {
     lines.push(
       "",
@@ -162,7 +158,7 @@ function buildWhatsAppMessage(
 }
 
 /* =========================================================
-   COMPONENT
+   DETAILS MODAL
    ========================================================= */
 
 export function DetailsModal({
@@ -213,9 +209,6 @@ export function DetailsModal({
         .style
         .overflow;
 
-    /*
-     * Completely freeze website behind popup.
-     */
     document.documentElement.style.overflow =
       "hidden";
 
@@ -232,7 +225,7 @@ export function DetailsModal({
       "100%";
 
     /* =====================================================
-       CLOSE WITH ESC
+       ESC KEY
        ===================================================== */
 
     const onKeyDown = (
@@ -251,9 +244,10 @@ export function DetailsModal({
       onKeyDown
     );
 
-    /*
-     * Focus close button after opening.
-     */
+    /* =====================================================
+       AUTO FOCUS CLOSE BUTTON
+       ===================================================== */
+
     const focusTimer =
       window.setTimeout(
         () => {
@@ -293,10 +287,6 @@ export function DetailsModal({
       document.body.style.width =
         previousBodyWidth;
 
-      /*
-       * Return visitor to exactly the
-       * same page position.
-       */
       window.scrollTo(
         0,
         scrollY
@@ -308,7 +298,7 @@ export function DetailsModal({
   ]);
 
   /* =======================================================
-     WHATSAPP
+     WHATSAPP BUTTON
      ======================================================= */
 
   const handleWhatsAppClick =
@@ -321,8 +311,8 @@ export function DetailsModal({
         item.image;
 
       /*
-       * Convert relative image URL into
-       * full absolute URL when necessary.
+       * Convert relative image path into
+       * full URL for WhatsApp.
        */
       try {
         imageUrl =
@@ -354,6 +344,10 @@ export function DetailsModal({
       );
     };
 
+  /* =======================================================
+     CLIENT ONLY
+     ======================================================= */
+
   if (
     typeof document ===
     "undefined"
@@ -362,17 +356,13 @@ export function DetailsModal({
   }
 
   /* =======================================================
-     MODAL PORTAL
+     PORTAL
      ======================================================= */
 
   return createPortal(
     <AnimatePresence>
       {item ? (
         <motion.div
-          /*
-           * Stop Lenis from scrolling
-           * the website behind modal.
-           */
           data-lenis-prevent
           data-lenis-prevent-wheel
           data-lenis-prevent-touch
@@ -382,13 +372,16 @@ export function DetailsModal({
             z-[200]
 
             flex
+
             items-center
             justify-center
 
             overflow-hidden
 
-            p-4
-            sm:p-6
+            p-3
+
+            sm:p-5
+            md:p-6
           "
           initial={{
             opacity: 0,
@@ -403,26 +396,26 @@ export function DetailsModal({
             duration: 0.2,
           }}
         >
-          {/* ===============================================
+          {/* =================================================
               BACKDROP
-              =============================================== */}
+              ================================================= */}
 
           <motion.button
             type="button"
             aria-label="Close details"
+            onClick={
+              onClose
+            }
             className="
               absolute
               inset-0
 
               cursor-default
 
-              bg-brand-deep/70
+              bg-black/75
 
               backdrop-blur-md
             "
-            onClick={
-              onClose
-            }
             initial={{
               opacity: 0,
             }}
@@ -434,9 +427,37 @@ export function DetailsModal({
             }}
           />
 
-          {/* ===============================================
-              MAIN POPUP
-              =============================================== */}
+          {/* =================================================
+              RED BACKDROP GLOW
+              ================================================= */}
+
+          <div
+            aria-hidden="true"
+            className="
+              pointer-events-none
+
+              absolute
+
+              left-1/2
+              top-1/2
+
+              h-[34rem]
+              w-[34rem]
+
+              -translate-x-1/2
+              -translate-y-1/2
+
+              rounded-full
+
+              bg-brand/15
+
+              blur-[150px]
+            "
+          />
+
+          {/* =================================================
+              MODAL
+              ================================================= */}
 
           <motion.div
             role="dialog"
@@ -472,14 +493,14 @@ export function DetailsModal({
 
               overscroll-contain
 
-              rounded-3xl
+              rounded-[1.75rem]
 
               border
-              border-white/70
+              border-white/80
 
               bg-white
 
-              shadow-[0_35px_100px_-30px_rgba(13,34,70,0.65)]
+              shadow-[0_40px_110px_-35px_rgba(0,0,0,0.75)]
 
               lg:flex-row
             "
@@ -509,9 +530,35 @@ export function DetailsModal({
               ],
             }}
           >
-            {/* =============================================
+            {/* =================================================
+                RED TOP LINE
+                ================================================= */}
+
+            <div
+              aria-hidden="true"
+              className="
+                pointer-events-none
+
+                absolute
+
+                inset-x-0
+                top-0
+
+                z-30
+
+                h-[3px]
+
+                bg-gradient-to-r
+
+                from-transparent
+                via-brand
+                to-transparent
+              "
+            />
+
+            {/* =================================================
                 CLOSE BUTTON
-                ============================================= */}
+                ================================================= */}
 
             <button
               ref={
@@ -528,7 +575,7 @@ export function DetailsModal({
                 right-3
                 top-3
 
-                z-30
+                z-40
 
                 grid
 
@@ -540,19 +587,23 @@ export function DetailsModal({
                 rounded-full
 
                 border
-                border-white/70
+                border-black/10
 
                 bg-white/95
 
-                text-brand-deep
+                text-black
 
-                shadow-lg
+                shadow-[0_10px_30px_-18px_rgba(0,0,0,0.6)]
 
                 backdrop-blur
 
-                transition
+                transition-all
+
+                duration-300
 
                 hover:scale-105
+
+                hover:border-brand
 
                 hover:bg-brand
 
@@ -561,7 +612,7 @@ export function DetailsModal({
                 focus:outline-none
 
                 focus:ring-4
-                focus:ring-brand/20
+                focus:ring-brand/15
 
                 sm:right-4
                 sm:top-4
@@ -570,29 +621,39 @@ export function DetailsModal({
               <X className="h-5 w-5" />
             </button>
 
-            {/* =============================================
-                IMAGE AREA
-                ============================================= */}
+            {/* =================================================
+                IMAGE SIDE
+                ================================================= */}
 
             <div
               className="
                 relative
 
-                min-h-[240px]
+                min-h-[250px]
 
                 shrink-0
 
                 overflow-hidden
 
-                bg-[#f3f6fa]
+                border-b
+                border-black/[0.06]
 
-                sm:min-h-[280px]
+                bg-[#fff7f7]
+
+                sm:min-h-[300px]
 
                 lg:min-h-0
-
                 lg:w-[46%]
+
+                lg:border-b-0
+                lg:border-r
               "
             >
+              {/* =================================================
+                  IMAGE
+                  FULL IMAGE - NO CROPPING
+                  ================================================= */}
+
               {/* eslint-disable-next-line @next/next/no-img-element */}
 
               <img
@@ -611,10 +672,16 @@ export function DetailsModal({
                   p-5
 
                   sm:p-8
+                  lg:p-10
                 "
               />
 
+              {/* =================================================
+                  IMAGE GRADIENT
+                  ================================================= */}
+
               <div
+                aria-hidden="true"
                 className="
                   pointer-events-none
 
@@ -623,15 +690,75 @@ export function DetailsModal({
 
                   bg-gradient-to-t
 
-                  from-brand-deep/10
+                  from-brand/[0.07]
                   via-transparent
                   to-transparent
                 "
               />
 
-              {/* ===========================================
+              {/* =================================================
+                  SUBTLE GRID
+                  ================================================= */}
+
+              <div
+                aria-hidden="true"
+                className="
+                  bg-grid
+
+                  pointer-events-none
+
+                  absolute
+                  inset-0
+
+                  opacity-20
+
+                  [mask-image:radial-gradient(circle_at_center,black,transparent_80%)]
+                "
+              />
+
+              {/* =================================================
+                  IMAGE CORNER DECORATION
+                  ================================================= */}
+
+              <div
+                aria-hidden="true"
+                className="
+                  absolute
+
+                  bottom-5
+                  left-5
+
+                  h-10
+                  w-10
+
+                  border-b-2
+                  border-l-2
+
+                  border-brand/35
+                "
+              />
+
+              <div
+                aria-hidden="true"
+                className="
+                  absolute
+
+                  right-5
+                  top-5
+
+                  h-10
+                  w-10
+
+                  border-r-2
+                  border-t-2
+
+                  border-brand/35
+                "
+              />
+
+              {/* =================================================
                   BADGE
-                  =========================================== */}
+                  ================================================= */}
 
               {item.badge ? (
                 <span
@@ -644,23 +771,26 @@ export function DetailsModal({
                     rounded-full
 
                     border
-                    border-white/60
+                    border-brand/20
 
-                    bg-white/90
+                    bg-white/95
 
                     px-3
                     py-1.5
 
-                    text-[11px]
-                    font-bold
+                    text-[10px]
+
+                    font-extrabold
+
                     uppercase
+
                     tracking-wider
 
                     text-brand
 
-                    shadow-sm
+                    shadow-[0_10px_25px_-16px_rgba(230,0,0,0.55)]
 
-                    backdrop-blur
+                    backdrop-blur-md
                   "
                 >
                   {
@@ -670,9 +800,9 @@ export function DetailsModal({
               ) : null}
             </div>
 
-            {/* =============================================
-                RIGHT SIDE
-                ============================================= */}
+            {/* =================================================
+                DETAILS SIDE
+                ================================================= */}
 
             <div
               className="
@@ -685,11 +815,13 @@ export function DetailsModal({
                 flex-col
 
                 overflow-hidden
+
+                bg-white
               "
             >
-              {/* ===========================================
-                  SCROLLABLE DETAILS
-                  =========================================== */}
+              {/* =================================================
+                  SCROLLABLE AREA
+                  ================================================= */}
 
               <div
                 data-lenis-prevent
@@ -717,50 +849,73 @@ export function DetailsModal({
                   overscroll-contain
 
                   px-5
-                  pb-5
-                  pt-7
+                  pb-6
+                  pt-8
 
                   sm:px-8
-                  sm:pb-7
-                  sm:pt-9
+                  sm:pb-8
+                  sm:pt-10
 
                   lg:px-9
-                  lg:pb-8
-                  lg:pt-10
+                  lg:pb-9
+                  lg:pt-11
                 "
               >
-                {/* =========================================
-                    CATEGORY / TYPE
-                    ========================================= */}
+                {/* =================================================
+                    CATEGORY
+                    ================================================= */}
 
-                <p
+                <div
                   className="
+                    flex
+
+                    items-center
+
+                    gap-2
+
                     pr-12
-
-                    text-[11px]
-
-                    font-bold
-
-                    uppercase
-
-                    tracking-[0.22em]
-
-                    text-brand
                   "
                 >
-                  {
-                    item.eyebrow
-                  }
-                </p>
+                  <span
+                    className="
+                      h-2
+                      w-2
 
-                {/* =========================================
-                    PRODUCT / BUILD NAME
-                    ========================================= */}
+                      rounded-full
+
+                      bg-brand
+
+                      shadow-[0_0_10px_rgba(230,0,0,0.45)]
+                    "
+                  />
+
+                  <p
+                    className="
+                      text-[10px]
+
+                      font-extrabold
+
+                      uppercase
+
+                      tracking-[0.24em]
+
+                      text-brand
+                    "
+                  >
+                    {
+                      item.eyebrow
+                    }
+                  </p>
+                </div>
+
+                {/* =================================================
+                    NAME
+                    ================================================= */}
 
                 <h2
                   id="details-modal-title"
                   className="
-                    mt-2
+                    mt-3
 
                     pr-12
 
@@ -775,6 +930,7 @@ export function DetailsModal({
                     text-brand-deep
 
                     sm:text-3xl
+                    lg:text-[2rem]
                   "
                 >
                   {
@@ -782,32 +938,106 @@ export function DetailsModal({
                   }
                 </h2>
 
-                {/* =========================================
-                    PRICE
-                    ========================================= */}
+                {/* =================================================
+                    BUILD ROLE
+                    ================================================= */}
+
+                {item.secondaryLabel ? (
+                  <p
+                    className="
+                      mt-2
+
+                      text-xs
+
+                      font-bold
+
+                      uppercase
+
+                      tracking-[0.15em]
+
+                      text-slate-500
+                    "
+                  >
+                    {
+                      item.secondaryLabel
+                    }
+                  </p>
+                ) : null}
+
+                {/* =================================================
+                    PRICE BLOCK
+                    ================================================= */}
 
                 <div
                   className="
+                    relative
+
                     mt-5
 
                     inline-flex
 
-                    min-w-[190px]
+                    min-w-[210px]
 
                     flex-col
+
+                    overflow-hidden
 
                     rounded-xl
 
                     bg-brand
 
                     px-5
-                    py-3.5
+                    py-4
 
-                    shadow-[0_14px_35px_-20px_rgba(23,49,96,0.75)]
+                    shadow-[0_18px_40px_-20px_rgba(230,0,0,0.7)]
                   "
                 >
+                  {/* ===============================================
+                      PRICE DECORATION
+                      =============================================== */}
+
+                  <div
+                    aria-hidden="true"
+                    className="
+                      absolute
+
+                      -right-8
+                      -top-8
+
+                      h-24
+                      w-24
+
+                      rotate-45
+
+                      border
+
+                      border-white/15
+                    "
+                  />
+
+                  <div
+                    aria-hidden="true"
+                    className="
+                      absolute
+
+                      right-4
+                      top-1/2
+
+                      h-10
+                      w-1
+
+                      -translate-y-1/2
+
+                      rounded-full
+
+                      bg-white/15
+                    "
+                  />
+
                   <span
                     className="
+                      relative
+
                       text-[9px]
 
                       font-extrabold
@@ -816,7 +1046,7 @@ export function DetailsModal({
 
                       tracking-[0.22em]
 
-                      text-white/60
+                      text-white/65
                     "
                   >
                     {item.kind ===
@@ -827,11 +1057,13 @@ export function DetailsModal({
 
                   <span
                     className="
+                      relative
+
                       mt-1
 
                       font-display
 
-                      text-xl
+                      text-2xl
 
                       font-extrabold
 
@@ -839,7 +1071,7 @@ export function DetailsModal({
 
                       text-white
 
-                      sm:text-2xl
+                      sm:text-[1.7rem]
                     "
                   >
                     {formatPrice(
@@ -848,82 +1080,146 @@ export function DetailsModal({
                   </span>
                 </div>
 
-                {/* =========================================
-                    BUILD ROLE
-                    ========================================= */}
+                {/* =================================================
+                    DESCRIPTION
+                    FULL DESCRIPTION
+                    ================================================= */}
 
-                {item.secondaryLabel ? (
+                <div className="mt-7">
+                  <h3
+                    className="
+                      font-display
+
+                      text-xs
+
+                      font-extrabold
+
+                      uppercase
+
+                      tracking-[0.14em]
+
+                      text-brand-deep
+                    "
+                  >
+                    Description
+                  </h3>
+
+                  <div
+                    className="
+                      mt-3
+
+                      h-[2px]
+                      w-10
+
+                      rounded-full
+
+                      bg-brand
+                    "
+                  />
+
                   <p
                     className="
                       mt-4
 
+                      whitespace-pre-line
+
                       text-sm
 
-                      font-semibold
+                      leading-7
 
-                      uppercase
+                      text-slate-600
 
-                      tracking-wider
-
-                      text-brand-soft
+                      sm:text-[15px]
                     "
                   >
                     {
-                      item.secondaryLabel
+                      item.description
                     }
                   </p>
-                ) : null}
+                </div>
 
-                {/* =========================================
-                    FULL DESCRIPTION
-                    ========================================= */}
-
-                <p
-                  className="
-                    mt-5
-
-                    text-sm
-
-                    leading-7
-
-                    text-slate-600
-
-                    sm:text-[15px]
-                  "
-                >
-                  {
-                    item.description
-                  }
-                </p>
-
-                {/* =========================================
-                    ALL SPECIFICATIONS
-                    ========================================= */}
+                {/* =================================================
+                    SPECIFICATIONS
+                    FULL SPECS
+                    ================================================= */}
 
                 {item.specs.length >
                 0 ? (
-                  <div className="mt-7">
-                    <h3
+                  <div className="mt-8">
+                    <div
                       className="
-                        font-display
+                        flex
 
-                        text-sm
+                        items-center
 
-                        font-extrabold
+                        justify-between
 
-                        uppercase
-
-                        tracking-wider
-
-                        text-brand-deep
+                        gap-4
                       "
                     >
-                      Specifications
-                    </h3>
+                      <div>
+                        <h3
+                          className="
+                            font-display
+
+                            text-xs
+
+                            font-extrabold
+
+                            uppercase
+
+                            tracking-[0.14em]
+
+                            text-brand-deep
+                          "
+                        >
+                          Specifications
+                        </h3>
+
+                        <div
+                          className="
+                            mt-3
+
+                            h-[2px]
+                            w-10
+
+                            rounded-full
+
+                            bg-brand
+                          "
+                        />
+                      </div>
+
+                      <span
+                        className="
+                          rounded-full
+
+                          bg-brand/[0.06]
+
+                          px-3
+                          py-1.5
+
+                          text-[9px]
+
+                          font-extrabold
+
+                          uppercase
+
+                          tracking-wider
+
+                          text-brand
+                        "
+                      >
+                        {
+                          item.specs.length
+                        }{" "}
+                        Specs
+                      </span>
+                    </div>
 
                     <ul
                       className="
-                        mt-4
+                        mt-5
 
                         grid
 
@@ -940,22 +1236,23 @@ export function DetailsModal({
                           <li
                             key={`${item.name}-${index}`}
                             className="
+                              group/spec
+
                               flex
 
                               items-start
 
-                              gap-2.5
+                              gap-3
 
                               rounded-xl
 
                               border
 
-                              border-brand/[0.08]
+                              border-black/[0.07]
 
-                              bg-[#f7f9fc]
+                              bg-[#fff8f8]
 
                               px-3.5
-
                               py-3
 
                               text-sm
@@ -963,6 +1260,14 @@ export function DetailsModal({
                               leading-5
 
                               text-slate-700
+
+                              transition-all
+
+                              duration-300
+
+                              hover:border-brand/20
+
+                              hover:bg-brand/[0.045]
                             "
                           >
                             <span
@@ -983,6 +1288,12 @@ export function DetailsModal({
                                 bg-brand/[0.09]
 
                                 text-brand
+
+                                transition-all
+
+                                group-hover/spec:bg-brand
+
+                                group-hover/spec:text-white
                               "
                             >
                               <Check className="h-3.5 w-3.5" />
@@ -999,11 +1310,91 @@ export function DetailsModal({
                     </ul>
                   </div>
                 ) : null}
+
+                {/* =================================================
+                    GAMEX ASSURANCE
+                    ================================================= */}
+
+                <div
+                  className="
+                    mt-8
+
+                    rounded-xl
+
+                    border
+
+                    border-brand/10
+
+                    bg-brand/[0.035]
+
+                    p-4
+                  "
+                >
+                  <div
+                    className="
+                      flex
+
+                      items-start
+
+                      gap-3
+                    "
+                  >
+                    <span
+                      className="
+                        mt-1
+
+                        h-2
+                        w-2
+
+                        shrink-0
+
+                        rounded-full
+
+                        bg-brand
+
+                        shadow-[0_0_10px_rgba(230,0,0,0.4)]
+                      "
+                    />
+
+                    <div>
+                      <p
+                        className="
+                          text-[10px]
+
+                          font-extrabold
+
+                          uppercase
+
+                          tracking-[0.16em]
+
+                          text-brand
+                        "
+                      >
+                        Gamex Support
+                      </p>
+
+                      <p
+                        className="
+                          mt-1
+
+                          text-xs
+
+                          leading-relaxed
+
+                          text-slate-500
+                        "
+                      >
+                        Contact us on WhatsApp for availability,
+                        configuration options and ordering details.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {/* ===========================================
-                  WHATSAPP BUTTON
-                  =========================================== */}
+              {/* =================================================
+                  WHATSAPP FOOTER
+                  ================================================= */}
 
               <div
                 className="
@@ -1011,12 +1402,14 @@ export function DetailsModal({
 
                   border-t
 
-                  border-brand/[0.08]
+                  border-black/[0.07]
 
                   bg-white
 
                   px-5
                   py-4
+
+                  shadow-[0_-12px_35px_-30px_rgba(0,0,0,0.25)]
 
                   sm:px-8
                   sm:py-5
@@ -1032,6 +1425,8 @@ export function DetailsModal({
                   className="
                     group
 
+                    relative
+
                     flex
 
                     w-full
@@ -1041,6 +1436,8 @@ export function DetailsModal({
                     justify-center
 
                     gap-2.5
+
+                    overflow-hidden
 
                     rounded-xl
 
@@ -1078,8 +1475,37 @@ export function DetailsModal({
                     focus:ring-[#25D366]/25
                   "
                 >
+                  {/* ===============================================
+                      BUTTON SHINE
+                      =============================================== */}
+
+                  <span
+                    aria-hidden="true"
+                    className="
+                      absolute
+
+                      -left-12
+                      top-0
+
+                      h-full
+                      w-10
+
+                      -skew-x-12
+
+                      bg-white/20
+
+                      transition-all
+
+                      duration-700
+
+                      group-hover:left-[120%]
+                    "
+                  />
+
                   <FaWhatsapp
                     className="
+                      relative
+
                       h-5
                       w-5
 
@@ -1091,7 +1517,9 @@ export function DetailsModal({
                     "
                   />
 
-                  Chat on WhatsApp
+                  <span className="relative">
+                    Chat on WhatsApp
+                  </span>
                 </button>
               </div>
             </div>
