@@ -279,7 +279,7 @@ export function Stats({
                   overflow-hidden
 
                   px-4
-                  py-10
+                  py-7
 
                   text-center
 
@@ -287,7 +287,7 @@ export function Stats({
 
                   duration-300
 
-                  md:py-12
+                  md:py-8
 
                   ${
                     index > 0

@@ -714,9 +714,8 @@ export function Contact({
 
         bg-white
 
-        py-24
-
-        md:py-32
+        py-14
+md:py-20
       "
     >
       {/* ===================================================
@@ -889,7 +888,7 @@ export function Contact({
 
         <div
           className="
-            mt-14
+            mt-9
 
             grid
 

@@ -51,8 +51,8 @@ export function Blog({
         relative
         overflow-hidden
         bg-[#fffafa]
-        py-24
-        md:py-32
+        py-14
+md:py-20
       "
     >
       {/* ===================================================
@@ -170,7 +170,7 @@ export function Blog({
             <ScrollSkew
               amount={2}
               className="
-                mt-14
+                mt-9
                 grid
                 gap-6
                 md:grid-cols-2

@@ -552,10 +552,10 @@ export function Footer({
           max-w-7xl
 
           px-5
-          py-16
+          py-12
 
           md:px-8
-          md:py-20
+          md:py-14
         "
       >
         <div

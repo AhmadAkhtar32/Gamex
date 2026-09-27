@@ -317,11 +317,10 @@ export function Hero({
 
         overflow-hidden
 
-        pb-16
-        pt-28
-
-        md:pb-24
-        md:pt-40
+        pb-10
+pt-24
+md:pb-14
+md:pt-28
       "
     >
       {/* =====================================================
@@ -1524,13 +1523,13 @@ export function Hero({
             0.5,
         }}
         className="
-          mt-12
+          mt-8
 
           flex
 
           justify-center
 
-          md:mt-16
+          md:mt-10
         "
       >
         <MouseIndicator />
