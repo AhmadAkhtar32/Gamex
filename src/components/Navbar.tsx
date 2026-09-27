@@ -11,14 +11,14 @@ import {
 } from "framer-motion";
 
 import {
-  Gamepad2,
   Menu,
   X,
   Zap,
 } from "lucide-react";
 
+import gamexLogo from "@/app/logo.png";
+
 import {
-  GlitchText,
   Magnetic,
 } from "./ui";
 
@@ -50,7 +50,7 @@ export type PublicNavbarLink = {
 };
 
 /* =========================================================
-   ORIGINAL NAVBAR DEFAULTS
+   DEFAULT NAVBAR SETTINGS
    ========================================================= */
 
 export const DEFAULT_NAVBAR_SETTINGS: NavbarSettingsContent = {
@@ -80,7 +80,7 @@ export const DEFAULT_NAVBAR_SETTINGS: NavbarSettingsContent = {
 };
 
 /* =========================================================
-   ORIGINAL NAVIGATION LINKS
+   DEFAULT NAVIGATION LINKS
    ========================================================= */
 
 export const DEFAULT_NAVBAR_LINKS: PublicNavbarLink[] = [
@@ -205,6 +205,22 @@ export function Navbar({
   );
 
   /* =======================================================
+     LOGO
+
+     Admin logo has priority.
+
+     If there is no logo stored in Admin,
+     automatically use:
+
+     src/app/logo.png
+     ======================================================= */
+
+  const logoSrc =
+    settings.logoImage?.trim()
+      ? settings.logoImage
+      : gamexLogo.src;
+
+  /* =======================================================
      SCROLL EFFECT
      ======================================================= */
 
@@ -213,7 +229,7 @@ export function Navbar({
       () => {
         setScrolled(
           window.scrollY >
-            24
+            20
         );
       };
 
@@ -256,9 +272,7 @@ export function Navbar({
               ""
             )
         )
-        .filter(
-          Boolean
-        );
+        .filter(Boolean);
 
     if (
       ids.length ===
@@ -296,17 +310,13 @@ export function Navbar({
       );
 
     ids.forEach(
-      (
-        id
-      ) => {
+      (id) => {
         const element =
           document.getElementById(
             id
           );
 
-        if (
-          element
-        ) {
+        if (element) {
           observer.observe(
             element
           );
@@ -336,9 +346,43 @@ export function Navbar({
   }, [open]);
 
   /* =======================================================
-     NAVBAR VISIBILITY
+     CLOSE MOBILE MENU WITH ESC
+     ======================================================= */
 
-     Keep this AFTER hooks.
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const onKeyDown =
+      (
+        event: KeyboardEvent
+      ) => {
+        if (
+          event.key ===
+          "Escape"
+        ) {
+          setOpen(
+            false
+          );
+        }
+      };
+
+    document.addEventListener(
+      "keydown",
+      onKeyDown
+    );
+
+    return () => {
+      document.removeEventListener(
+        "keydown",
+        onKeyDown
+      );
+    };
+  }, [open]);
+
+  /* =======================================================
+     VISIBILITY
      ======================================================= */
 
   if (
@@ -354,7 +398,7 @@ export function Navbar({
   return (
     <>
       {/* =====================================================
-          TOP NAVBAR
+          NAVBAR
           ===================================================== */}
 
       <motion.header
@@ -374,7 +418,7 @@ export function Navbar({
         }}
         transition={{
           duration:
-            0.7,
+            0.65,
 
           ease:
             "easeOut",
@@ -384,33 +428,79 @@ export function Navbar({
           inset-x-0
           top-0
           z-50
-          transition-colors
+
+          border-b
+
+          transition-all
           duration-300
 
           ${
             scrolled ||
             open
-              ? "border-b border-brand/10 bg-white/90 shadow-[0_12px_40px_-28px_rgba(23,49,96,0.35)] backdrop-blur-xl"
-              : "border-b border-transparent bg-transparent"
+              ? `
+                border-brand/15
+                bg-white/95
+                shadow-[0_12px_45px_-26px_rgba(230,0,0,0.25)]
+                backdrop-blur-xl
+              `
+              : `
+                border-black/[0.06]
+                bg-white/90
+                backdrop-blur-md
+              `
           }
         `}
       >
+        {/* ===================================================
+            RED TOP ACCENT
+            =================================================== */}
+
+        <div
+          className={`
+            absolute
+            inset-x-0
+            top-0
+
+            h-[2px]
+
+            bg-gradient-to-r
+
+            from-transparent
+            via-brand
+            to-transparent
+
+            transition-opacity
+            duration-300
+
+            ${
+              scrolled
+                ? "opacity-100"
+                : "opacity-60"
+            }
+          `}
+        />
+
         <nav
           className="
             mx-auto
+
             flex
             h-16
             max-w-7xl
+
             items-center
             justify-between
+
             gap-4
+
             px-5
+
             md:h-20
             md:px-8
           "
         >
           {/* =================================================
-              BRAND
+              LOGO
               ================================================= */}
 
           <a
@@ -424,115 +514,96 @@ export function Navbar({
             }
             className="
               group
+
+              relative
+
               flex
               min-w-0
               shrink-0
+
               items-center
             "
           >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+
+            <img
+              src={
+                logoSrc
+              }
+              alt={
+                settings.logoAlt ||
+                "Gamex"
+              }
+              className="
+                h-9
+                w-auto
+                max-w-[145px]
+
+                object-contain
+                object-left
+
+                transition-all
+                duration-300
+
+                group-hover:scale-[1.04]
+
+                sm:h-10
+                sm:max-w-[165px]
+
+                md:h-11
+                md:max-w-[190px]
+
+                xl:h-12
+                xl:max-w-[210px]
+              "
+            />
+
             {/* ===============================================
-                CUSTOM HORIZONTAL LOGO
+                LOGO HOVER GLOW
                 =============================================== */}
 
-            {settings.logoImage ? (
-              // Admin-controlled URL.
-              // Normal img avoids remote Next/Image
-              // hostname configuration.
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={
-                  settings.logoImage
-                }
-                alt={
-                  settings.logoAlt ||
-                  "Gamex"
-                }
-                className="
-                  h-9
-                  w-auto
-                  max-w-[140px]
-                  object-contain
-                  object-left
-                  transition-transform
-                  duration-300
+            <span
+              aria-hidden="true"
+              className="
+                pointer-events-none
 
-                  group-hover:scale-[1.03]
+                absolute
+                inset-x-[10%]
+                -bottom-2
 
-                  sm:h-10
-                  sm:max-w-[160px]
+                h-3
 
-                  md:h-11
-                  md:max-w-[185px]
+                rounded-full
 
-                  xl:h-12
-                  xl:max-w-[205px]
-                "
-              />
-            ) : (
-              /* =============================================
-                 FALLBACK:
-                 OLD GAMEPAD + BRAND TEXT
-                 ============================================= */
+                bg-brand/20
 
-              <div
-                className="
-                  flex
-                  items-center
-                  gap-2.5
-                "
-              >
-                <span
-                  className="
-                    grid
-                    h-9
-                    w-9
-                    shrink-0
-                    place-items-center
-                    rounded-lg
-                    bg-brand
-                    text-white
-                    shadow-[0_0_22px_rgba(23,49,96,0.28)]
-                    transition-transform
-                    duration-300
-                    group-hover:scale-110
-                    group-hover:rotate-6
-                  "
-                >
-                  <Gamepad2
-                    className="
-                      h-5
-                      w-5
-                    "
-                  />
-                </span>
+                opacity-0
+                blur-xl
 
-                <GlitchText
-                  text={
-                    settings.brandText
-                  }
-                  className="
-                    font-display
-                    text-xl
-                    font-extrabold
-                    tracking-widest
-                    text-brand-deep
-                  "
-                />
-              </div>
-            )}
+                transition-opacity
+                duration-300
+
+                group-hover:opacity-100
+              "
+            />
           </a>
 
           {/* =================================================
-              DESKTOP NAVIGATION LINKS
+              DESKTOP LINKS
               ================================================= */}
 
           <ul
             className="
               hidden
+
               min-w-0
+
               items-center
+
               gap-0.5
+
               lg:flex
+
               xl:gap-1
             "
           >
@@ -570,24 +641,43 @@ export function Navbar({
                           : undefined
                       }
                       className={`
+                        group/nav
+
                         relative
+
                         block
-                        rounded-md
+
+                        rounded-lg
+
                         px-2.5
                         py-2
+
                         text-xs
-                        font-semibold
+
+                        font-bold
+
                         uppercase
+
                         tracking-wider
-                        transition-colors
+
+                        transition-all
+                        duration-300
 
                         xl:px-3.5
                         xl:text-sm
 
                         ${
                           isActive
-                            ? "text-brand"
-                            : "text-slate-600 hover:text-brand"
+                            ? `
+                              bg-brand/[0.06]
+                              text-brand
+                            `
+                            : `
+                              text-[#2b2b2b]
+
+                              hover:bg-brand/[0.04]
+                              hover:text-brand
+                            `
                         }
                       `}
                     >
@@ -596,7 +686,7 @@ export function Navbar({
                       }
 
                       {/* =====================================
-                          ACTIVE SECTION LINE
+                          ACTIVE LINE
                           ===================================== */}
 
                       {isActive ? (
@@ -604,15 +694,45 @@ export function Navbar({
                           layoutId="nav-active"
                           className="
                             absolute
+
                             inset-x-2
+
                             -bottom-0.5
-                            h-0.5
+
+                            h-[2px]
+
                             rounded-full
+
                             bg-brand
-                            shadow-[0_0_10px_rgba(23,49,96,0.45)]
+
+                            shadow-[0_0_12px_rgba(230,0,0,0.45)]
                           "
                         />
-                      ) : null}
+                      ) : (
+                        <span
+                          className="
+                            absolute
+
+                            inset-x-1/2
+
+                            -bottom-0.5
+
+                            h-[2px]
+
+                            rounded-full
+
+                            bg-brand
+
+                            opacity-0
+
+                            transition-all
+                            duration-300
+
+                            group-hover/nav:inset-x-2
+                            group-hover/nav:opacity-100
+                          "
+                        />
+                      )}
                     </a>
                   </li>
                 );
@@ -633,7 +753,7 @@ export function Navbar({
             "
           >
             {/* ===============================================
-                DESKTOP CTA
+                CTA
                 =============================================== */}
 
             {settings.ctaVisible ? (
@@ -665,44 +785,98 @@ export function Navbar({
                       : undefined
                   }
                   className="
-                    cta-pulse
+                    group/cta
+
+                    relative
+
                     inline-flex
+
                     items-center
+
                     gap-2
+
+                    overflow-hidden
+
                     rounded-lg
+
                     bg-brand
+
                     px-4
                     py-2.5
+
                     font-display
+
                     text-[10px]
+
                     font-bold
+
                     uppercase
+
                     tracking-widest
+
                     text-white
+
+                    shadow-[0_12px_32px_-16px_rgba(230,0,0,0.7)]
+
                     transition-all
                     duration-300
-                    hover:bg-brand-soft
+
+                    hover:-translate-y-0.5
+
+                    hover:bg-[#c80000]
+
+                    hover:shadow-[0_18px_38px_-16px_rgba(230,0,0,0.8)]
 
                     md:px-5
                     md:text-xs
                   "
                 >
+                  {/* =========================================
+                      CTA SHINE
+                      ========================================= */}
+
+                  <span
+                    aria-hidden="true"
+                    className="
+                      absolute
+
+                      -left-10
+                      top-0
+
+                      h-full
+                      w-8
+
+                      -skew-x-12
+
+                      bg-white/25
+
+                      transition-all
+                      duration-700
+
+                      group-hover/cta:left-[120%]
+                    "
+                  />
+
                   <Zap
                     className="
+                      relative
+
                       h-4
                       w-4
                     "
                   />
 
-                  {
-                    settings.ctaText
-                  }
+                  <span className="relative">
+                    {
+                      settings.ctaText
+                    }
+                  </span>
                 </a>
               </Magnetic>
             ) : null}
 
             {/* ===============================================
-                MOBILE MENU BUTTON
+                MOBILE BUTTON
                 =============================================== */}
 
             <button
@@ -717,16 +891,34 @@ export function Navbar({
               }
               className="
                 grid
+
                 h-10
                 w-10
+
                 place-items-center
+
                 rounded-lg
+
                 border
                 border-brand/20
-                bg-white/80
+
+                bg-white
+
                 text-brand
-                transition-colors
+
+                shadow-[0_8px_24px_-16px_rgba(230,0,0,0.5)]
+
+                transition-all
+                duration-300
+
                 hover:border-brand/50
+
+                hover:bg-brand/[0.05]
+
+                focus:outline-none
+                focus:ring-4
+                focus:ring-brand/10
+
                 lg:hidden
               "
               aria-label={
@@ -779,92 +971,158 @@ export function Navbar({
             }}
             transition={{
               duration:
-                0.3,
+                0.28,
             }}
             className="
               fixed
               inset-0
               z-40
-              bg-white/95
+
+              overflow-hidden
+
+              bg-white/98
+
               backdrop-blur-xl
+
               lg:hidden
             "
           >
+            {/* ===============================================
+                MOBILE BACKGROUND DECORATION
+                =============================================== */}
+
+            <div
+              aria-hidden="true"
+              className="
+                pointer-events-none
+
+                absolute
+
+                -right-28
+                top-16
+
+                h-72
+                w-72
+
+                rounded-full
+
+                bg-brand/[0.08]
+
+                blur-[90px]
+              "
+            />
+
+            <div
+              aria-hidden="true"
+              className="
+                pointer-events-none
+
+                absolute
+
+                -left-28
+                bottom-10
+
+                h-72
+                w-72
+
+                rounded-full
+
+                bg-brand/[0.05]
+
+                blur-[100px]
+              "
+            />
+
+            <div
+              aria-hidden="true"
+              className="
+                absolute
+
+                inset-x-0
+                top-0
+
+                h-[2px]
+
+                bg-gradient-to-r
+
+                from-transparent
+                via-brand
+                to-transparent
+              "
+            />
+
             <div
               className="
+                relative
+
                 flex
                 h-full
+
                 flex-col
+
                 items-center
+
                 justify-center
+
                 gap-3
+
                 px-8
                 pt-16
               "
             >
               {/* =============================================
-                  MOBILE BRAND
+                  MOBILE LOGO
                   ============================================= */}
 
-              {settings.logoImage ? (
-                // eslint-disable-next-line @next/next/no-img-element
+              <motion.a
+                href={
+                  settings.brandHref
+                }
+                onClick={() =>
+                  setOpen(
+                    false
+                  )
+                }
+                initial={{
+                  opacity:
+                    0,
+
+                  y:
+                    -16,
+                }}
+                animate={{
+                  opacity:
+                    1,
+
+                  y:
+                    0,
+                }}
+                transition={{
+                  duration:
+                    0.4,
+                }}
+                className="
+                  mb-7
+                "
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+
                 <img
                   src={
-                    settings.logoImage
+                    logoSrc
                   }
                   alt={
                     settings.logoAlt ||
                     "Gamex"
                   }
                   className="
-                    mb-7
                     h-auto
-                    w-[170px]
+                    w-[180px]
+
                     object-contain
                   "
                 />
-              ) : (
-                <div
-                  className="
-                    mb-7
-                    flex
-                    items-center
-                    gap-3
-                  "
-                >
-                  <span
-                    className="
-                      grid
-                      h-10
-                      w-10
-                      place-items-center
-                      rounded-xl
-                      bg-brand
-                      text-white
-                    "
-                  >
-                    <Gamepad2
-                      className="
-                        h-5
-                        w-5
-                      "
-                    />
-                  </span>
-
-                  <GlitchText
-                    text={
-                      settings.brandText
-                    }
-                    className="
-                      font-display
-                      text-2xl
-                      font-extrabold
-                      tracking-widest
-                      text-brand-deep
-                    "
-                  />
-                </div>
-              )}
+              </motion.a>
 
               {/* =============================================
                   MOBILE LINKS
@@ -879,6 +1137,10 @@ export function Navbar({
                     isExternalLink(
                       link.href
                     );
+
+                  const isActive =
+                    active ===
+                    link.href;
 
                   return (
                     <motion.a
@@ -926,32 +1188,78 @@ export function Navbar({
                       }}
                       transition={{
                         delay:
-                          0.08 *
+                          0.07 *
                             index +
-                          0.08,
+                          0.06,
 
                         duration:
-                          0.4,
+                          0.36,
 
                         ease:
                           "easeOut",
                       }}
-                      className="
+                      className={`
+                        relative
+
+                        rounded-xl
+
+                        px-5
+                        py-2
+
                         font-display
+
                         text-2xl
+
                         font-extrabold
+
                         uppercase
+
                         tracking-wider
-                        text-brand-deep
-                        transition-colors
-                        hover:text-brand
+
+                        transition-all
+                        duration-300
 
                         sm:text-3xl
-                      "
+
+                        ${
+                          isActive
+                            ? `
+                              bg-brand/[0.06]
+                              text-brand
+                            `
+                            : `
+                              text-[#181818]
+                              hover:text-brand
+                            `
+                        }
+                      `}
                     >
                       {
                         link.label
                       }
+
+                      {isActive ? (
+                        <span
+                          className="
+                            absolute
+
+                            left-1/2
+
+                            -bottom-0.5
+
+                            h-[2px]
+                            w-10
+
+                            -translate-x-1/2
+
+                            rounded-full
+
+                            bg-brand
+
+                            shadow-[0_0_12px_rgba(230,0,0,0.4)]
+                          "
+                        />
+                      ) : null}
                     </motion.a>
                   );
                 }
@@ -1006,31 +1314,48 @@ export function Navbar({
                   transition={{
                     delay:
                       Math.min(
-                        0.08 *
+                        0.07 *
                           links.length +
                           0.12,
-                        0.65
+                        0.62
                       ),
 
                     duration:
                       0.4,
                   }}
                   className="
-                    cta-pulse
                     mt-8
+
                     inline-flex
+
                     items-center
+
                     gap-2
-                    rounded-lg
+
+                    rounded-xl
+
                     bg-brand
+
                     px-8
                     py-3.5
+
                     font-display
+
                     text-sm
+
                     font-bold
+
                     uppercase
+
                     tracking-widest
+
                     text-white
+
+                    shadow-[0_14px_35px_-18px_rgba(230,0,0,0.75)]
+
+                    transition-all
+
+                    hover:bg-[#c80000]
                   "
                 >
                   <Zap
@@ -1045,6 +1370,40 @@ export function Navbar({
                   }
                 </motion.a>
               ) : null}
+
+              {/* =============================================
+                  MOBILE DECORATIVE TEXT
+                  ============================================= */}
+
+              <motion.p
+                initial={{
+                  opacity:
+                    0,
+                }}
+                animate={{
+                  opacity:
+                    1,
+                }}
+                transition={{
+                  delay:
+                    0.5,
+                }}
+                className="
+                  mt-8
+
+                  text-[9px]
+
+                  font-bold
+
+                  uppercase
+
+                  tracking-[0.3em]
+
+                  text-black/30
+                "
+              >
+                Game • Build • Dominate
+              </motion.p>
             </div>
           </motion.div>
         ) : null}
