@@ -1,16 +1,17 @@
-const priceFormatter =
-  new Intl.NumberFormat("en-PK", {
-    maximumFractionDigits: 0,
-  });
-
 export function formatPrice(
-  price: number
+  price: number | null | undefined
 ) {
-  if (!price || price <= 0) {
+  if (
+    price === null ||
+    price === undefined
+  ) {
     return "Price on request";
   }
 
-  return `Rs. ${priceFormatter.format(
-    price
-  )}`;
+  return `Rs. ${new Intl.NumberFormat(
+    "en-PK",
+    {
+      maximumFractionDigits: 0,
+    }
+  ).format(price)}`;
 }

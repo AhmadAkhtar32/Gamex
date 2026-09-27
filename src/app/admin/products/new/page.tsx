@@ -91,6 +91,7 @@ export default async function NewProductPage({
             "
           >
             <ArrowLeft className="h-4 w-4" />
+
             Products
           </Link>
         </div>
@@ -110,6 +111,10 @@ export default async function NewProductPage({
           md:py-14
         "
       >
+        {/* ===================================================
+            PAGE HEADING
+            =================================================== */}
+
         <div>
           <p
             className="
@@ -203,7 +208,9 @@ export default async function NewProductPage({
               md:grid-cols-2
             "
           >
-            {/* Product Name */}
+            {/* =================================================
+                PRODUCT NAME
+                ================================================= */}
 
             <FormField
               label="Product Name"
@@ -215,12 +222,37 @@ export default async function NewProductPage({
                 type="text"
                 required
                 maxLength={255}
-                placeholder="e.g. Gamex Titan X"
+                placeholder="e.g. ASUS Dual RTX 3060"
                 className={inputClass}
               />
             </FormField>
 
-            {/* Category */}
+            {/* =================================================
+                PRICE
+                ================================================= */}
+
+            <FormField
+              label="Price (PKR)"
+              htmlFor="price"
+            >
+              <input
+                id="price"
+                name="price"
+                type="number"
+                min="0"
+                step="1"
+                placeholder="e.g. 78500"
+                className={inputClass}
+              />
+
+              <p className="mt-2 text-xs text-slate-400">
+                Optional. Leave empty to show Price on request.
+              </p>
+            </FormField>
+
+            {/* =================================================
+                CATEGORY
+                ================================================= */}
 
             <FormField
               label="Category"
@@ -262,7 +294,9 @@ export default async function NewProductPage({
               </select>
             </FormField>
 
-            {/* Tag */}
+            {/* =================================================
+                PRODUCT TAG
+                ================================================= */}
 
             <FormField
               label="Product Tag"
@@ -297,7 +331,9 @@ export default async function NewProductPage({
               </p>
             </FormField>
 
-            {/* Display Order */}
+            {/* =================================================
+                DISPLAY ORDER
+                ================================================= */}
 
             <FormField
               label="Display Order"
@@ -365,11 +401,11 @@ export default async function NewProductPage({
                   id="specs"
                   name="specs"
                   required
-                  rows={6}
-                  placeholder={`RTX 5090
-Ryzen 9 9950X3D
-64GB DDR5
-4TB NVMe SSD`}
+                  rows={7}
+                  placeholder={`GPU Architecture: NVIDIA Ampere
+Memory: 12GB GDDR6
+Memory Interface: 192-bit
+Cooling: Dual Axial-Tech`}
                   className={`${inputClass} resize-y pl-11`}
                 />
               </div>
@@ -395,6 +431,10 @@ Ryzen 9 9950X3D
                 md:p-6
               "
             >
+              {/* =================================================
+                  IMAGE HEADING
+                  ================================================= */}
+
               <div className="flex items-start gap-3">
                 <div
                   className="
@@ -438,9 +478,9 @@ Ryzen 9 9950X3D
                 </div>
               </div>
 
-              {/* =============================================
-                  PC UPLOAD
-                  ============================================= */}
+              {/* =================================================
+                  UPLOAD FROM PC
+                  ================================================= */}
 
               <div className="mt-6">
                 <label
@@ -542,9 +582,9 @@ Ryzen 9 9950X3D
                 </label>
               </div>
 
-              {/* =============================================
+              {/* =================================================
                   OR
-                  ============================================= */}
+                  ================================================= */}
 
               <div className="my-6 flex items-center gap-4">
                 <div className="h-px flex-1 bg-brand/10" />
@@ -564,9 +604,9 @@ Ryzen 9 9950X3D
                 <div className="h-px flex-1 bg-brand/10" />
               </div>
 
-              {/* =============================================
+              {/* =================================================
                   IMAGE URL
-                  ============================================= */}
+                  ================================================= */}
 
               <FormField
                 label="Image URL"
@@ -604,8 +644,9 @@ Ryzen 9 9950X3D
                     text-slate-400
                   "
                 >
-                  If you upload a file and also enter a URL,
-                  the uploaded file will be used.
+                  You only need one image method. If you upload a
+                  file and also enter a URL, the uploaded file will
+                  be used.
                 </p>
               </FormField>
             </div>
@@ -740,6 +781,7 @@ Ryzen 9 9950X3D
               "
             >
               <PackagePlus className="h-4 w-4" />
+
               Save Product
             </button>
           </div>

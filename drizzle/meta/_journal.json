@@ -78,6 +78,13 @@
       "when": 1788035067506,
       "tag": "0010_upgrade-blog",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1790505141830,
+      "tag": "0011_gifted_shockwave",
+      "breakpoints": true
     }
   ]
 }

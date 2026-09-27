@@ -1,4 +1,6 @@
-import type { ReactNode } from "react";
+import type {
+  ReactNode,
+} from "react";
 
 import Link from "next/link";
 
@@ -12,8 +14,13 @@ import {
   Upload,
 } from "lucide-react";
 
-import { requireAdmin } from "@/lib/admin-auth";
-import { createBuild } from "../actions";
+import {
+  requireAdmin,
+} from "@/lib/admin-auth";
+
+import {
+  createBuild,
+} from "../actions";
 
 type NewBuildPageProps = {
   searchParams: Promise<{
@@ -26,12 +33,12 @@ export default async function NewBuildPage({
 }: NewBuildPageProps) {
   await requireAdmin();
 
-  const { error } = await searchParams;
+  const {
+    error,
+  } = await searchParams;
 
   return (
     <main className="min-h-screen bg-[#f7f9fc]">
-      {/* Header */}
-
       <header className="border-b border-brand/10 bg-white">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-5 py-4 md:px-8">
           <div>
@@ -54,8 +61,6 @@ export default async function NewBuildPage({
         </div>
       </header>
 
-      {/* Main content */}
-
       <div className="mx-auto max-w-5xl px-5 py-10 md:px-8 md:py-14">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.24em] text-brand">
@@ -73,22 +78,16 @@ export default async function NewBuildPage({
           </p>
         </div>
 
-        {/* Error */}
-
         {error ? (
           <div className="mt-7 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-semibold text-red-700">
             {error}
           </div>
         ) : null}
 
-        {/* Form */}
-
         <form
           action={createBuild}
           className="mt-8 rounded-2xl border border-brand/10 bg-white p-6 shadow-[0_25px_65px_-45px_rgba(23,49,96,0.35)] md:p-8"
         >
-          {/* Basic details */}
-
           <div className="grid gap-6 md:grid-cols-2">
             <FormField
               label="Build Name"
@@ -101,8 +100,31 @@ export default async function NewBuildPage({
                 required
                 maxLength={255}
                 placeholder="e.g. Titan X"
-                className={inputClass}
+                className={
+                  inputClass
+                }
               />
+            </FormField>
+
+            <FormField
+              label="Price (PKR)"
+              htmlFor="price"
+            >
+              <input
+                id="price"
+                name="price"
+                type="number"
+                min="0"
+                step="1"
+                placeholder="e.g. 250000"
+                className={
+                  inputClass
+                }
+              />
+
+              <p className="mt-2 text-xs text-slate-400">
+                Optional. Leave empty to show Price on request.
+              </p>
             </FormField>
 
             <FormField
@@ -116,7 +138,9 @@ export default async function NewBuildPage({
                 required
                 maxLength={255}
                 placeholder="e.g. Ultimate 4K Gaming"
-                className={inputClass}
+                className={
+                  inputClass
+                }
               />
 
               <p className="mt-2 text-xs text-slate-400">
@@ -157,7 +181,9 @@ export default async function NewBuildPage({
                 min="0"
                 step="1"
                 defaultValue="0"
-                className={inputClass}
+                className={
+                  inputClass
+                }
               />
 
               <p className="mt-2 text-xs text-slate-400">
@@ -165,8 +191,6 @@ export default async function NewBuildPage({
               </p>
             </FormField>
           </div>
-
-          {/* Description */}
 
           <div className="mt-6">
             <FormField
@@ -183,8 +207,6 @@ export default async function NewBuildPage({
               />
             </FormField>
           </div>
-
-          {/* Specifications */}
 
           <div className="mt-6">
             <FormField
@@ -214,8 +236,6 @@ Ryzen 9 9950X3D
             </FormField>
           </div>
 
-          {/* Image */}
-
           <div className="mt-8 rounded-2xl border border-brand/10 bg-[#f7f9fc] p-5 md:p-6">
             <div className="flex items-start gap-3">
               <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand/[0.08] text-brand">
@@ -233,8 +253,6 @@ Ryzen 9 9950X3D
                 </p>
               </div>
             </div>
-
-            {/* Upload from PC */}
 
             <div className="mt-6">
               <label
@@ -263,31 +281,11 @@ Ryzen 9 9950X3D
                     name="imageFile"
                     type="file"
                     accept="image/jpeg,image/png,image/webp"
-                    className="
-                      mt-4
-                      block
-                      max-w-full
-                      text-xs
-                      text-slate-500
-
-                      file:mr-4
-                      file:rounded-lg
-                      file:border-0
-                      file:bg-brand
-                      file:px-4
-                      file:py-2.5
-                      file:text-xs
-                      file:font-bold
-                      file:text-white
-
-                      hover:file:bg-brand-soft
-                    "
+                    className="mt-4 block max-w-full text-xs text-slate-500 file:mr-4 file:rounded-lg file:border-0 file:bg-brand file:px-4 file:py-2.5 file:text-xs file:font-bold file:text-white hover:file:bg-brand-soft"
                   />
                 </div>
               </div>
             </div>
-
-            {/* OR */}
 
             <div className="my-6 flex items-center gap-4">
               <div className="h-px flex-1 bg-brand/10" />
@@ -298,8 +296,6 @@ Ryzen 9 9950X3D
 
               <div className="h-px flex-1 bg-brand/10" />
             </div>
-
-            {/* Image URL */}
 
             <FormField
               label="Image URL"
@@ -324,8 +320,6 @@ Ryzen 9 9950X3D
               </p>
             </FormField>
           </div>
-
-          {/* Visibility */}
 
           <div className="mt-7 rounded-xl border border-brand/10 bg-[#f7f9fc] p-5">
             <label
@@ -352,8 +346,6 @@ Ryzen 9 9950X3D
               </span>
             </label>
           </div>
-
-          {/* Buttons */}
 
           <div className="mt-8 flex flex-col gap-3 border-t border-brand/10 pt-6 sm:flex-row sm:justify-end">
             <Link
@@ -389,7 +381,9 @@ function FormField({
   return (
     <div>
       <label
-        htmlFor={htmlFor}
+        htmlFor={
+          htmlFor
+        }
         className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-600"
       >
         {label}

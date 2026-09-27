@@ -6,17 +6,12 @@ import {
 } from "node:crypto";
 
 import { eq } from "drizzle-orm";
-
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { db } from "@/db";
 import { products } from "@/db/schema";
 import { requireAdmin } from "@/lib/admin-auth";
-
-/* =========================================================
-   SETTINGS
-   ========================================================= */
 
 const MAX_IMAGE_SIZE =
   5 * 1024 * 1024;
@@ -26,10 +21,6 @@ const ALLOWED_IMAGE_TYPES = [
   "image/png",
   "image/webp",
 ];
-
-/* =========================================================
-   ERROR REDIRECTS
-   ========================================================= */
 
 function redirectNewProductError(
   message: string
@@ -54,10 +45,6 @@ function redirectEditProductError(
   );
 }
 
-/* =========================================================
-   CREATE PRODUCT ID
-   ========================================================= */
-
 function makeProductId(
   name: string
 ) {
@@ -76,15 +63,12 @@ function makeProductId(
   }-${suffix}`;
 }
 
-/* =========================================================
-   CHECK IMAGE URL
-   ========================================================= */
-
 function isValidImageUrl(
   value: string
 ) {
   try {
-    const url = new URL(value);
+    const url =
+      new URL(value);
 
     return (
       url.protocol === "http:" ||
@@ -94,10 +78,6 @@ function isValidImageUrl(
     return false;
   }
 }
-
-/* =========================================================
-   CLOUDINARY SIGNATURE
-   ========================================================= */
 
 function createCloudinarySignature({
   timestamp,
@@ -116,21 +96,20 @@ function createCloudinarySignature({
     .digest("hex");
 }
 
-/* =========================================================
-   UPLOAD PRODUCT IMAGE
-   ========================================================= */
-
 async function uploadProductImage(
   imageFile: File
 ) {
   const cloudName =
-    process.env.CLOUDINARY_CLOUD_NAME;
+    process.env
+      .CLOUDINARY_CLOUD_NAME;
 
   const apiKey =
-    process.env.CLOUDINARY_API_KEY;
+    process.env
+      .CLOUDINARY_API_KEY;
 
   const apiSecret =
-    process.env.CLOUDINARY_API_SECRET;
+    process.env
+      .CLOUDINARY_API_SECRET;
 
   if (
     !cloudName ||
@@ -142,10 +121,6 @@ async function uploadProductImage(
     );
   }
 
-  /* =======================================================
-     FILE SIZE
-     ======================================================= */
-
   if (
     imageFile.size >
     MAX_IMAGE_SIZE
@@ -154,10 +129,6 @@ async function uploadProductImage(
       "Image must be smaller than 5 MB."
     );
   }
-
-  /* =======================================================
-     FILE TYPE
-     ======================================================= */
 
   if (
     !ALLOWED_IMAGE_TYPES.includes(
@@ -169,15 +140,13 @@ async function uploadProductImage(
     );
   }
 
-  /* =======================================================
-     CLOUDINARY REQUEST
-     ======================================================= */
-
   const folder =
     "gamex/products";
 
   const timestamp =
-    Math.floor(Date.now() / 1000);
+    Math.floor(
+      Date.now() / 1000
+    );
 
   const signature =
     createCloudinarySignature({
@@ -214,13 +183,14 @@ async function uploadProductImage(
     signature
   );
 
-  const response = await fetch(
-    `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-    {
-      method: "POST",
-      body: uploadForm,
-    }
-  );
+  const response =
+    await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      {
+        method: "POST",
+        body: uploadForm,
+      }
+    );
 
   const result =
     (await response.json()) as {
@@ -244,18 +214,10 @@ async function uploadProductImage(
   return result.secure_url;
 }
 
-/* =========================================================
-   CREATE PRODUCT
-   ========================================================= */
-
 export async function createProduct(
   formData: FormData
 ) {
   await requireAdmin();
-
-  /* =======================================================
-     BASIC INFORMATION
-     ======================================================= */
 
   const name = String(
     formData.get("name") ?? ""
@@ -268,6 +230,15 @@ export async function createProduct(
   const tag = String(
     formData.get("tag") ?? ""
   ).trim();
+
+  const priceRaw = String(
+    formData.get("price") ?? ""
+  ).trim();
+
+  const price =
+    priceRaw === ""
+      ? null
+      : Number(priceRaw);
 
   const description = String(
     formData.get(
@@ -285,10 +256,6 @@ export async function createProduct(
     ) ?? "0"
   ).trim();
 
-  /* =======================================================
-     IMAGE INPUTS
-     ======================================================= */
-
   const imageUrl = String(
     formData.get(
       "imageUrl"
@@ -296,10 +263,13 @@ export async function createProduct(
   ).trim();
 
   const possibleImageFile =
-    formData.get("imageFile");
+    formData.get(
+      "imageFile"
+    );
 
   const imageFile =
-    possibleImageFile instanceof File
+    possibleImageFile instanceof
+    File
       ? possibleImageFile
       : null;
 
@@ -310,18 +280,10 @@ export async function createProduct(
   const hasImageUrl =
     imageUrl.length > 0;
 
-  /* =======================================================
-     VISIBILITY
-     ======================================================= */
-
   const isVisible =
     formData.get(
       "isVisible"
     ) === "on";
-
-  /* =======================================================
-     VALIDATION
-     ======================================================= */
 
   if (!name) {
     redirectNewProductError(
@@ -341,7 +303,9 @@ export async function createProduct(
     );
   }
 
-  if (name.length > 255) {
+  if (
+    name.length > 255
+  ) {
     redirectNewProductError(
       "Product name is too long."
     );
@@ -355,9 +319,25 @@ export async function createProduct(
     );
   }
 
-  if (tag.length > 120) {
+  if (
+    tag.length > 120
+  ) {
     redirectNewProductError(
       "Product tag is too long."
+    );
+  }
+
+  if (
+    price !== null &&
+    (
+      !Number.isSafeInteger(
+        price
+      ) ||
+      price < 0
+    )
+  ) {
+    redirectNewProductError(
+      "Price must be a whole number of 0 or greater, or left blank."
     );
   }
 
@@ -368,10 +348,6 @@ export async function createProduct(
       "Image URL is too long."
     );
   }
-
-  /* =======================================================
-     IMAGE VALIDATION
-     ======================================================= */
 
   if (
     !hasImageFile &&
@@ -385,23 +361,22 @@ export async function createProduct(
   if (
     !hasImageFile &&
     hasImageUrl &&
-    !isValidImageUrl(imageUrl)
+    !isValidImageUrl(
+      imageUrl
+    )
   ) {
     redirectNewProductError(
       "Please enter a valid image URL."
     );
   }
 
-  /* =======================================================
-     SPECIFICATIONS
-     ======================================================= */
-
-  const specs = specsText
-    .split("\n")
-    .map((spec) =>
-      spec.trim()
-    )
-    .filter(Boolean);
+  const specs =
+    specsText
+      .split("\n")
+      .map((spec) =>
+        spec.trim()
+      )
+      .filter(Boolean);
 
   if (
     specs.length === 0
@@ -410,10 +385,6 @@ export async function createProduct(
       "Add at least one specification."
     );
   }
-
-  /* =======================================================
-     DISPLAY ORDER
-     ======================================================= */
 
   const sortOrder =
     Number.parseInt(
@@ -431,10 +402,6 @@ export async function createProduct(
       "Display order must be 0 or greater."
     );
   }
-
-  /* =======================================================
-     FINAL IMAGE
-     ======================================================= */
 
   let finalImageUrl =
     imageUrl;
@@ -466,10 +433,6 @@ export async function createProduct(
     );
   }
 
-  /* =======================================================
-     INSERT
-     ======================================================= */
-
   const id =
     makeProductId(name);
 
@@ -483,6 +446,8 @@ export async function createProduct(
       tag:
         tag ||
         "FEATURED",
+
+      price,
 
       description,
       specs,
@@ -505,18 +470,10 @@ export async function createProduct(
   );
 }
 
-/* =========================================================
-   UPDATE PRODUCT
-   ========================================================= */
-
 export async function updateProduct(
   formData: FormData
 ) {
   await requireAdmin();
-
-  /* =======================================================
-     PRODUCT ID
-     ======================================================= */
 
   const productId = String(
     formData.get(
@@ -529,10 +486,6 @@ export async function updateProduct(
       "/admin/products"
     );
   }
-
-  /* =======================================================
-     GET EXISTING PRODUCT
-     ======================================================= */
 
   const existingRows =
     await db
@@ -555,21 +508,28 @@ export async function updateProduct(
     );
   }
 
-  /* =======================================================
-     READ FORM
-     ======================================================= */
-
   const name = String(
     formData.get("name") ?? ""
   ).trim();
 
   const category = String(
-    formData.get("category") ?? ""
+    formData.get(
+      "category"
+    ) ?? ""
   ).trim();
 
   const tag = String(
     formData.get("tag") ?? ""
   ).trim();
+
+  const priceRaw = String(
+    formData.get("price") ?? ""
+  ).trim();
+
+  const price =
+    priceRaw === ""
+      ? null
+      : Number(priceRaw);
 
   const description = String(
     formData.get(
@@ -594,10 +554,13 @@ export async function updateProduct(
   ).trim();
 
   const possibleImageFile =
-    formData.get("imageFile");
+    formData.get(
+      "imageFile"
+    );
 
   const imageFile =
-    possibleImageFile instanceof File
+    possibleImageFile instanceof
+    File
       ? possibleImageFile
       : null;
 
@@ -612,10 +575,6 @@ export async function updateProduct(
     formData.get(
       "isVisible"
     ) === "on";
-
-  /* =======================================================
-     VALIDATION
-     ======================================================= */
 
   if (!name) {
     redirectEditProductError(
@@ -638,7 +597,9 @@ export async function updateProduct(
     );
   }
 
-  if (name.length > 255) {
+  if (
+    name.length > 255
+  ) {
     redirectEditProductError(
       productId,
       "Product name is too long."
@@ -654,10 +615,27 @@ export async function updateProduct(
     );
   }
 
-  if (tag.length > 120) {
+  if (
+    tag.length > 120
+  ) {
     redirectEditProductError(
       productId,
       "Product tag is too long."
+    );
+  }
+
+  if (
+    price !== null &&
+    (
+      !Number.isSafeInteger(
+        price
+      ) ||
+      price < 0
+    )
+  ) {
+    redirectEditProductError(
+      productId,
+      "Price must be a whole number of 0 or greater, or left blank."
     );
   }
 
@@ -672,7 +650,9 @@ export async function updateProduct(
 
   if (
     hasImageUrl &&
-    !isValidImageUrl(imageUrl)
+    !isValidImageUrl(
+      imageUrl
+    )
   ) {
     redirectEditProductError(
       productId,
@@ -680,16 +660,13 @@ export async function updateProduct(
     );
   }
 
-  /* =======================================================
-     SPECIFICATIONS
-     ======================================================= */
-
-  const specs = specsText
-    .split("\n")
-    .map((spec) =>
-      spec.trim()
-    )
-    .filter(Boolean);
+  const specs =
+    specsText
+      .split("\n")
+      .map((spec) =>
+        spec.trim()
+      )
+      .filter(Boolean);
 
   if (
     specs.length === 0
@@ -699,10 +676,6 @@ export async function updateProduct(
       "Add at least one specification."
     );
   }
-
-  /* =======================================================
-     DISPLAY ORDER
-     ======================================================= */
 
   const sortOrder =
     Number.parseInt(
@@ -722,30 +695,14 @@ export async function updateProduct(
     );
   }
 
-  /* =======================================================
-     DETERMINE IMAGE
-     ======================================================= */
-
-  /*
-   * Default:
-   * keep the image already stored in Neon.
-   */
   let finalImageUrl =
     existingProduct.image;
 
-  /*
-   * If the administrator entered a new URL,
-   * use the new URL.
-   */
   if (hasImageUrl) {
     finalImageUrl =
       imageUrl;
   }
 
-  /*
-   * If a file was uploaded from the PC,
-   * that takes priority over the URL.
-   */
   if (
     hasImageFile &&
     imageFile
@@ -768,10 +725,6 @@ export async function updateProduct(
     }
   }
 
-  /* =======================================================
-     UPDATE NEON
-     ======================================================= */
-
   await db
     .update(products)
     .set({
@@ -781,6 +734,8 @@ export async function updateProduct(
       tag:
         tag ||
         "FEATURED",
+
+      price,
 
       description,
       specs,
@@ -801,10 +756,6 @@ export async function updateProduct(
       )
     );
 
-  /* =======================================================
-     REFRESH
-     ======================================================= */
-
   revalidatePath(
     "/admin/products"
   );
@@ -819,10 +770,6 @@ export async function updateProduct(
     "/admin/products"
   );
 }
-
-/* =========================================================
-   TOGGLE PRODUCT VISIBILITY
-   ========================================================= */
 
 export async function toggleProductVisibility(
   formData: FormData
@@ -868,10 +815,6 @@ export async function toggleProductVisibility(
 
   revalidatePath("/");
 }
-
-/* =========================================================
-   DELETE PRODUCT
-   ========================================================= */
 
 export async function deleteProduct(
   formData: FormData
