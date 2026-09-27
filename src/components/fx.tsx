@@ -6,6 +6,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+
 import {
   motion,
   useInView,
@@ -13,13 +14,17 @@ import {
   useTransform,
 } from "framer-motion";
 
-const EASE: [number, number, number, number] = [
+const EASE: [
+  number,
+  number,
+  number,
+  number
+] = [
   0.22,
   1,
   0.36,
   1,
 ];
-
 
 /* =========================================================
    BLUR REVEAL
@@ -41,29 +46,35 @@ export function BlurReveal({
       initial={{
         opacity: 0,
         y,
-        filter: "blur(12px)",
+        filter:
+          "blur(12px)",
       }}
       whileInView={{
         opacity: 1,
         y: 0,
-        filter: "blur(0px)",
+        filter:
+          "blur(0px)",
       }}
       viewport={{
         once: true,
-        margin: "-60px",
+        margin:
+          "-60px",
       }}
       transition={{
-        duration: 0.7,
+        duration:
+          0.7,
         delay,
-        ease: EASE,
+        ease:
+          EASE,
       }}
-      className={className}
+      className={
+        className
+      }
     >
       {children}
     </motion.div>
   );
 }
-
 
 /* =========================================================
    SCRAMBLE TEXT
@@ -78,14 +89,28 @@ export function ScrambleText({
   className?: string;
   duration?: number;
 }) {
-  const ref = useRef<HTMLSpanElement>(null);
+  const ref =
+    useRef<HTMLSpanElement>(
+      null
+    );
 
-  const inView = useInView(ref, {
-    once: true,
-    margin: "-40px",
-  });
+  const inView =
+    useInView(
+      ref,
+      {
+        once: true,
+        margin:
+          "-40px",
+      }
+    );
 
-  const [output, setOutput] = useState(text);
+  const [
+    output,
+    setOutput,
+  ] =
+    useState(
+      text
+    );
 
   const chars =
     "!<>-_\\/[]{}—=+*^?#$%&@";
@@ -95,71 +120,109 @@ export function ScrambleText({
       return;
     }
 
-    let start = 0;
-    let raf = 0;
+    let start =
+      0;
 
-    const step = (time: number) => {
+    let raf =
+      0;
+
+    const step = (
+      time: number
+    ) => {
       if (!start) {
-        start = time;
+        start =
+          time;
       }
 
-      const progress = Math.min(
-        1,
-        (time - start) / duration
-      );
+      const progress =
+        Math.min(
+          1,
+          (time -
+            start) /
+            duration
+        );
 
       setOutput(
         text
           .split("")
-          .map((character, index) => {
-            if (character === " ") {
-              return " ";
-            }
+          .map(
+            (
+              character,
+              index
+            ) => {
+              if (
+                character ===
+                " "
+              ) {
+                return " ";
+              }
 
-            if (progress === 1) {
-              return character;
-            }
+              if (
+                progress ===
+                1
+              ) {
+                return character;
+              }
 
-            if (
-              index <
-              progress * text.length
-            ) {
-              return character;
-            }
+              if (
+                index <
+                progress *
+                  text.length
+              ) {
+                return character;
+              }
 
-            return chars[
-              Math.floor(
-                Math.random() *
-                  chars.length
-              )
-            ];
-          })
+              return chars[
+                Math.floor(
+                  Math.random() *
+                    chars.length
+                )
+              ];
+            }
+          )
           .join("")
       );
 
-      if (progress < 1) {
+      if (
+        progress <
+        1
+      ) {
         raf =
-          requestAnimationFrame(step);
+          requestAnimationFrame(
+            step
+          );
       }
     };
 
-    raf = requestAnimationFrame(step);
+    raf =
+      requestAnimationFrame(
+        step
+      );
 
     return () => {
-      cancelAnimationFrame(raf);
+      cancelAnimationFrame(
+        raf
+      );
     };
-  }, [inView, text, duration]);
+  }, [
+    inView,
+    text,
+    duration,
+  ]);
 
   return (
     <span
-      ref={ref}
-      className={className}
+      ref={
+        ref
+      }
+      className={
+        className
+      }
     >
       {output}
     </span>
   );
 }
-
 
 /* =========================================================
    PARALLAX
@@ -175,36 +238,52 @@ export function Parallax({
   className?: string;
 }) {
   const ref =
-    useRef<HTMLDivElement>(null);
+    useRef<HTMLDivElement>(
+      null
+    );
 
-  const { scrollYProgress } =
+  const {
+    scrollYProgress,
+  } =
     useScroll({
-      target: ref,
+      target:
+        ref,
+
       offset: [
         "start end",
         "end start",
       ],
     });
 
-  const y = useTransform(
-    scrollYProgress,
-    [0, 1],
-    [speed, -speed]
-  );
+  const y =
+    useTransform(
+      scrollYProgress,
+      [
+        0,
+        1,
+      ],
+      [
+        speed,
+        -speed,
+      ]
+    );
 
   return (
     <motion.div
-      ref={ref}
+      ref={
+        ref
+      }
       style={{
         y,
       }}
-      className={className}
+      className={
+        className
+      }
     >
       {children}
     </motion.div>
   );
 }
-
 
 /* =========================================================
    SCROLL SKEW
@@ -220,36 +299,56 @@ export function ScrollSkew({
   amount?: number;
 }) {
   const ref =
-    useRef<HTMLDivElement>(null);
+    useRef<HTMLDivElement>(
+      null
+    );
 
-  const { scrollYProgress } =
+  const {
+    scrollYProgress,
+  } =
     useScroll({
-      target: ref,
+      target:
+        ref,
+
       offset: [
         "start end",
         "end start",
       ],
     });
 
-  const skewY = useTransform(
-    scrollYProgress,
-    [0, 0.5, 1],
-    [amount, 0, -amount]
-  );
+  const skewY =
+    useTransform(
+      scrollYProgress,
+      [
+        0,
+        0.5,
+        1,
+      ],
+      [
+        amount,
+        0,
+        -amount,
+      ]
+    );
 
   return (
     <motion.div
-      ref={ref}
+      ref={
+        ref
+      }
       style={{
         skewY,
       }}
-      className={`will-change-transform ${className}`}
+      className={`
+        will-change-transform
+
+        ${className}
+      `}
     >
       {children}
     </motion.div>
   );
 }
-
 
 /* =========================================================
    MOUSE / SCROLL INDICATOR
@@ -267,15 +366,17 @@ export function MouseIndicator({
         flex-col
         items-center
         gap-2.5
+
         ${className}
       `}
     >
-      {/* Mouse body */}
       <div
         className="
           flex
+
           h-9
           w-6
+
           items-start
           justify-center
 
@@ -284,36 +385,43 @@ export function MouseIndicator({
           border-2
           border-brand/35
 
-          bg-white/70
+          bg-white/80
 
           p-1.5
 
-          shadow-[0_8px_24px_-16px_rgba(23,49,96,0.45)]
+          shadow-[0_8px_24px_-16px_rgba(230,0,0,0.45)]
 
           backdrop-blur-sm
         "
       >
-        {/* Mouse wheel */}
         <span
           className="
             animate-wheel
+
             block
+
             h-1.5
             w-1.5
+
             rounded-full
+
             bg-brand
-            shadow-[0_0_8px_rgba(23,49,96,0.35)]
+
+            shadow-[0_0_8px_rgba(230,0,0,0.35)]
           "
         />
       </div>
 
-      {/* Label */}
       <span
         className="
           text-[10px]
+
           font-bold
+
           uppercase
+
           tracking-[0.35em]
+
           text-slate-500
         "
       >

@@ -11,6 +11,8 @@ import {
   Clock,
 } from "lucide-react";
 
+import gamexLogo from "@/app/logo.png";
+
 import {
   getBlogHomepageData,
 } from "@/lib/blog";
@@ -20,13 +22,15 @@ import {
    ========================================================= */
 
 export const metadata: Metadata = {
-  title: "Blog | Gamex",
+  title:
+    "Blog | Gamex",
+
   description:
     "Gamex gaming PC build guides, hardware advice, benchmarks, cooling tips and performance insights.",
 };
 
 /* =========================================================
-   ALWAYS LOAD CURRENT DATABASE DATA
+   CURRENT DATABASE DATA
    ========================================================= */
 
 export const dynamic =
@@ -47,7 +51,9 @@ export default async function BlogPage() {
     <main
       className="
         min-h-screen
-        bg-[#fbfcfe]
+
+        bg-[#fffafa]
+
         text-brand-deep
       "
     >
@@ -58,68 +64,105 @@ export default async function BlogPage() {
       <header
         className="
           sticky
+
           top-0
+
           z-50
+
           border-b
           border-brand/10
+
           bg-white/95
+
           backdrop-blur-xl
         "
       >
         <div
           className="
             mx-auto
+
             flex
+
             max-w-7xl
+
             items-center
             justify-between
+
             gap-4
+
             px-5
             py-4
+
             md:px-8
           "
         >
-          {/* BRAND */}
+          {/* LOGO */}
 
           <Link
             href="/"
+            aria-label="Gamex Home"
             className="
-              font-display
-              text-xl
-              font-black
-              uppercase
-              tracking-[0.16em]
-              text-brand-deep
+              inline-flex
+
+              items-center
             "
           >
-            GAME
-            <span className="text-brand">
-              X
-            </span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+
+            <img
+              src={
+                gamexLogo.src
+              }
+              alt="Gamex"
+              className="
+                h-10
+                w-auto
+
+                max-w-[175px]
+
+                object-contain
+                object-left
+              "
+            />
           </Link>
 
-          {/* HOME */}
+          {/* BACK HOME */}
 
           <Link
             href="/"
             className="
               inline-flex
+
               items-center
+
               gap-2
+
               rounded-xl
+
               border
               border-brand/15
+
               bg-white
+
               px-4
               py-2.5
+
               text-xs
+
               font-bold
+
               uppercase
+
               tracking-wider
+
               text-brand
+
               transition-all
+
               hover:border-brand
+
               hover:bg-brand
+
               hover:text-white
             "
           >
@@ -137,50 +180,86 @@ export default async function BlogPage() {
       <section
         className="
           relative
+
           overflow-hidden
+
           border-b
           border-brand/10
+
           bg-white
         "
       >
-        {/* BACKGROUND */}
-
         <div
+          aria-hidden="true"
           className="
             pointer-events-none
+
             absolute
+
             -right-40
             -top-48
+
             h-[34rem]
             w-[34rem]
+
             rounded-full
+
             bg-brand/10
+
             blur-[140px]
           "
         />
 
         <div
+          aria-hidden="true"
           className="
             pointer-events-none
+
             absolute
+
             -bottom-48
             -left-40
+
             h-[28rem]
             w-[28rem]
+
             rounded-full
+
             bg-brand/5
+
             blur-[130px]
+          "
+        />
+
+        <div
+          aria-hidden="true"
+          className="
+            bg-grid
+
+            pointer-events-none
+
+            absolute
+            inset-0
+
+            opacity-20
+
+            [mask-image:radial-gradient(ellipse_75%_70%_at_50%_50%,black,transparent)]
           "
         />
 
         <div
           className="
             relative
+
             mx-auto
+
             max-w-7xl
+
             px-5
             py-20
+
             text-center
+
             md:px-8
             md:py-28
           "
@@ -190,18 +269,29 @@ export default async function BlogPage() {
           <div
             className="
               inline-flex
+
               items-center
+
               gap-2
+
               rounded-full
+
               border
               border-brand/20
+
               bg-brand/[0.06]
+
               px-4
               py-1.5
+
               text-xs
+
               font-bold
+
               uppercase
+
               tracking-[0.24em]
+
               text-brand
             "
           >
@@ -209,12 +299,18 @@ export default async function BlogPage() {
               className="
                 h-1.5
                 w-1.5
+
                 rounded-full
+
                 bg-brand
+
+                shadow-[0_0_8px_rgba(230,0,0,0.45)]
               "
             />
 
-            {content.eyebrow}
+            {
+              content.eyebrow
+            }
           </div>
 
           {/* TITLE */}
@@ -222,17 +318,29 @@ export default async function BlogPage() {
           <h1
             className="
               mx-auto
+
               mt-6
+
               max-w-4xl
+
               font-display
+
               text-4xl
+
               font-black
+
               uppercase
+
               leading-[1.05]
+
               tracking-tight
+
               text-brand-deep
+
               sm:text-5xl
+
               md:text-6xl
+
               lg:text-7xl
             "
           >
@@ -247,31 +355,45 @@ export default async function BlogPage() {
           <p
             className="
               mx-auto
+
               mt-6
+
               max-w-2xl
+
               text-base
+
               leading-relaxed
+
               text-slate-600
+
               md:text-lg
             "
           >
-            {content.subtitle}
+            {
+              content.subtitle
+            }
           </p>
 
-          {/* ARTICLE COUNT */}
+          {/* COUNT */}
 
           <div
             className="
               mt-7
+
               text-xs
+
               font-bold
+
               uppercase
+
               tracking-[0.18em]
+
               text-slate-400
             "
           >
             {posts.length}{" "}
-            {posts.length === 1
+            {posts.length ===
+            1
               ? "Article"
               : "Articles"}
           </div>
@@ -285,83 +407,140 @@ export default async function BlogPage() {
       <section
         className="
           mx-auto
+
           max-w-7xl
+
           px-5
           py-16
+
           md:px-8
           md:py-24
         "
       >
-        {posts.length > 0 ? (
+        {posts.length >
+        0 ? (
           <div
             className="
               grid
+
               gap-7
+
               sm:grid-cols-2
+
               xl:grid-cols-3
             "
           >
             {posts.map(
-              (post) => (
+              (
+                post
+              ) => (
                 <article
-                  key={post.id}
+                  key={
+                    post.id
+                  }
                   className="
                     group
+
                     flex
                     h-full
+
                     flex-col
+
                     overflow-hidden
+
                     rounded-2xl
+
                     border
-                    border-brand/10
+                    border-black/[0.07]
+
                     bg-white
-                    shadow-[0_20px_60px_-42px_rgba(23,49,96,0.35)]
+
+                    shadow-[0_20px_60px_-42px_rgba(230,0,0,0.35)]
+
                     transition-all
+
                     duration-300
+
                     hover:-translate-y-1
+
                     hover:border-brand/25
-                    hover:shadow-[0_28px_70px_-42px_rgba(23,49,96,0.45)]
+
+                    hover:shadow-[0_28px_70px_-42px_rgba(230,0,0,0.45)]
                   "
                 >
-                  {/* =========================================
-                      IMAGE
-                      ========================================= */}
+                  {/* IMAGE */}
 
                   <Link
                     href={`/blog/${post.slug}`}
                     className="
                       relative
+
                       block
+
                       aspect-[16/10]
+
                       overflow-hidden
-                      bg-slate-100
+
+                      bg-[#fff5f5]
                     "
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
+
                     <img
-                      src={post.image}
-                      alt={post.title}
+                      src={
+                        post.image
+                      }
+                      alt={
+                        post.title
+                      }
                       loading="lazy"
                       className="
                         absolute
                         inset-0
+
                         h-full
                         w-full
+
                         object-cover
+
                         transition-transform
+
                         duration-700
+
                         ease-out
+
                         group-hover:scale-105
                       "
                     />
 
                     <div
+                      aria-hidden="true"
                       className="
                         absolute
                         inset-0
+
                         bg-gradient-to-t
-                        from-brand-deep/20
+
+                        from-black/45
+
                         via-transparent
+
+                        to-transparent
+                      "
+                    />
+
+                    <div
+                      aria-hidden="true"
+                      className="
+                        absolute
+                        inset-0
+
+                        bg-gradient-to-tr
+
+                        from-brand/[0.08]
+
+                        via-transparent
+
                         to-transparent
                       "
                     />
@@ -371,33 +550,46 @@ export default async function BlogPage() {
                     <span
                       className="
                         absolute
+
                         left-4
                         top-4
+
                         rounded-lg
+
                         bg-brand
+
                         px-3
                         py-1.5
+
                         text-[10px]
+
                         font-bold
+
                         uppercase
+
                         tracking-[0.15em]
+
                         text-white
-                        shadow-lg
+
+                        shadow-[0_10px_24px_-14px_rgba(230,0,0,0.65)]
                       "
                     >
-                      {post.category}
+                      {
+                        post.category
+                      }
                     </span>
                   </Link>
 
-                  {/* =========================================
-                      CONTENT
-                      ========================================= */}
+                  {/* CONTENT */}
 
                   <div
                     className="
                       flex
+
                       flex-1
+
                       flex-col
+
                       p-6
                     "
                   >
@@ -406,39 +598,69 @@ export default async function BlogPage() {
                     <div
                       className="
                         flex
+
                         flex-wrap
+
                         items-center
+
                         gap-x-4
                         gap-y-2
+
                         text-[11px]
+
                         font-semibold
+
                         uppercase
+
                         tracking-wider
+
                         text-slate-400
                       "
                     >
                       <span
                         className="
                           inline-flex
+
                           items-center
+
                           gap-1.5
                         "
                       >
-                        <CalendarDays className="h-3.5 w-3.5" />
+                        <CalendarDays
+                          className="
+                            h-3.5
+                            w-3.5
 
-                        {post.date}
+                            text-brand
+                          "
+                        />
+
+                        {
+                          post.date
+                        }
                       </span>
 
                       <span
                         className="
                           inline-flex
+
                           items-center
+
                           gap-1.5
                         "
                       >
-                        <Clock className="h-3.5 w-3.5" />
+                        <Clock
+                          className="
+                            h-3.5
+                            w-3.5
 
-                        {post.readTime}
+                            text-brand
+                          "
+                        />
+
+                        {
+                          post.readTime
+                        }
                       </span>
                     </div>
 
@@ -448,65 +670,121 @@ export default async function BlogPage() {
                       href={`/blog/${post.slug}`}
                       className="
                         mt-4
+
                         block
                       "
                     >
                       <h2
                         className="
                           font-display
+
                           text-xl
+
                           font-extrabold
+
                           leading-snug
+
                           text-brand-deep
+
                           transition-colors
+
                           group-hover:text-brand
                         "
                       >
-                        {post.title}
+                        {
+                          post.title
+                        }
                       </h2>
                     </Link>
+
+                    {/* DIVIDER */}
+
+                    <div
+                      className="
+                        mt-3
+
+                        h-[2px]
+                        w-8
+
+                        rounded-full
+
+                        bg-brand/30
+
+                        transition-all
+
+                        duration-300
+
+                        group-hover:w-12
+
+                        group-hover:bg-brand
+                      "
+                    />
 
                     {/* EXCERPT */}
 
                     <p
                       className="
-                        mt-3
+                        mt-4
+
+                        line-clamp-3
+
                         text-sm
+
                         leading-7
+
                         text-slate-600
                       "
                     >
-                      {post.excerpt}
+                      {
+                        post.excerpt
+                      }
                     </p>
 
-                    {/* READ MORE */}
+                    {/* READ */}
 
                     <Link
                       href={`/blog/${post.slug}`}
                       className="
                         mt-auto
+
                         inline-flex
+
                         items-center
+
                         gap-2
+
                         pt-6
+
                         text-xs
+
                         font-bold
+
                         uppercase
+
                         tracking-[0.15em]
+
                         text-brand
+
                         transition-colors
+
                         hover:text-brand-soft
                       "
                     >
-                      {content.readMoreText}
+                      {
+                        content.readMoreText
+                      }
 
                       <ArrowUpRight
                         className="
                           h-4
                           w-4
+
                           transition-transform
+
                           duration-300
+
                           group-hover:translate-x-1
+
                           group-hover:-translate-y-1
                         "
                       />
@@ -517,28 +795,47 @@ export default async function BlogPage() {
             )}
           </div>
         ) : (
-          /* =================================================
-             EMPTY BLOG
-             ================================================= */
-
           <div
             className="
               rounded-2xl
+
               border
               border-dashed
               border-brand/20
+
               bg-white
+
               px-6
               py-20
+
               text-center
             "
           >
+            <div
+              className="
+                mx-auto
+
+                h-[3px]
+                w-12
+
+                rounded-full
+
+                bg-brand
+              "
+            />
+
             <p
               className="
+                mt-5
+
                 font-display
+
                 text-2xl
+
                 font-extrabold
+
                 uppercase
+
                 text-brand-deep
               "
             >
@@ -548,10 +845,15 @@ export default async function BlogPage() {
             <p
               className="
                 mx-auto
+
                 mt-3
+
                 max-w-lg
+
                 text-sm
+
                 leading-relaxed
+
                 text-slate-500
               "
             >
@@ -564,20 +866,33 @@ export default async function BlogPage() {
               href="/"
               className="
                 mt-6
+
                 inline-flex
+
                 items-center
+
                 gap-2
+
                 rounded-xl
+
                 bg-brand
+
                 px-5
                 py-3
+
                 text-xs
+
                 font-bold
+
                 uppercase
+
                 tracking-wider
+
                 text-white
+
                 transition-all
-                hover:bg-brand-soft
+
+                hover:bg-[#c90000]
               "
             >
               <ArrowLeft className="h-4 w-4" />
@@ -596,16 +911,21 @@ export default async function BlogPage() {
         className="
           border-t
           border-brand/10
+
           bg-white
         "
       >
         <div
           className="
             mx-auto
+
             max-w-4xl
+
             px-5
             py-16
+
             text-center
+
             md:px-8
             md:py-20
           "
@@ -613,9 +933,13 @@ export default async function BlogPage() {
           <p
             className="
               text-xs
+
               font-bold
+
               uppercase
+
               tracking-[0.22em]
+
               text-brand
             "
           >
@@ -625,11 +949,17 @@ export default async function BlogPage() {
           <h2
             className="
               mt-3
+
               font-display
+
               text-3xl
+
               font-black
+
               uppercase
+
               text-brand-deep
+
               md:text-4xl
             "
           >
@@ -639,10 +969,15 @@ export default async function BlogPage() {
           <p
             className="
               mx-auto
+
               mt-4
+
               max-w-xl
+
               text-sm
+
               leading-relaxed
+
               text-slate-500
             "
           >
@@ -653,9 +988,13 @@ export default async function BlogPage() {
           <div
             className="
               mt-7
+
               flex
+
               flex-wrap
+
               justify-center
+
               gap-3
             "
           >
@@ -663,17 +1002,29 @@ export default async function BlogPage() {
               href="/#products"
               className="
                 rounded-xl
+
                 bg-brand
+
                 px-6
                 py-3.5
+
                 text-xs
+
                 font-bold
+
                 uppercase
+
                 tracking-wider
+
                 text-white
+
+                shadow-[0_14px_34px_-18px_rgba(230,0,0,0.7)]
+
                 transition-all
+
                 hover:-translate-y-0.5
-                hover:bg-brand-soft
+
+                hover:bg-[#c90000]
               "
             >
               Explore Products
@@ -683,18 +1034,29 @@ export default async function BlogPage() {
               href="/#contact"
               className="
                 rounded-xl
+
                 border
                 border-brand/20
+
                 bg-white
+
                 px-6
                 py-3.5
+
                 text-xs
+
                 font-bold
+
                 uppercase
+
                 tracking-wider
+
                 text-brand
+
                 transition-all
+
                 hover:border-brand
+
                 hover:bg-brand/[0.04]
               "
             >
@@ -712,46 +1074,71 @@ export default async function BlogPage() {
         className="
           border-t
           border-brand/10
-          bg-[#f7f9fc]
+
+          bg-[#fff8f8]
         "
       >
         <div
           className="
             mx-auto
+
             flex
+
             max-w-7xl
+
             flex-col
+
             gap-3
+
             px-5
             py-8
+
             text-center
+
             sm:flex-row
             sm:items-center
             sm:justify-between
             sm:text-left
+
             md:px-8
           "
         >
           <Link
             href="/"
+            aria-label="Gamex Home"
             className="
-              font-display
-              text-lg
-              font-black
-              uppercase
-              tracking-[0.15em]
-              text-brand-deep
+              inline-flex
+
+              items-center
+
+              justify-center
+
+              sm:justify-start
             "
           >
-            GAME
-            <span className="text-brand">
-              X
-            </span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+
+            <img
+              src={
+                gamexLogo.src
+              }
+              alt="Gamex"
+              className="
+                h-9
+                w-auto
+
+                max-w-[160px]
+
+                object-contain
+                object-left
+              "
+            />
           </Link>
 
           <p
             className="
               text-xs
+
               text-slate-400
             "
           >
@@ -765,26 +1152,22 @@ export default async function BlogPage() {
 
 /* =========================================================
    TITLE ACCENT
-
-   Example:
-
-   title  = Intel from the bench
-   accent = bench
-
-   Result:
-   "bench" is rendered in the Gamex brand blue.
    ========================================================= */
 
 function renderTitle(
   title: string,
   accent: string
 ) {
-  if (!accent.trim()) {
+  if (
+    !accent.trim()
+  ) {
     return title;
   }
 
   const words =
-    title.split(" ");
+    title.split(
+      " "
+    );
 
   const normalizedAccent =
     accent
@@ -823,7 +1206,8 @@ function renderTitle(
           </span>
 
           {index <
-          words.length - 1
+          words.length -
+            1
             ? " "
             : null}
         </span>

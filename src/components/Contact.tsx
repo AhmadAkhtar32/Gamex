@@ -38,9 +38,13 @@ import {
   FaDiscord,
 } from "react-icons/fa";
 
-import { submitContact } from "@/app/actions";
+import {
+  submitContact,
+} from "@/app/actions";
 
-import { SectionHeading } from "./ui";
+import {
+  SectionHeading,
+} from "./ui";
 
 import {
   BlurReveal,
@@ -126,10 +130,7 @@ export type PublicSocialLink = {
 };
 
 /* =========================================================
-   ORIGINAL CONTACT CONTENT
-
-   This preserves the original website before the database
-   connection is added to page.tsx.
+   DEFAULT CONTACT CONTENT
    ========================================================= */
 
 export const DEFAULT_CONTACT_CONTENT: ContactSectionContent = {
@@ -201,38 +202,52 @@ export const DEFAULT_CONTACT_CONTENT: ContactSectionContent = {
 };
 
 /* =========================================================
-   TEMPORARY ORIGINAL SOCIAL LINKS
-
-   These are used ONLY while the homepage has not yet started
-   passing database social links.
-
-   Once page.tsx passes socialLinks, including an empty array,
-   the database becomes the source of truth.
+   DEFAULT SOCIAL LINKS
    ========================================================= */
 
 const DEFAULT_SOCIAL_LINKS: PublicSocialLink[] = [
   {
-    id: "default-x",
-    platform: "x",
-    url: "#contact",
+    id:
+      "default-x",
+
+    platform:
+      "x",
+
+    url:
+      "#contact",
   },
 
   {
-    id: "default-instagram",
-    platform: "instagram",
-    url: "#contact",
+    id:
+      "default-instagram",
+
+    platform:
+      "instagram",
+
+    url:
+      "#contact",
   },
 
   {
-    id: "default-youtube",
-    platform: "youtube",
-    url: "#contact",
+    id:
+      "default-youtube",
+
+    platform:
+      "youtube",
+
+    url:
+      "#contact",
   },
 
   {
-    id: "default-twitch",
-    platform: "twitch",
-    url: "#contact",
+    id:
+      "default-twitch",
+
+    platform:
+      "twitch",
+
+    url:
+      "#contact",
   },
 ];
 
@@ -240,8 +255,39 @@ const DEFAULT_SOCIAL_LINKS: PublicSocialLink[] = [
    INPUT STYLE
    ========================================================= */
 
-const inputCls =
-  "w-full rounded-xl border border-brand/25 bg-slate-50/80 px-4 py-3.5 text-brand-deep placeholder:text-slate-500 outline-none transition-all duration-300 focus:border-brand/70 focus:shadow-[0_0_0_3px_rgba(23,49,96,0.12)]";
+const inputCls = `
+  w-full
+
+  rounded-xl
+
+  border
+  border-black/[0.08]
+
+  bg-[#fffafa]
+
+  px-4
+  py-3.5
+
+  text-sm
+  font-medium
+
+  text-brand-deep
+
+  outline-none
+
+  transition-all
+  duration-300
+
+  placeholder:text-slate-400
+
+  hover:border-brand/20
+
+  focus:border-brand/60
+
+  focus:bg-white
+
+  focus:shadow-[0_0_0_4px_rgba(230,0,0,0.09)]
+`;
 
 /* =========================================================
    SOCIAL ICON
@@ -252,6 +298,7 @@ function SocialIcon({
   className,
 }: {
   platform: string;
+
   className?: string;
 }) {
   switch (
@@ -262,28 +309,36 @@ function SocialIcon({
     case "instagram":
       return (
         <FaInstagram
-          className={className}
+          className={
+            className
+          }
         />
       );
 
     case "tiktok":
       return (
         <FaTiktok
-          className={className}
+          className={
+            className
+          }
         />
       );
 
     case "facebook":
       return (
         <FaFacebookF
-          className={className}
+          className={
+            className
+          }
         />
       );
 
     case "youtube":
       return (
         <FaYoutube
-          className={className}
+          className={
+            className
+          }
         />
       );
 
@@ -291,42 +346,54 @@ function SocialIcon({
     case "twitter":
       return (
         <FaXTwitter
-          className={className}
+          className={
+            className
+          }
         />
       );
 
     case "twitch":
       return (
         <FaTwitch
-          className={className}
+          className={
+            className
+          }
         />
       );
 
     case "discord":
       return (
         <FaDiscord
-          className={className}
+          className={
+            className
+          }
         />
       );
 
     case "whatsapp":
       return (
         <FaWhatsapp
-          className={className}
+          className={
+            className
+          }
         />
       );
 
     case "linkedin":
       return (
         <FaLinkedinIn
-          className={className}
+          className={
+            className
+          }
         />
       );
 
     default:
       return (
         <Link2
-          className={className}
+          className={
+            className
+          }
         />
       );
   }
@@ -379,11 +446,6 @@ function getSocialLabel(
 
 /* =========================================================
    HEADING ACCENT
-
-   The original heading highlighted "dream".
-
-   We preserve that behavior for the original title. For custom
-   titles, the second-last word becomes the accent.
    ========================================================= */
 
 function getAccentWord(
@@ -396,11 +458,16 @@ function getAccentWord(
       .filter(Boolean);
 
   if (
-    words.length === 0
+    words.length ===
+    0
   ) {
     return undefined;
   }
 
+  /*
+   * Preserve the original "dream"
+   * highlight when present.
+   */
   const dreamWord =
     words.find(
       (word) =>
@@ -420,11 +487,17 @@ function getAccentWord(
     );
   }
 
+  /*
+   * For custom Admin headings,
+   * accent the second-last word.
+   */
   if (
-    words.length >= 2
+    words.length >=
+    2
   ) {
     return words[
-      words.length - 2
+      words.length -
+        2
     ].replace(
       /[^a-zA-Z0-9]/g,
       ""
@@ -442,7 +515,9 @@ function getAccentWord(
    ========================================================= */
 
 export function Contact({
-  content = DEFAULT_CONTACT_CONTENT,
+  content =
+    DEFAULT_CONTACT_CONTENT,
+
   socialLinks,
 }: {
   content?: ContactSectionContent;
@@ -450,7 +525,7 @@ export function Contact({
   socialLinks?: PublicSocialLink[];
 }) {
   /* =======================================================
-     SECTION VISIBILITY
+     VISIBILITY
      ======================================================= */
 
   if (
@@ -461,16 +536,11 @@ export function Contact({
 
   /* =======================================================
      SOCIAL LINKS
-
-     undefined:
-     homepage has not yet been connected → old icons
-
-     []:
-     database is connected but contains no visible links
      ======================================================= */
 
   const resolvedSocialLinks =
-    socialLinks === undefined
+    socialLinks ===
+    undefined
       ? DEFAULT_SOCIAL_LINKS
       : socialLinks;
 
@@ -492,17 +562,21 @@ export function Contact({
     status,
     setStatus,
   ] = useState<Status>({
-    type: "idle",
-    message: "",
+    type:
+      "idle",
+
+    message:
+      "",
   });
 
   /* =======================================================
-     CONTACT INFO
+     CONTACT INFORMATION
      ======================================================= */
 
   const info = [
     {
-      icon: Mail,
+      icon:
+        Mail,
 
       label:
         content.emailLabel,
@@ -512,7 +586,8 @@ export function Contact({
     },
 
     {
-      icon: Phone,
+      icon:
+        Phone,
 
       label:
         content.phoneLabel,
@@ -522,7 +597,8 @@ export function Contact({
     },
 
     {
-      icon: MapPin,
+      icon:
+        MapPin,
 
       label:
         content.addressLabel,
@@ -532,7 +608,8 @@ export function Contact({
     },
 
     {
-      icon: Clock,
+      icon:
+        Clock,
 
       label:
         content.hoursLabel,
@@ -553,7 +630,9 @@ export function Contact({
     value: string
   ) {
     setForm(
-      (current) => ({
+      (
+        current
+      ) => ({
         ...current,
 
         [key]:
@@ -563,9 +642,7 @@ export function Contact({
   }
 
   /* =======================================================
-     SUBMIT CONTACT MESSAGE
-
-     Existing submitContact behavior is unchanged.
+     SUBMIT
      ======================================================= */
 
   async function onSubmit(
@@ -574,7 +651,9 @@ export function Contact({
     event.preventDefault();
 
     setStatus({
-      type: "loading",
+      type:
+        "loading",
+
       message:
         "Transmitting...",
     });
@@ -588,30 +667,41 @@ export function Contact({
       response.success
     ) {
       setStatus({
-        type: "success",
+        type:
+          "success",
+
         message:
           response.message,
       });
 
       setForm({
-        name: "",
-        email: "",
-        subject: "",
-        message: "",
+        name:
+          "",
+
+        email:
+          "",
+
+        subject:
+          "",
+
+        message:
+          "",
       });
 
       return;
     }
 
     setStatus({
-      type: "error",
+      type:
+        "error",
+
       message:
         response.message,
     });
   }
 
   /* =======================================================
-     PAGE
+     RENDER
      ======================================================= */
 
   return (
@@ -619,62 +709,156 @@ export function Contact({
       id="contact"
       className="
         relative
+
         overflow-hidden
-        bg-white/75
+
+        bg-white
+
         py-24
+
         md:py-32
       "
     >
-      {/* BACKGROUND */}
+      {/* ===================================================
+          TOP RED LINE
+          =================================================== */}
 
       <div
+        aria-hidden="true"
+        className="
+          pointer-events-none
+
+          absolute
+
+          left-1/2
+          top-0
+
+          h-px
+          w-[80%]
+
+          -translate-x-1/2
+
+          bg-gradient-to-r
+
+          from-transparent
+          via-brand/20
+          to-transparent
+        "
+      />
+
+      {/* ===================================================
+          BACKGROUND GRID
+          =================================================== */}
+
+      <div
+        aria-hidden="true"
         className="
           bg-grid
           grid-animated
+
+          pointer-events-none
+
           absolute
           inset-0
+
           -z-10
-          opacity-40
-          [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,black,transparent)]
+
+          opacity-30
+
+          [mask-image:radial-gradient(ellipse_65%_65%_at_50%_50%,black,transparent)]
         "
       />
 
+      {/* ===================================================
+          LEFT RED GLOW
+          =================================================== */}
+
       <div
+        aria-hidden="true"
         className="
           animate-pulse-glow
+
+          pointer-events-none
+
           absolute
+
           -left-40
           bottom-0
+
           -z-10
+
           h-[28rem]
           w-[28rem]
+
           rounded-full
-          bg-brand/15
+
+          bg-brand/[0.07]
+
           blur-[130px]
         "
       />
 
+      {/* ===================================================
+          RIGHT RED GLOW
+          =================================================== */}
+
       <Parallax
-        speed={120}
+        speed={
+          120
+        }
         className="
           pointer-events-none
+
           absolute
+
           -right-32
           top-20
+
           -z-10
+
           h-[22rem]
           w-[22rem]
+
           rounded-full
-          bg-brand/10
+
+          bg-brand-soft/[0.055]
+
           blur-[130px]
         "
       />
+
+      {/* ===================================================
+          RED VIGNETTE
+          =================================================== */}
+
+      <div
+        aria-hidden="true"
+        className="
+          red-vignette
+
+          pointer-events-none
+
+          absolute
+          inset-0
+
+          -z-10
+        "
+      />
+
+      {/* ===================================================
+          CONTENT
+          =================================================== */}
 
       <div
         className="
+          relative
+
           mx-auto
+
           max-w-7xl
+
           px-5
+
           md:px-8
         "
       >
@@ -699,24 +883,36 @@ export function Contact({
           }
         />
 
+        {/* =================================================
+            MAIN GRID
+            ================================================= */}
+
         <div
           className="
             mt-14
+
             grid
+
             gap-8
+
             lg:grid-cols-5
           "
         >
           {/* =================================================
-              LEFT: CONTACT INFORMATION
+              LEFT
               ================================================= */}
 
           <div
             className="
               space-y-4
+
               lg:col-span-2
             "
           >
+            {/* =================================================
+                CONTACT INFORMATION
+                ================================================= */}
+
             {info.map(
               (
                 item,
@@ -738,64 +934,206 @@ export function Contact({
                     <div
                       className="
                         group
+
+                        relative
+
                         flex
+
                         items-center
+
                         gap-4
+
+                        overflow-hidden
+
                         rounded-2xl
+
                         border
-                        border-brand/15
+                        border-black/[0.07]
+
                         bg-white
+
                         p-5
-                        shadow-[0_14px_40px_-32px_rgba(23,49,96,0.35)]
-                        transition-colors
+
+                        shadow-[0_16px_42px_-34px_rgba(0,0,0,0.28)]
+
+                        transition-all
+
                         duration-300
-                        hover:border-brand/40
+
+                        hover:-translate-y-0.5
+
+                        hover:border-brand/25
+
+                        hover:shadow-[0_20px_45px_-32px_rgba(230,0,0,0.28)]
                       "
                     >
+                      {/* =====================================
+                          LEFT RED HOVER LINE
+                          ===================================== */}
+
+                      <span
+                        aria-hidden="true"
+                        className="
+                          absolute
+
+                          left-0
+                          top-1/2
+
+                          h-0
+                          w-[3px]
+
+                          -translate-y-1/2
+
+                          rounded-r-full
+
+                          bg-brand
+
+                          transition-all
+
+                          duration-300
+
+                          group-hover:h-10
+                        "
+                      />
+
+                      {/* =====================================
+                          ICON
+                          ===================================== */}
+
                       <div
                         className="
+                          relative
+                          z-10
+
                           grid
+
                           h-12
                           w-12
+
                           shrink-0
+
                           place-items-center
+
                           rounded-xl
+
                           border
-                          border-brand/30
-                          bg-brand/10
+                          border-brand/15
+
+                          bg-brand/[0.065]
+
                           text-brand
+
+                          shadow-[0_10px_28px_-20px_rgba(230,0,0,0.35)]
+
                           transition-all
+
                           duration-300
-                          group-hover:scale-110
+
+                          group-hover:scale-105
+
+                          group-hover:border-brand
+
                           group-hover:bg-brand
+
                           group-hover:text-white
+
+                          group-hover:shadow-[0_12px_28px_-16px_rgba(230,0,0,0.6)]
                         "
                       >
                         <Icon className="h-5 w-5" />
                       </div>
 
-                      <div>
+                      {/* =====================================
+                          TEXT
+                          ===================================== */}
+
+                      <div
+                        className="
+                          relative
+                          z-10
+
+                          min-w-0
+                        "
+                      >
                         <p
                           className="
-                            text-xs
-                            font-semibold
+                            text-[10px]
+
+                            font-extrabold
+
                             uppercase
-                            tracking-widest
+
+                            tracking-[0.18em]
+
                             text-slate-500
                           "
                         >
-                          {item.label}
+                          {
+                            item.label
+                          }
                         </p>
 
                         <p
                           className="
-                            font-semibold
+                            mt-1
+
+                            break-words
+
+                            text-sm
+
+                            font-bold
+
+                            leading-relaxed
+
                             text-brand-deep
+
+                            transition-colors
+
+                            duration-300
+
+                            group-hover:text-brand
+
+                            sm:text-[15px]
                           "
                         >
-                          {item.value}
+                          {
+                            item.value
+                          }
                         </p>
                       </div>
+
+                      {/* =====================================
+                          GLOW
+                          ===================================== */}
+
+                      <div
+                        aria-hidden="true"
+                        className="
+                          pointer-events-none
+
+                          absolute
+
+                          -right-12
+                          -top-12
+
+                          h-28
+                          w-28
+
+                          rounded-full
+
+                          bg-brand/[0.04]
+
+                          opacity-0
+
+                          blur-2xl
+
+                          transition-opacity
+
+                          duration-300
+
+                          group-hover:opacity-100
+                        "
+                      />
                     </div>
                   </BlurReveal>
                 );
@@ -806,41 +1144,117 @@ export function Contact({
                 SOCIAL MEDIA
                 ================================================= */}
 
-            <BlurReveal delay={0.3}>
+            <BlurReveal
+              delay={
+                0.3
+              }
+            >
               <div
                 className="
+                  relative
+
+                  overflow-hidden
+
                   rounded-2xl
+
                   border
-                  border-brand/20
-                  bg-brand/5
+                  border-brand/15
+
+                  bg-[#fff8f8]
+
                   p-5
                 "
               >
+                {/* ===========================================
+                    DECORATION
+                    =========================================== */}
+
+                <div
+                  aria-hidden="true"
+                  className="
+                    absolute
+
+                    -right-12
+                    -top-12
+
+                    h-28
+                    w-28
+
+                    rounded-full
+
+                    bg-brand/[0.06]
+
+                    blur-2xl
+                  "
+                />
+
+                {/* ===========================================
+                    HEADING
+                    =========================================== */}
+
                 <p
                   className="
+                    relative
+
                     flex
+
                     items-center
+
                     gap-2
+
                     font-display
+
                     text-sm
+
                     font-bold
+
                     uppercase
+
                     tracking-wider
-                    text-brand
+
+                    text-brand-deep
                   "
                 >
-                  <MessageSquare className="h-4 w-4" />
+                  <span
+                    className="
+                      grid
 
-                  {content.socialHeading}
+                      h-8
+                      w-8
+
+                      place-items-center
+
+                      rounded-lg
+
+                      bg-brand
+
+                      text-white
+                    "
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                  </span>
+
+                  {
+                    content.socialHeading
+                  }
                 </p>
+
+                {/* ===========================================
+                    SOCIAL BUTTONS
+                    =========================================== */}
 
                 {resolvedSocialLinks.length >
                 0 ? (
                   <div
                     className="
-                      mt-4
+                      relative
+
+                      mt-5
+
                       flex
+
                       flex-wrap
+
                       gap-3
                     "
                   >
@@ -885,28 +1299,55 @@ export function Contact({
                               )
                             }
                             className="
+                              group/social
+
                               grid
-                              h-10
-                              w-10
+
+                              h-11
+                              w-11
+
                               place-items-center
-                              rounded-lg
+
+                              rounded-xl
+
                               border
-                              border-brand/15
+                              border-black/[0.08]
+
                               bg-white
+
                               text-brand
+
+                              shadow-[0_8px_22px_-18px_rgba(0,0,0,0.3)]
+
                               transition-all
+
                               duration-300
-                              hover:-translate-y-0.5
-                              hover:border-brand/50
+
+                              hover:-translate-y-1
+
+                              hover:border-brand
+
                               hover:bg-brand
+
                               hover:text-white
+
+                              hover:shadow-[0_12px_28px_-16px_rgba(230,0,0,0.6)]
                             "
                           >
                             <SocialIcon
                               platform={
                                 social.platform
                               }
-                              className="h-4 w-4"
+                              className="
+                                h-4
+                                w-4
+
+                                transition-transform
+
+                                duration-300
+
+                                group-hover/social:scale-110
+                              "
                             />
                           </a>
                         );
@@ -916,65 +1357,248 @@ export function Contact({
                 ) : (
                   <p
                     className="
-                      mt-3
-                      text-xs
+                      relative
+
+                      mt-4
+
+                      text-sm
+
+                      leading-relaxed
+
                       text-slate-500
                     "
                   >
                     Follow us for the latest Gamex updates.
                   </p>
                 )}
+
+                {/* ===========================================
+                    BOTTOM RED LINE
+                    =========================================== */}
+
+                <div
+                  aria-hidden="true"
+                  className="
+                    absolute
+
+                    bottom-0
+                    left-0
+
+                    h-[3px]
+                    w-16
+
+                    bg-brand
+                  "
+                />
               </div>
             </BlurReveal>
           </div>
 
           {/* =================================================
-              RIGHT: CONTACT FORM
+              RIGHT — CONTACT FORM
               ================================================= */}
 
           <BlurReveal
-            delay={0.1}
-            className="lg:col-span-3"
+            delay={
+              0.1
+            }
+            className="
+              lg:col-span-3
+            "
           >
             <form
               onSubmit={
                 onSubmit
               }
               className="
+                relative
+
+                overflow-hidden
+
                 rounded-3xl
+
                 border
-                border-brand/15
+                border-black/[0.07]
+
                 bg-white
+
                 p-6
-                shadow-[0_30px_80px_-40px_rgba(23,49,96,0.20)]
+
+                shadow-[0_30px_80px_-42px_rgba(0,0,0,0.28)]
+
                 md:p-8
               "
             >
+              {/* =============================================
+                  RED TOP LINE
+                  ============================================= */}
+
+              <div
+                aria-hidden="true"
+                className="
+                  absolute
+
+                  inset-x-0
+                  top-0
+
+                  h-[3px]
+
+                  bg-gradient-to-r
+
+                  from-transparent
+                  via-brand
+                  to-transparent
+                "
+              />
+
+              {/* =============================================
+                  FORM BACKGROUND GLOW
+                  ============================================= */}
+
+              <div
+                aria-hidden="true"
+                className="
+                  pointer-events-none
+
+                  absolute
+
+                  -right-24
+                  -top-24
+
+                  h-64
+                  w-64
+
+                  rounded-full
+
+                  bg-brand/[0.045]
+
+                  blur-[80px]
+                "
+              />
+
+              {/* =============================================
+                  FORM HEADER
+                  ============================================= */}
+
+              <div
+                className="
+                  relative
+
+                  mb-7
+
+                  border-b
+                  border-black/[0.06]
+
+                  pb-5
+                "
+              >
+                <div
+                  className="
+                    flex
+
+                    items-center
+
+                    gap-3
+                  "
+                >
+                  <div
+                    className="
+                      grid
+
+                      h-10
+                      w-10
+
+                      place-items-center
+
+                      rounded-xl
+
+                      bg-brand
+
+                      text-white
+
+                      shadow-[0_10px_25px_-14px_rgba(230,0,0,0.65)]
+                    "
+                  >
+                    <Send className="h-4 w-4" />
+                  </div>
+
+                  <div>
+                    <p
+                      className="
+                        font-display
+
+                        text-sm
+
+                        font-extrabold
+
+                        uppercase
+
+                        tracking-wider
+
+                        text-brand-deep
+                      "
+                    >
+                      Send us a message
+                    </p>
+
+                    <p
+                      className="
+                        mt-1
+
+                        text-xs
+
+                        text-slate-500
+                      "
+                    >
+                      Tell us what you need and our team will get back to you.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               {/* =============================================
                   NAME + EMAIL
                   ============================================= */}
 
               <div
                 className="
+                  relative
+
                   grid
-                  gap-4
+
+                  gap-5
+
                   sm:grid-cols-2
                 "
               >
+                {/* NAME */}
+
                 <div>
                   <label
                     htmlFor="name"
                     className="
-                      mb-1.5
+                      mb-2
+
                       block
-                      text-xs
-                      font-semibold
+
+                      text-[10px]
+
+                      font-extrabold
+
                       uppercase
-                      tracking-wider
-                      text-slate-600
+
+                      tracking-[0.16em]
+
+                      text-brand-deep
                     "
                   >
-                    {content.nameLabel}
+                    {
+                      content.nameLabel
+                    }
+
+                    <span className="ml-1 text-brand">
+                      *
+                    </span>
                   </label>
 
                   <input
@@ -1002,22 +1626,34 @@ export function Contact({
                   />
                 </div>
 
+                {/* EMAIL */}
+
                 <div>
                   <label
                     htmlFor="email"
                     className="
-                      mb-1.5
+                      mb-2
+
                       block
-                      text-xs
-                      font-semibold
+
+                      text-[10px]
+
+                      font-extrabold
+
                       uppercase
-                      tracking-wider
-                      text-slate-600
+
+                      tracking-[0.16em]
+
+                      text-brand-deep
                     "
                   >
                     {
                       content.formEmailLabel
                     }
+
+                    <span className="ml-1 text-brand">
+                      *
+                    </span>
                   </label>
 
                   <input
@@ -1051,22 +1687,38 @@ export function Contact({
                   SUBJECT
                   ============================================= */}
 
-              <div className="mt-4">
+              <div
+                className="
+                  relative
+
+                  mt-5
+                "
+              >
                 <label
                   htmlFor="subject"
                   className="
-                    mb-1.5
+                    mb-2
+
                     block
-                    text-xs
-                    font-semibold
+
+                    text-[10px]
+
+                    font-extrabold
+
                     uppercase
-                    tracking-wider
-                    text-slate-600
+
+                    tracking-[0.16em]
+
+                    text-brand-deep
                   "
                 >
                   {
                     content.subjectLabel
                   }
+
+                  <span className="ml-1 text-brand">
+                    *
+                  </span>
                 </label>
 
                 <input
@@ -1098,22 +1750,38 @@ export function Contact({
                   MESSAGE
                   ============================================= */}
 
-              <div className="mt-4">
+              <div
+                className="
+                  relative
+
+                  mt-5
+                "
+              >
                 <label
                   htmlFor="message"
                   className="
-                    mb-1.5
+                    mb-2
+
                     block
-                    text-xs
-                    font-semibold
+
+                    text-[10px]
+
+                    font-extrabold
+
                     uppercase
-                    tracking-wider
-                    text-slate-600
+
+                    tracking-[0.16em]
+
+                    text-brand-deep
                   "
                 >
                   {
                     content.messageLabel
                   }
+
+                  <span className="ml-1 text-brand">
+                    *
+                  </span>
                 </label>
 
                 <textarea
@@ -1134,68 +1802,194 @@ export function Contact({
                   placeholder={
                     content.messagePlaceholder
                   }
-                  rows={5}
-                  className={`${inputCls} resize-none`}
+                  rows={
+                    5
+                  }
+                  className={`
+                    ${inputCls}
+
+                    resize-none
+                  `}
                   required
                 />
               </div>
 
               {/* =============================================
-                  SUBMIT
+                  SUBMIT AREA
                   ============================================= */}
 
-              <button
-                type="submit"
-                disabled={
-                  status.type ===
-                  "loading"
-                }
+              <div
                 className="
+                  relative
+
                   mt-6
-                  inline-flex
-                  w-full
-                  items-center
-                  justify-center
-                  gap-2
-                  rounded-xl
-                  bg-brand
-                  px-6
-                  py-4
-                  font-display
-                  text-sm
-                  font-bold
-                  uppercase
-                  tracking-widest
-                  text-white
-                  transition-all
-                  duration-300
-                  hover:bg-brand-soft
-                  hover:shadow-[0_0_40px_rgba(23,49,96,0.28)]
-                  disabled:cursor-not-allowed
-                  disabled:opacity-70
-                  sm:w-auto
+
+                  flex
+
+                  flex-col
+
+                  gap-4
+
+                  sm:flex-row
+                  sm:items-center
                 "
               >
-                {status.type ===
-                "loading" ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                <button
+                  type="submit"
+                  disabled={
+                    status.type ===
+                    "loading"
+                  }
+                  className="
+                    group
 
-                    Sending...
-                  </>
-                ) : (
-                  <>
-                    <Send className="h-4 w-4" />
+                    relative
 
-                    {
-                      content.submitButtonText
-                    }
-                  </>
-                )}
-              </button>
+                    inline-flex
+
+                    w-full
+
+                    items-center
+
+                    justify-center
+
+                    gap-2.5
+
+                    overflow-hidden
+
+                    rounded-xl
+
+                    bg-brand
+
+                    px-7
+                    py-4
+
+                    font-display
+
+                    text-xs
+
+                    font-bold
+
+                    uppercase
+
+                    tracking-[0.15em]
+
+                    text-white
+
+                    shadow-[0_15px_38px_-18px_rgba(230,0,0,0.72)]
+
+                    transition-all
+
+                    duration-300
+
+                    hover:-translate-y-0.5
+
+                    hover:bg-[#c90000]
+
+                    hover:shadow-[0_20px_44px_-18px_rgba(230,0,0,0.85)]
+
+                    focus:outline-none
+
+                    focus:ring-4
+
+                    focus:ring-brand/15
+
+                    disabled:cursor-not-allowed
+
+                    disabled:opacity-65
+
+                    disabled:hover:translate-y-0
+
+                    sm:w-auto
+                  "
+                >
+                  {/* =========================================
+                      BUTTON SHINE
+                      ========================================= */}
+
+                  <span
+                    aria-hidden="true"
+                    className="
+                      absolute
+
+                      -left-12
+                      top-0
+
+                      h-full
+                      w-10
+
+                      -skew-x-12
+
+                      bg-white/20
+
+                      transition-all
+
+                      duration-700
+
+                      group-hover:left-[120%]
+                    "
+                  />
+
+                  {status.type ===
+                  "loading" ? (
+                    <>
+                      <Loader2
+                        className="
+                          relative
+
+                          h-4
+                          w-4
+
+                          animate-spin
+                        "
+                      />
+
+                      <span className="relative">
+                        Sending...
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <Send
+                        className="
+                          relative
+
+                          h-4
+                          w-4
+
+                          transition-transform
+
+                          duration-300
+
+                          group-hover:translate-x-0.5
+                          group-hover:-translate-y-0.5
+                        "
+                      />
+
+                      <span className="relative">
+                        {
+                          content.submitButtonText
+                        }
+                      </span>
+                    </>
+                  )}
+                </button>
+
+                <p
+                  className="
+                    text-xs
+
+                    leading-relaxed
+
+                    text-slate-400
+                  "
+                >
+                  We normally reply within 24 hours.
+                </p>
+              </div>
 
               {/* =============================================
-                  SUCCESS / ERROR
+                  SUCCESS / ERROR MESSAGE
                   ============================================= */}
 
               <AnimatePresence>
@@ -1205,47 +1999,102 @@ export function Contact({
                   "error" ? (
                   <motion.div
                     initial={{
-                      opacity: 0,
-                      y: 10,
+                      opacity:
+                        0,
+
+                      y:
+                        10,
                     }}
                     animate={{
-                      opacity: 1,
-                      y: 0,
+                      opacity:
+                        1,
+
+                      y:
+                        0,
                     }}
                     exit={{
-                      opacity: 0,
-                      y: -6,
+                      opacity:
+                        0,
+
+                      y:
+                        -6,
+                    }}
+                    transition={{
+                      duration:
+                        0.25,
                     }}
                     className={`
-                      mt-4
+                      relative
+
+                      mt-5
+
                       flex
-                      items-center
-                      gap-2
+
+                      items-start
+
+                      gap-3
+
                       rounded-xl
+
                       border
+
                       px-4
-                      py-3
+                      py-3.5
+
                       text-sm
+
                       font-semibold
 
                       ${
                         status.type ===
                         "success"
-                          ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700"
-                          : "border-brand/30 bg-brand/10 text-brand"
+                          ? `
+                            border-emerald-500/25
+                            bg-emerald-50
+                            text-emerald-700
+                          `
+                          : `
+                            border-brand/25
+                            bg-brand/[0.06]
+                            text-brand
+                          `
                       }
                     `}
                   >
                     {status.type ===
                     "success" ? (
-                      <CheckCircle2 className="h-5 w-5 shrink-0" />
+                      <CheckCircle2
+                        className="
+                          mt-0.5
+
+                          h-5
+                          w-5
+
+                          shrink-0
+                        "
+                      />
                     ) : (
-                      <AlertTriangle className="h-5 w-5 shrink-0" />
+                      <AlertTriangle
+                        className="
+                          mt-0.5
+
+                          h-5
+                          w-5
+
+                          shrink-0
+                        "
+                      />
                     )}
 
-                    {
-                      status.message
-                    }
+                    <span
+                      className="
+                        leading-relaxed
+                      "
+                    >
+                      {
+                        status.message
+                      }
+                    </span>
                   </motion.div>
                 ) : null}
               </AnimatePresence>
@@ -1253,6 +2102,33 @@ export function Contact({
           </BlurReveal>
         </div>
       </div>
+
+      {/* ===================================================
+          BOTTOM RED DIVIDER
+          =================================================== */}
+
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none
+
+          absolute
+
+          bottom-0
+          left-1/2
+
+          h-px
+          w-[80%]
+
+          -translate-x-1/2
+
+          bg-gradient-to-r
+
+          from-transparent
+          via-brand/15
+          to-transparent
+        "
+      />
     </section>
   );
 }

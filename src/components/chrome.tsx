@@ -16,9 +16,7 @@ import {
 
 import Lenis from "lenis";
 
-import {
-  GlitchText,
-} from "./ui";
+import gamexLogo from "@/app/logo.png";
 
 import {
   GlobalBackground,
@@ -43,7 +41,7 @@ export function useReady() {
 }
 
 /* =========================================================
-   CHROME WRAPPER
+   CHROME
    ========================================================= */
 
 export function Chrome({
@@ -54,31 +52,25 @@ export function Chrome({
   const [
     ready,
     setReady,
-  ] = useState(false);
+  ] =
+    useState(false);
 
   const onDone =
     useCallback(
       () => {
-        setReady(true);
+        setReady(
+          true
+        );
       },
       []
     );
 
   return (
     <ReadyContext.Provider
-      value={ready}
+      value={
+        ready
+      }
     >
-      {/* ===================================================
-          IMPORTANT
-
-          The old JavaScript CustomCursor has been removed.
-
-          Cursor rendering is now handled natively by CSS
-          inside globals.css.
-
-          This eliminates mouse-following JavaScript lag.
-          =================================================== */}
-
       <SmoothScroll />
 
       <GlobalBackground />
@@ -108,12 +100,14 @@ function Preloader({
   const [
     count,
     setCount,
-  ] = useState(0);
+  ] =
+    useState(0);
 
   const [
     done,
     setDone,
-  ] = useState(false);
+  ] =
+    useState(false);
 
   /* =======================================================
      LOADING COUNTER
@@ -134,7 +128,8 @@ function Preloader({
       time: number
     ) => {
       if (
-        start === null
+        start ===
+        null
       ) {
         start =
           time;
@@ -143,32 +138,36 @@ function Preloader({
       const progress =
         Math.min(
           1,
-          (time - start) /
+          (time -
+            start) /
             duration
         );
 
       const eased =
         1 -
         Math.pow(
-          1 - progress,
+          1 -
+            progress,
           3
         );
 
       setCount(
         Math.round(
-          eased * 100
+          eased *
+            100
         )
       );
 
       if (
-        progress < 1
+        progress <
+        1
       ) {
         raf =
           requestAnimationFrame(
             tick
           );
       } else {
-        setTimeout(
+        window.setTimeout(
           () => {
             setDone(
               true
@@ -191,10 +190,12 @@ function Preloader({
         raf
       );
     };
-  }, [onDone]);
+  }, [
+    onDone,
+  ]);
 
   /* =======================================================
-     LOCK SCROLL DURING PRELOADER
+     LOCK SCROLL
      ======================================================= */
 
   useEffect(() => {
@@ -207,7 +208,9 @@ function Preloader({
       document.body.style.overflow =
         "";
     };
-  }, [done]);
+  }, [
+    done,
+  ]);
 
   /* =======================================================
      RENDER
@@ -221,10 +224,15 @@ function Preloader({
             fixed
             inset-0
             z-[100]
+
             flex
             flex-col
+
             items-center
             justify-center
+
+            overflow-hidden
+
             bg-white
           "
           exit={{
@@ -244,41 +252,112 @@ function Preloader({
             },
           }}
         >
-          {/* ===============================================
-              GAMEX
-              =============================================== */}
+          {/* RED BACKGROUND GLOW */}
 
-          <GlitchText
-            text="GAMEX"
+          <div
+            aria-hidden="true"
             className="
-              font-display
-              text-5xl
-              font-black
-              tracking-[0.18em]
-              text-brand-deep
-              md:text-7xl
+              pointer-events-none
+
+              absolute
+
+              left-1/2
+              top-1/2
+
+              h-[28rem]
+              w-[28rem]
+
+              -translate-x-1/2
+              -translate-y-1/2
+
+              rounded-full
+
+              bg-brand/[0.07]
+
+              blur-[120px]
             "
           />
 
-          {/* ===============================================
-              PROGRESS BAR
-              =============================================== */}
+          {/* LOGO */}
+
+          <motion.div
+            initial={{
+              opacity:
+                0,
+
+              scale:
+                0.92,
+            }}
+            animate={{
+              opacity:
+                1,
+
+              scale:
+                1,
+            }}
+            transition={{
+              duration:
+                0.45,
+
+              ease: [
+                0.22,
+                1,
+                0.36,
+                1,
+              ],
+            }}
+            className="
+              relative
+            "
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+
+            <img
+              src={
+                gamexLogo.src
+              }
+              alt="Gamex"
+              className="
+                h-auto
+
+                w-[220px]
+
+                object-contain
+
+                sm:w-[280px]
+
+                md:w-[330px]
+              "
+            />
+          </motion.div>
+
+          {/* PROGRESS */}
 
           <div
             className="
+              relative
+
               mt-8
+
               h-1
               w-56
+
               overflow-hidden
+
               rounded-full
+
               bg-brand/10
+
+              sm:w-64
             "
           >
             <motion.div
               className="
                 h-full
+
                 bg-gradient-to-r
-                from-brand-deep
+
+                from-black
                 via-brand
                 to-brand-soft
               "
@@ -289,17 +368,22 @@ function Preloader({
             />
           </div>
 
-          {/* ===============================================
-              PERCENTAGE
-              =============================================== */}
+          {/* PERCENTAGE */}
 
           <div
             className="
+              relative
+
               mt-4
+
               font-display
+
               text-sm
+
               font-bold
+
               tracking-[0.35em]
+
               text-brand
             "
           >
@@ -317,10 +401,6 @@ function Preloader({
 
 function SmoothScroll() {
   useEffect(() => {
-    /* =====================================================
-       RESPECT REDUCED MOTION
-       ===================================================== */
-
     if (
       window.matchMedia(
         "(prefers-reduced-motion: reduce)"
@@ -328,10 +408,6 @@ function SmoothScroll() {
     ) {
       return;
     }
-
-    /* =====================================================
-       LENIS
-       ===================================================== */
 
     const lenis =
       new Lenis({
@@ -344,10 +420,6 @@ function SmoothScroll() {
 
     let raf =
       0;
-
-    /* =====================================================
-       LENIS ANIMATION LOOP
-       ===================================================== */
 
     const loop = (
       time: number
@@ -368,7 +440,7 @@ function SmoothScroll() {
       );
 
     /* =====================================================
-       INTERNAL ANCHOR SCROLLING
+       INTERNAL HASH LINKS
        ===================================================== */
 
     const onClick = (
@@ -379,9 +451,7 @@ function SmoothScroll() {
           | HTMLElement
           | null;
 
-      if (
-        !target
-      ) {
+      if (!target) {
         return;
       }
 
@@ -392,9 +462,7 @@ function SmoothScroll() {
           | HTMLAnchorElement
           | null;
 
-      if (
-        !anchor
-      ) {
+      if (!anchor) {
         return;
       }
 
@@ -437,10 +505,6 @@ function SmoothScroll() {
       "click",
       onClick
     );
-
-    /* =====================================================
-       CLEANUP
-       ===================================================== */
 
     return () => {
       cancelAnimationFrame(

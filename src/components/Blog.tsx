@@ -50,13 +50,51 @@ export function Blog({
       className="
         relative
         overflow-hidden
-        bg-[#fbfcfe]/80
+        bg-[#fffafa]
         py-24
         md:py-32
       "
     >
       {/* ===================================================
-          BACKGROUND EFFECT
+          TOP RED DIVIDER
+          =================================================== */}
+
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none
+          absolute
+          left-1/2
+          top-0
+          h-px
+          w-[80%]
+          -translate-x-1/2
+          bg-gradient-to-r
+          from-transparent
+          via-brand/20
+          to-transparent
+        "
+      />
+
+      {/* ===================================================
+          BACKGROUND GRID
+          =================================================== */}
+
+      <div
+        aria-hidden="true"
+        className="
+          bg-grid
+          pointer-events-none
+          absolute
+          inset-0
+          -z-10
+          opacity-25
+          [mask-image:radial-gradient(ellipse_75%_70%_at_50%_50%,black,transparent)]
+        "
+      />
+
+      {/* ===================================================
+          LEFT RED PARALLAX GLOW
           =================================================== */}
 
       <Parallax
@@ -70,13 +108,38 @@ export function Blog({
           h-[24rem]
           w-[24rem]
           rounded-full
-          bg-brand/10
+          bg-brand/[0.07]
           blur-[130px]
         "
       />
 
+      {/* ===================================================
+          RIGHT RED GLOW
+          =================================================== */}
+
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none
+          absolute
+          -right-40
+          bottom-12
+          -z-10
+          h-[28rem]
+          w-[28rem]
+          rounded-full
+          bg-brand-soft/[0.05]
+          blur-[140px]
+        "
+      />
+
+      {/* ===================================================
+          CONTENT
+          =================================================== */}
+
       <div
         className="
+          relative
           mx-auto
           max-w-7xl
           px-5
@@ -130,20 +193,43 @@ export function Blog({
                     <SpotlightCard
                       className="
                         group
+                        relative
                         flex
                         h-full
                         flex-col
+                        overflow-hidden
                         rounded-2xl
                         border
-                        border-brand/15
+                        border-black/[0.07]
                         bg-white
-                        shadow-[0_18px_55px_-38px_rgba(23,49,96,0.30)]
+                        shadow-[0_20px_55px_-38px_rgba(0,0,0,0.25)]
                         transition-all
                         duration-300
-                        hover:-translate-y-1
-                        hover:border-brand/30
+                        hover:-translate-y-1.5
+                        hover:border-brand/25
+                        hover:shadow-[0_28px_65px_-38px_rgba(230,0,0,0.32)]
                       "
                     >
+                      {/* =====================================
+                          RED TOP HOVER LINE
+                          ===================================== */}
+
+                      <div
+                        aria-hidden="true"
+                        className="
+                          absolute
+                          left-0
+                          top-0
+                          z-20
+                          h-[3px]
+                          w-0
+                          bg-brand
+                          transition-all
+                          duration-500
+                          group-hover:w-full
+                        "
+                      />
+
                       {/* =====================================
                           IMAGE
                           ===================================== */}
@@ -155,9 +241,11 @@ export function Blog({
                           block
                           aspect-[16/10]
                           overflow-hidden
+                          bg-[#fff5f5]
                         "
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
+
                         <img
                           src={
                             post.image
@@ -173,37 +261,64 @@ export function Blog({
                             transition-transform
                             duration-700
                             ease-out
-                            group-hover:scale-110
+                            group-hover:scale-105
                           "
                         />
 
+                        {/* ===================================
+                            IMAGE DARK GRADIENT
+                            =================================== */}
+
                         <div
+                          aria-hidden="true"
                           className="
                             absolute
                             inset-0
                             bg-gradient-to-t
-                            from-white
+                            from-black/45
+                            via-black/[0.03]
+                            to-transparent
+                          "
+                        />
+
+                        {/* ===================================
+                            RED IMAGE TINT
+                            =================================== */}
+
+                        <div
+                          aria-hidden="true"
+                          className="
+                            absolute
+                            inset-0
+                            bg-gradient-to-tr
+                            from-brand/[0.08]
                             via-transparent
                             to-transparent
                           "
                         />
 
-                        {/* CATEGORY */}
+                        {/* ===================================
+                            CATEGORY
+                            =================================== */}
 
                         <span
                           className="
                             absolute
                             left-3
                             top-3
-                            rounded-md
-                            bg-brand/90
-                            px-2.5
-                            py-1
-                            text-[11px]
-                            font-bold
+                            rounded-full
+                            border
+                            border-white/25
+                            bg-brand
+                            px-3
+                            py-1.5
+                            text-[10px]
+                            font-extrabold
                             uppercase
                             tracking-wider
                             text-white
+                            shadow-[0_10px_25px_-14px_rgba(230,0,0,0.65)]
+                            backdrop-blur-md
                           "
                         >
                           {
@@ -224,7 +339,9 @@ export function Blog({
                           p-5
                         "
                       >
-                        {/* DATE / READ TIME */}
+                        {/* ===================================
+                            DATE / READ TIME
+                            =================================== */}
 
                         <div
                           className="
@@ -233,7 +350,8 @@ export function Blog({
                             items-center
                             gap-x-4
                             gap-y-2
-                            text-xs
+                            text-[10px]
+                            font-bold
                             uppercase
                             tracking-wider
                             text-slate-500
@@ -243,10 +361,16 @@ export function Blog({
                             className="
                               inline-flex
                               items-center
-                              gap-1
+                              gap-1.5
                             "
                           >
-                            <CalendarDays className="h-3.5 w-3.5" />
+                            <CalendarDays
+                              className="
+                                h-3.5
+                                w-3.5
+                                text-brand
+                              "
+                            />
 
                             {
                               post.date
@@ -257,10 +381,16 @@ export function Blog({
                             className="
                               inline-flex
                               items-center
-                              gap-1
+                              gap-1.5
                             "
                           >
-                            <Clock className="h-3.5 w-3.5" />
+                            <Clock
+                              className="
+                                h-3.5
+                                w-3.5
+                                text-brand
+                              "
+                            />
 
                             {
                               post.readTime
@@ -268,7 +398,9 @@ export function Blog({
                           </span>
                         </div>
 
-                        {/* TITLE */}
+                        {/* ===================================
+                            TITLE
+                            =================================== */}
 
                         <Link
                           href={`/blog/${post.slug}`}
@@ -276,13 +408,14 @@ export function Blog({
                         >
                           <h3
                             className="
-                              mt-3
+                              mt-4
                               font-display
                               text-base
-                              font-bold
+                              font-extrabold
                               leading-snug
                               text-brand-deep
                               transition-colors
+                              duration-300
                               group-hover:text-brand
                             "
                           >
@@ -292,11 +425,32 @@ export function Blog({
                           </h3>
                         </Link>
 
-                        {/* EXCERPT */}
+                        {/* ===================================
+                            RED DIVIDER
+                            =================================== */}
+
+                        <div
+                          className="
+                            mt-3
+                            h-[2px]
+                            w-7
+                            rounded-full
+                            bg-brand/30
+                            transition-all
+                            duration-300
+                            group-hover:w-11
+                            group-hover:bg-brand
+                          "
+                        />
+
+                        {/* ===================================
+                            EXCERPT
+                            =================================== */}
 
                         <p
                           className="
-                            mt-2
+                            mt-3
+                            line-clamp-3
                             text-sm
                             leading-relaxed
                             text-slate-600
@@ -311,39 +465,78 @@ export function Blog({
                             ARTICLE LINK
                             =================================== */}
 
-                        <Link
-                          href={`/blog/${post.slug}`}
+                        <div
                           className="
                             mt-auto
-                            inline-flex
-                            items-center
-                            gap-1.5
-                            pt-4
-                            text-sm
-                            font-bold
-                            uppercase
-                            tracking-wider
-                            text-brand
-                            transition-colors
-                            hover:text-brand-soft
+                            pt-5
                           "
                         >
-                          {
-                            content.readMoreText
-                          }
-
-                          <ArrowUpRight
+                          <Link
+                            href={`/blog/${post.slug}`}
                             className="
-                              h-4
-                              w-4
-                              transition-transform
+                              inline-flex
+                              w-full
+                              items-center
+                              justify-between
+                              gap-2
+                              rounded-xl
+                              border
+                              border-black/[0.07]
+                              bg-[#fff8f8]
+                              px-4
+                              py-3
+                              text-[11px]
+                              font-extrabold
+                              uppercase
+                              tracking-wider
+                              text-brand-deep
+                              transition-all
                               duration-300
-                              group-hover:translate-x-0.5
-                              group-hover:-translate-y-0.5
+                              hover:border-brand
+                              hover:bg-brand
+                              hover:text-white
+                              hover:shadow-[0_12px_30px_-18px_rgba(230,0,0,0.65)]
                             "
-                          />
-                        </Link>
+                          >
+                            {
+                              content.readMoreText
+                            }
+
+                            <ArrowUpRight
+                              className="
+                                h-4
+                                w-4
+                                transition-transform
+                                duration-300
+                                group-hover:translate-x-0.5
+                                group-hover:-translate-y-0.5
+                              "
+                            />
+                          </Link>
+                        </div>
                       </div>
+
+                      {/* =====================================
+                          BOTTOM DECORATION
+                          ===================================== */}
+
+                      <div
+                        aria-hidden="true"
+                        className="
+                          pointer-events-none
+                          absolute
+                          -bottom-10
+                          -right-10
+                          h-24
+                          w-24
+                          rounded-full
+                          bg-brand/[0.035]
+                          blur-2xl
+                          transition-all
+                          duration-500
+                          group-hover:bg-brand/[0.08]
+                        "
+                      />
                     </SpotlightCard>
                   </BlurReveal>
                 )
@@ -366,35 +559,57 @@ export function Blog({
                 href="/blog"
                 className="
                   group
+                  relative
                   inline-flex
                   items-center
                   justify-center
                   gap-3
+                  overflow-hidden
                   rounded-xl
-                  border
-                  border-brand/20
-                  bg-white
-                  px-6
+                  bg-brand
+                  px-7
                   py-3.5
                   font-display
                   text-xs
                   font-bold
                   uppercase
                   tracking-[0.15em]
-                  text-brand
-                  shadow-[0_15px_40px_-28px_rgba(23,49,96,0.35)]
+                  text-white
+                  shadow-[0_15px_38px_-18px_rgba(230,0,0,0.7)]
                   transition-all
                   duration-300
                   hover:-translate-y-0.5
-                  hover:border-brand
-                  hover:bg-brand
-                  hover:text-white
+                  hover:bg-[#c90000]
+                  hover:shadow-[0_20px_42px_-18px_rgba(230,0,0,0.8)]
                 "
               >
-                View All Articles
+                {/* ===========================================
+                    BUTTON SHINE
+                    =========================================== */}
+
+                <span
+                  aria-hidden="true"
+                  className="
+                    absolute
+                    -left-12
+                    top-0
+                    h-full
+                    w-10
+                    -skew-x-12
+                    bg-white/20
+                    transition-all
+                    duration-700
+                    group-hover:left-[120%]
+                  "
+                />
+
+                <span className="relative">
+                  View All Articles
+                </span>
 
                 <ArrowRight
                   className="
+                    relative
                     h-4
                     w-4
                     transition-transform
@@ -416,15 +631,41 @@ export function Blog({
               rounded-2xl
               border
               border-dashed
-              border-brand/15
-              bg-white/60
+              border-brand/20
+              bg-white
               px-6
-              py-12
+              py-14
               text-center
+              shadow-[0_18px_50px_-40px_rgba(230,0,0,0.3)]
             "
           >
+            <div
+              className="
+                mx-auto
+                h-[3px]
+                w-12
+                rounded-full
+                bg-brand
+              "
+            />
+
             <p
               className="
+                mt-5
+                font-display
+                text-sm
+                font-bold
+                uppercase
+                tracking-wider
+                text-brand-deep
+              "
+            >
+              No Blog Articles
+            </p>
+
+            <p
+              className="
+                mt-2
                 text-sm
                 text-slate-500
               "
@@ -434,6 +675,27 @@ export function Blog({
           </div>
         )}
       </div>
+
+      {/* ===================================================
+          BOTTOM RED DIVIDER
+          =================================================== */}
+
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none
+          absolute
+          bottom-0
+          left-1/2
+          h-px
+          w-[80%]
+          -translate-x-1/2
+          bg-gradient-to-r
+          from-transparent
+          via-brand/15
+          to-transparent
+        "
+      />
     </section>
   );
 }

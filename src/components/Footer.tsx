@@ -4,7 +4,10 @@ import type {
 
 import {
   ArrowUp,
-  Gamepad2,
+  Mail,
+  MapPin,
+  Phone,
+  Zap,
 } from "lucide-react";
 
 import {
@@ -18,6 +21,8 @@ import {
   FaXTwitter,
   FaYoutube,
 } from "react-icons/fa6";
+
+import gamexLogo from "@/app/logo.png";
 
 /* =========================================================
    TYPES
@@ -70,7 +75,7 @@ export type PublicFooterSocialLink = {
 };
 
 /* =========================================================
-   ORIGINAL FOOTER CONTENT
+   DEFAULT FOOTER CONTENT
    ========================================================= */
 
 export const DEFAULT_FOOTER_CONTENT: FooterContent = {
@@ -127,7 +132,7 @@ export const DEFAULT_FOOTER_CONTENT: FooterContent = {
 };
 
 /* =========================================================
-   ORIGINAL FOOTER LINKS
+   DEFAULT FOOTER LINKS
    ========================================================= */
 
 export const DEFAULT_FOOTER_LINKS: PublicFooterLink[] = [
@@ -199,7 +204,7 @@ export const DEFAULT_FOOTER_LINKS: PublicFooterLink[] = [
 ];
 
 /* =========================================================
-   ORIGINAL SOCIAL LINKS
+   DEFAULT SOCIAL LINKS
    ========================================================= */
 
 export const DEFAULT_FOOTER_SOCIAL_LINKS: PublicFooterSocialLink[] =
@@ -278,6 +283,9 @@ const SOCIAL_ICONS:
     x:
       FaXTwitter,
 
+    twitter:
+      FaXTwitter,
+
     twitch:
       FaTwitch,
 
@@ -315,6 +323,9 @@ const SOCIAL_LABELS:
     x:
       "X",
 
+    twitter:
+      "X",
+
     twitch:
       "Twitch",
 
@@ -342,51 +353,6 @@ function isExternalLink(
     href.startsWith(
       "http://"
     )
-  );
-}
-
-/* =========================================================
-   BRAND TEXT FALLBACK
-   ========================================================= */
-
-function BrandText({
-  text,
-}: {
-  text: string;
-}) {
-  if (!text) {
-    return null;
-  }
-
-  if (
-    text.length === 1
-  ) {
-    return (
-      <span className="text-brand">
-        {text}
-      </span>
-    );
-  }
-
-  const normalText =
-    text.slice(
-      0,
-      -1
-    );
-
-  const accentCharacter =
-    text.slice(
-      -1
-    );
-
-  return (
-    <>
-      {normalText}
-
-      <span className="text-brand">
-        {accentCharacter}
-      </span>
-    </>
   );
 }
 
@@ -433,6 +399,20 @@ export function Footer({
       : socialLinks;
 
   /* =======================================================
+     LOGO
+
+     Admin logo has priority.
+
+     If Admin logo is empty:
+     use src/app/logo.png
+     ======================================================= */
+
+  const logoSrc =
+    content.logoImage?.trim()
+      ? content.logoImage
+      : gamexLogo.src;
+
+  /* =======================================================
      COPYRIGHT YEAR
      ======================================================= */
 
@@ -455,25 +435,137 @@ export function Footer({
     <footer
       className="
         relative
+
+        overflow-hidden
+
         border-t
-        border-brand/10
-        bg-[#f7f9fc]
+        border-brand/15
+
+        bg-[#fff8f8]
       "
     >
+      {/* ===================================================
+          RED TOP LINE
+          =================================================== */}
+
+      <div
+        aria-hidden="true"
+        className="
+          absolute
+
+          left-1/2
+          top-0
+
+          h-[2px]
+          w-[80%]
+
+          -translate-x-1/2
+
+          bg-gradient-to-r
+
+          from-transparent
+          via-brand
+          to-transparent
+        "
+      />
+
+      {/* ===================================================
+          BACKGROUND GRID
+          =================================================== */}
+
+      <div
+        aria-hidden="true"
+        className="
+          bg-grid
+
+          pointer-events-none
+
+          absolute
+          inset-0
+
+          opacity-20
+
+          [mask-image:radial-gradient(ellipse_75%_80%_at_50%_45%,black,transparent)]
+        "
+      />
+
+      {/* ===================================================
+          LEFT RED GLOW
+          =================================================== */}
+
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none
+
+          absolute
+
+          -left-40
+          bottom-0
+
+          h-[28rem]
+          w-[28rem]
+
+          rounded-full
+
+          bg-brand/[0.055]
+
+          blur-[140px]
+        "
+      />
+
+      {/* ===================================================
+          RIGHT RED GLOW
+          =================================================== */}
+
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none
+
+          absolute
+
+          -right-40
+          top-10
+
+          h-[26rem]
+          w-[26rem]
+
+          rounded-full
+
+          bg-brand-soft/[0.045]
+
+          blur-[140px]
+        "
+      />
+
+      {/* ===================================================
+          MAIN FOOTER
+          =================================================== */}
+
       <div
         className="
+          relative
+
           mx-auto
+
           max-w-7xl
+
           px-5
-          py-14
+          py-16
+
           md:px-8
+          md:py-20
         "
       >
         <div
           className="
             grid
+
             gap-10
-            md:grid-cols-3
+
+            lg:grid-cols-[1.3fr_0.8fr_1fr]
+            lg:gap-14
           "
         >
           {/* =================================================
@@ -481,6 +573,10 @@ export function Footer({
               ================================================= */}
 
           <div>
+            {/* ===============================================
+                LOGO
+                =============================================== */}
+
             <a
               href={
                 content.brandHref
@@ -506,91 +602,73 @@ export function Footer({
               }
               className="
                 group
+
+                relative
+
                 inline-flex
+
                 items-center
               "
             >
-              {/* ===============================================
-                  CUSTOM HORIZONTAL LOGO
-                  =============================================== */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
 
-              {content.logoImage ? (
-                // Admin-controlled logo URL.
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={
-                    content.logoImage
-                  }
-                  alt={
-                    content.logoAlt ||
-                    "Gamex"
-                  }
-                  className="
-                    h-auto
-                    w-[150px]
-                    object-contain
-                    object-left
-                    transition-transform
-                    duration-300
-                    group-hover:scale-[1.03]
+              <img
+                src={
+                  logoSrc
+                }
+                alt={
+                  content.logoAlt ||
+                  "Gamex"
+                }
+                className="
+                  h-auto
 
-                    sm:w-[165px]
+                  w-[170px]
 
-                    md:w-[175px]
+                  object-contain
+                  object-left
 
-                    lg:w-[190px]
-                  "
-                />
-              ) : (
-                /* =============================================
-                   FALLBACK OLD BRAND
-                   ============================================= */
+                  transition-all
+                  duration-300
 
-                <div
-                  className="
-                    flex
-                    items-center
-                    gap-2.5
-                  "
-                >
-                  <span
-                    className="
-                      grid
-                      h-9
-                      w-9
-                      shrink-0
-                      place-items-center
-                      rounded-lg
-                      bg-brand
-                      text-white
-                      shadow-[0_0_22px_rgba(23,49,96,0.28)]
-                    "
-                  >
-                    <Gamepad2
-                      className="
-                        h-5
-                        w-5
-                      "
-                    />
-                  </span>
+                  group-hover:scale-[1.035]
 
-                  <span
-                    className="
-                      font-display
-                      text-xl
-                      font-extrabold
-                      tracking-widest
-                      text-brand-deep
-                    "
-                  >
-                    <BrandText
-                      text={
-                        content.brandText
-                      }
-                    />
-                  </span>
-                </div>
-              )}
+                  sm:w-[190px]
+
+                  lg:w-[210px]
+                "
+              />
+
+              {/* =============================================
+                  LOGO RED GLOW
+                  ============================================= */}
+
+              <span
+                aria-hidden="true"
+                className="
+                  pointer-events-none
+
+                  absolute
+
+                  inset-x-[12%]
+                  -bottom-3
+
+                  h-4
+
+                  rounded-full
+
+                  bg-brand/15
+
+                  opacity-0
+
+                  blur-xl
+
+                  transition-opacity
+                  duration-300
+
+                  group-hover:opacity-100
+                "
+              />
             </a>
 
             {/* ===============================================
@@ -599,17 +677,73 @@ export function Footer({
 
             <p
               className="
-                mt-5
-                max-w-xs
+                mt-6
+
+                max-w-sm
+
                 text-sm
-                leading-relaxed
-                text-slate-500
+
+                font-medium
+
+                leading-7
+
+                text-slate-600
               "
             >
               {
                 content.description
               }
             </p>
+
+            {/* ===============================================
+                BRAND STRIPE
+                =============================================== */}
+
+            <div
+              aria-hidden="true"
+              className="
+                mt-6
+
+                flex
+
+                items-center
+
+                gap-2
+              "
+            >
+              <span
+                className="
+                  h-[3px]
+                  w-12
+
+                  rounded-full
+
+                  bg-brand
+                "
+              />
+
+              <span
+                className="
+                  h-[3px]
+                  w-5
+
+                  rounded-full
+
+                  bg-black/70
+                "
+              />
+
+              <span
+                className="
+                  h-[3px]
+                  w-2
+
+                  rounded-full
+
+                  bg-brand/35
+                "
+              />
+            </div>
 
             {/* ===============================================
                 SOCIAL LINKS
@@ -619,9 +753,12 @@ export function Footer({
             0 ? (
               <div
                 className="
-                  mt-5
+                  mt-6
+
                   flex
+
                   flex-wrap
+
                   gap-3
                 "
               >
@@ -630,7 +767,9 @@ export function Footer({
                     social
                   ) => {
                     const platform =
-                      social.platform.toLowerCase();
+                      social.platform
+                        .trim()
+                        .toLowerCase();
 
                     const Icon =
                       SOCIAL_ICONS[
@@ -679,25 +818,51 @@ export function Footer({
                           label
                         }
                         className="
+                          group/social
+
                           grid
-                          h-9
-                          w-9
+
+                          h-10
+                          w-10
+
                           place-items-center
-                          rounded-lg
+
+                          rounded-xl
+
                           border
-                          border-brand/15
-                          text-slate-600
+                          border-black/[0.08]
+
+                          bg-white
+
+                          text-brand
+
+                          shadow-[0_8px_24px_-18px_rgba(0,0,0,0.3)]
+
                           transition-all
+
                           duration-300
-                          hover:border-brand/50
+
+                          hover:-translate-y-1
+
+                          hover:border-brand
+
                           hover:bg-brand
+
                           hover:text-white
+
+                          hover:shadow-[0_12px_30px_-16px_rgba(230,0,0,0.6)]
                         "
                       >
                         <Icon
                           className="
                             h-4
                             w-4
+
+                            transition-transform
+
+                            duration-300
+
+                            group-hover/social:scale-110
                           "
                         />
                       </a>
@@ -713,29 +878,71 @@ export function Footer({
               ================================================= */}
 
           <div>
-            <h4
+            {/* ===============================================
+                HEADING
+                =============================================== */}
+
+            <div
               className="
-                font-display
-                text-sm
-                font-bold
-                uppercase
-                tracking-widest
-                text-brand-deep
+                flex
+
+                items-center
+
+                gap-2
               "
             >
-              {
-                content.navigationHeading
-              }
-            </h4>
+              <span
+                className="
+                  h-2
+                  w-2
+
+                  rounded-full
+
+                  bg-brand
+
+                  shadow-[0_0_10px_rgba(230,0,0,0.4)]
+                "
+              />
+
+              <h4
+                className="
+                  font-display
+
+                  text-sm
+
+                  font-extrabold
+
+                  uppercase
+
+                  tracking-[0.14em]
+
+                  text-brand-deep
+                "
+              >
+                {
+                  content.navigationHeading
+                }
+              </h4>
+            </div>
+
+            {/* ===============================================
+                NAVIGATION
+                =============================================== */}
 
             {visibleLinks.length >
             0 ? (
               <ul
                 className="
-                  mt-4
+                  mt-6
+
                   grid
+
                   grid-cols-2
-                  gap-2
+
+                  gap-x-6
+                  gap-y-3
+
+                  lg:grid-cols-1
                 "
               >
                 {visibleLinks.map(
@@ -768,12 +975,46 @@ export function Footer({
                               : undefined
                           }
                           className="
+                            group/link
+
+                            inline-flex
+
+                            items-center
+
+                            gap-2
+
                             text-sm
-                            text-slate-500
+
+                            font-medium
+
+                            text-slate-600
+
                             transition-colors
+
+                            duration-300
+
                             hover:text-brand
                           "
                         >
+                          <span
+                            className="
+                              h-1.5
+                              w-1.5
+
+                              rounded-full
+
+                              bg-black/15
+
+                              transition-all
+
+                              duration-300
+
+                              group-hover/link:scale-125
+
+                              group-hover/link:bg-brand
+                            "
+                          />
+
                           {
                             link.label
                           }
@@ -791,78 +1032,282 @@ export function Footer({
               ================================================= */}
 
           <div>
-            <h4
+            {/* ===============================================
+                HEADING
+                =============================================== */}
+
+            <div
               className="
-                font-display
-                text-sm
-                font-bold
-                uppercase
-                tracking-widest
-                text-brand-deep
+                flex
+
+                items-center
+
+                gap-2
               "
             >
-              {
-                content.contactHeading
-              }
-            </h4>
+              <span
+                className="
+                  h-2
+                  w-2
 
-            <ul
+                  rounded-full
+
+                  bg-brand
+
+                  shadow-[0_0_10px_rgba(230,0,0,0.4)]
+                "
+              />
+
+              <h4
+                className="
+                  font-display
+
+                  text-sm
+
+                  font-extrabold
+
+                  uppercase
+
+                  tracking-[0.14em]
+
+                  text-brand-deep
+                "
+              >
+                {
+                  content.contactHeading
+                }
+              </h4>
+            </div>
+
+            {/* ===============================================
+                CONTACT DETAILS
+                =============================================== */}
+
+            <div
               className="
-                mt-4
-                space-y-2
-                text-sm
-                text-slate-500
+                mt-6
+
+                space-y-3
               "
             >
               {/* EMAIL */}
 
               {content.email ? (
-                <li>
-                  <a
-                    href={`mailto:${content.email}`}
+                <a
+                  href={`mailto:${content.email}`}
+                  className="
+                    group/contact
+
+                    flex
+
+                    items-start
+
+                    gap-3
+
+                    rounded-xl
+
+                    border
+                    border-transparent
+
+                    p-2
+
+                    -m-2
+
+                    transition-all
+
+                    duration-300
+
+                    hover:border-brand/10
+
+                    hover:bg-white
+                  "
+                >
+                  <span
                     className="
+                      grid
+
+                      h-8
+                      w-8
+
+                      shrink-0
+
+                      place-items-center
+
+                      rounded-lg
+
+                      bg-brand/[0.07]
+
+                      text-brand
+
+                      transition-all
+
+                      group-hover/contact:bg-brand
+
+                      group-hover/contact:text-white
+                    "
+                  >
+                    <Mail className="h-4 w-4" />
+                  </span>
+
+                  <span
+                    className="
+                      pt-1
+
+                      text-sm
+
+                      font-medium
+
+                      text-slate-600
+
                       transition-colors
-                      hover:text-brand
+
+                      group-hover/contact:text-brand
                     "
                   >
                     {
                       content.email
                     }
-                  </a>
-                </li>
+                  </span>
+                </a>
               ) : null}
 
               {/* PHONE */}
 
               {content.phone ? (
-                <li>
-                  <a
-                    href={`tel:${content.phone.replace(
-                      /[\s()-]/g,
-                      ""
-                    )}`}
+                <a
+                  href={`tel:${content.phone.replace(
+                    /[\s()-]/g,
+                    ""
+                  )}`}
+                  className="
+                    group/contact
+
+                    flex
+
+                    items-start
+
+                    gap-3
+
+                    rounded-xl
+
+                    border
+                    border-transparent
+
+                    p-2
+
+                    -m-2
+
+                    transition-all
+
+                    duration-300
+
+                    hover:border-brand/10
+
+                    hover:bg-white
+                  "
+                >
+                  <span
                     className="
+                      grid
+
+                      h-8
+                      w-8
+
+                      shrink-0
+
+                      place-items-center
+
+                      rounded-lg
+
+                      bg-brand/[0.07]
+
+                      text-brand
+
+                      transition-all
+
+                      group-hover/contact:bg-brand
+
+                      group-hover/contact:text-white
+                    "
+                  >
+                    <Phone className="h-4 w-4" />
+                  </span>
+
+                  <span
+                    className="
+                      pt-1
+
+                      text-sm
+
+                      font-medium
+
+                      text-slate-600
+
                       transition-colors
-                      hover:text-brand
+
+                      group-hover/contact:text-brand
                     "
                   >
                     {
                       content.phone
                     }
-                  </a>
-                </li>
+                  </span>
+                </a>
               ) : null}
 
               {/* ADDRESS */}
 
               {content.address ? (
-                <li>
-                  {
-                    content.address
-                  }
-                </li>
+                <div
+                  className="
+                    flex
+
+                    items-start
+
+                    gap-3
+                  "
+                >
+                  <span
+                    className="
+                      grid
+
+                      h-8
+                      w-8
+
+                      shrink-0
+
+                      place-items-center
+
+                      rounded-lg
+
+                      bg-brand/[0.07]
+
+                      text-brand
+                    "
+                  >
+                    <MapPin className="h-4 w-4" />
+                  </span>
+
+                  <span
+                    className="
+                      pt-1
+
+                      text-sm
+
+                      font-medium
+
+                      leading-relaxed
+
+                      text-slate-600
+                    "
+                  >
+                    {
+                      content.address
+                    }
+                  </span>
+                </div>
               ) : null}
-            </ul>
+            </div>
 
             {/* ===============================================
                 CTA
@@ -888,29 +1333,91 @@ export function Footer({
                     : undefined
                 }
                 className="
-                  cta-pulse
-                  mt-5
+                  group/cta
+
+                  relative
+
+                  mt-7
+
                   inline-flex
+
                   items-center
+
                   gap-2
-                  rounded-lg
+
+                  overflow-hidden
+
+                  rounded-xl
+
                   bg-brand
+
                   px-5
-                  py-2.5
+                  py-3
+
                   font-display
+
                   text-xs
+
                   font-bold
+
                   uppercase
+
                   tracking-widest
+
                   text-white
+
+                  shadow-[0_14px_35px_-18px_rgba(230,0,0,0.72)]
+
                   transition-all
+
                   duration-300
-                  hover:bg-brand-soft
+
+                  hover:-translate-y-0.5
+
+                  hover:bg-[#c90000]
+
+                  hover:shadow-[0_18px_40px_-18px_rgba(230,0,0,0.85)]
                 "
               >
-                {
-                  content.ctaText
-                }
+                {/* CTA SHINE */}
+
+                <span
+                  aria-hidden="true"
+                  className="
+                    absolute
+
+                    -left-10
+                    top-0
+
+                    h-full
+                    w-8
+
+                    -skew-x-12
+
+                    bg-white/20
+
+                    transition-all
+
+                    duration-700
+
+                    group-hover/cta:left-[120%]
+                  "
+                />
+
+                <Zap
+                  className="
+                    relative
+
+                    h-4
+                    w-4
+                  "
+                />
+
+                <span className="relative">
+                  {
+                    content.ctaText
+                  }
+                </span>
               </a>
             ) : null}
           </div>
@@ -922,15 +1429,24 @@ export function Footer({
 
         <div
           className="
-            mt-12
+            mt-14
+
             flex
+
             flex-col
+
             items-center
+
             justify-between
-            gap-4
+
+            gap-5
+
             border-t
-            border-brand/15
+
+            border-black/[0.07]
+
             pt-6
+
             sm:flex-row
           "
         >
@@ -939,8 +1455,13 @@ export function Footer({
           <p
             className="
               text-center
-              text-sm
+
+              text-xs
+
+              font-medium
+
               text-slate-500
+
               sm:text-left
             "
           >
@@ -949,7 +1470,9 @@ export function Footer({
             }
           </p>
 
-          {/* BACK TO TOP */}
+          {/* ===============================================
+              BACK TO TOP
+              =============================================== */}
 
           <a
             href={
@@ -970,16 +1493,45 @@ export function Footer({
                 : undefined
             }
             className="
+              group/top
+
               inline-flex
+
               items-center
+
               gap-2
-              text-sm
-              font-semibold
+
+              rounded-lg
+
+              border
+              border-black/[0.07]
+
+              bg-white
+
+              px-3
+              py-2
+
+              text-[10px]
+
+              font-extrabold
+
               uppercase
-              tracking-wider
-              text-slate-500
-              transition-colors
-              hover:text-brand
+
+              tracking-[0.14em]
+
+              text-slate-600
+
+              transition-all
+
+              duration-300
+
+              hover:border-brand
+
+              hover:bg-brand
+
+              hover:text-white
+
+              hover:shadow-[0_10px_25px_-16px_rgba(230,0,0,0.55)]
             "
           >
             {
@@ -990,11 +1542,40 @@ export function Footer({
               className="
                 h-4
                 w-4
+
+                transition-transform
+
+                duration-300
+
+                group-hover/top:-translate-y-1
               "
             />
           </a>
         </div>
       </div>
+
+      {/* ===================================================
+          VERY BOTTOM RED LINE
+          =================================================== */}
+
+      <div
+        aria-hidden="true"
+        className="
+          absolute
+
+          bottom-0
+          left-1/2
+
+          h-[3px]
+          w-28
+
+          -translate-x-1/2
+
+          rounded-t-full
+
+          bg-brand
+        "
+      />
     </footer>
   );
 }
