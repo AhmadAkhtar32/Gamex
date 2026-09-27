@@ -13,6 +13,7 @@ import {
   footerLinks as footerLinksTable,
   footerSettings as footerSettingsTable,
   footerSocialLinks as footerSocialLinksTable,
+  heroMedia as heroMediaTable,
   heroSettings as heroSettingsTable,
   homepageFeatures as featuresTable,
   homepageStats as statsTable,
@@ -225,6 +226,57 @@ export default async function HomePage() {
   const heroContent =
     heroRows[0] ??
     DEFAULT_HERO_CONTENT;
+    const databaseHeroMedia =
+  await db
+    .select({
+      id:
+        heroMediaTable.id,
+
+      mediaType:
+        heroMediaTable.mediaType,
+
+      url:
+        heroMediaTable.url,
+
+      alt:
+        heroMediaTable.alt,
+
+      sortOrder:
+        heroMediaTable.sortOrder,
+    })
+    .from(
+      heroMediaTable
+    )
+    .where(
+      eq(
+        heroMediaTable.isVisible,
+        true
+      )
+    )
+    .orderBy(
+      asc(
+        heroMediaTable.sortOrder
+      ),
+
+      asc(
+        heroMediaTable.id
+      )
+    );
+
+const publicHeroMedia =
+  databaseHeroMedia.map(
+    (
+      media
+    ) => ({
+      ...media,
+
+      mediaType:
+        media.mediaType ===
+        "video"
+          ? ("video" as const)
+          : ("image" as const),
+    })
+  );
 
   /* =======================================================
      STATS
@@ -697,10 +749,13 @@ export default async function HomePage() {
         "
       >
         <Hero
-          content={
-            heroContent
-          }
-        />
+  content={
+    heroContent
+  }
+  media={
+    publicHeroMedia
+  }
+/>
 
         <Marquee />
 

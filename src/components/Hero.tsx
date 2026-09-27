@@ -3,19 +3,18 @@
 import {
   useEffect,
   useState,
-  type MouseEvent,
+  type ReactNode,
 } from "react";
 
 import {
   AnimatePresence,
   motion,
-  useMotionValue,
-  useSpring,
-  useTransform,
   type Variants,
 } from "framer-motion";
 
 import {
+  ChevronLeft,
+  ChevronRight,
   Cpu,
   Gauge,
   MousePointerClick,
@@ -25,6 +24,7 @@ import {
 import {
   DEFAULT_HERO_CONTENT,
   type HeroContent,
+  type HeroMediaItem,
 } from "@/lib/hero-content";
 
 import {
@@ -42,15 +42,17 @@ import {
 } from "./chrome";
 
 /* =========================================================
-   ANIMATION VARIANTS
+   ANIMATION
    ========================================================= */
 
-const container: Variants = {
+const container:
+  Variants = {
   hidden: {},
   show: {},
 };
 
-const item: Variants = {
+const item:
+  Variants = {
   hidden: {
     opacity: 0,
     y: 32,
@@ -60,14 +62,17 @@ const item: Variants = {
     index: number
   ) => ({
     opacity: 1,
+
     y: 0,
 
     transition: {
-      duration: 0.75,
+      duration:
+        0.75,
 
       delay:
         0.1 +
-        index * 0.08,
+        index *
+          0.08,
 
       ease: [
         0.22,
@@ -85,8 +90,11 @@ const item: Variants = {
 
 export function Hero({
   content,
+  media,
 }: {
   content: HeroContent;
+
+  media: HeroMediaItem[];
 }) {
   const ready =
     useReady();
@@ -96,22 +104,25 @@ export function Hero({
      ======================================================= */
 
   const words =
-    content.rotatingWords.length >
+    content
+      .rotatingWords
+      .length >
     0
       ? content.rotatingWords
       : DEFAULT_HERO_CONTENT.rotatingWords;
 
-  const wordCount =
-    words.length;
-
   const [
     wordIndex,
     setWordIndex,
-  ] = useState(0);
+  ] =
+    useState(
+      0
+    );
 
   useEffect(() => {
     if (
-      wordCount <= 1
+      words.length <=
+      1
     ) {
       return;
     }
@@ -123,8 +134,9 @@ export function Hero({
             (
               value
             ) =>
-              (value + 1) %
-              wordCount
+              (value +
+                1) %
+              words.length
           );
         },
         2300
@@ -136,143 +148,155 @@ export function Hero({
       );
     };
   }, [
-    wordCount,
+    words.length,
   ]);
 
   /* =======================================================
-     MOUSE PARALLAX
+     SLIDES
      ======================================================= */
 
-  const mouseX =
-    useMotionValue(0);
+  const slides:
+    HeroMediaItem[] =
+    media.length >
+    0
+      ? media
+      : content.image
+        ? [
+            {
+              id:
+                -1,
 
-  const mouseY =
-    useMotionValue(0);
+              mediaType:
+                "image",
 
-  const springX =
-    useSpring(
-      mouseX,
-      {
-        stiffness: 60,
-        damping: 18,
-      }
+              url:
+                content.image,
+
+              alt:
+                content.imageAlt ||
+                "Gamex gaming hardware",
+
+              sortOrder:
+                0,
+            },
+          ]
+        : [];
+
+  const [
+    slideIndex,
+    setSlideIndex,
+  ] =
+    useState(
+      0
     );
 
-  const springY =
-    useSpring(
-      mouseY,
-      {
-        stiffness: 60,
-        damping: 18,
-      }
-    );
+  const currentSlide =
+    slides[
+      slideIndex
+    ] ??
+    slides[0];
 
-  const rotateY =
-    useTransform(
-      springX,
-      [
-        -0.5,
-        0.5,
-      ],
-      [
-        7,
-        -7,
-      ]
-    );
+  /* =======================================================
+     VALID INDEX
+     ======================================================= */
 
-  const rotateX =
-    useTransform(
-      springY,
-      [
-        -0.5,
-        0.5,
-      ],
-      [
-        -7,
-        7,
-      ]
-    );
+  useEffect(() => {
+    if (
+      slideIndex >=
+      slides.length
+    ) {
+      setSlideIndex(
+        0
+      );
+    }
+  }, [
+    slideIndex,
+    slides.length,
+  ]);
 
-  const chip1x =
-    useTransform(
-      springX,
-      [
-        -0.5,
-        0.5,
-      ],
-      [
-        -20,
-        20,
-      ]
-    );
+  /* =======================================================
+     IMAGE AUTOPLAY
 
-  const chip1y =
-    useTransform(
-      springY,
-      [
-        -0.5,
-        0.5,
-      ],
-      [
-        -14,
-        14,
-      ]
-    );
+     Images = 5 seconds.
 
-  const chip2x =
-    useTransform(
-      springX,
-      [
-        -0.5,
-        0.5,
-      ],
-      [
-        16,
-        -16,
-      ]
-    );
+     Videos advance when playback ends.
+     ======================================================= */
 
-  const chip3x =
-    useTransform(
-      springX,
-      [
-        -0.5,
-        0.5,
-      ],
-      [
-        -12,
-        12,
-      ]
-    );
+  useEffect(() => {
+    if (
+      slides.length <=
+        1 ||
+      !currentSlide ||
+      currentSlide.mediaType ===
+        "video"
+    ) {
+      return;
+    }
 
-  function onMouseMove(
-    event: MouseEvent<HTMLElement>
-  ) {
-    const rect =
-      event.currentTarget.getBoundingClientRect();
+    const timer =
+      window.setTimeout(
+        () => {
+          setSlideIndex(
+            (
+              value
+            ) =>
+              (value +
+                1) %
+              slides.length
+          );
+        },
+        5000
+      );
 
-    mouseX.set(
+    return () => {
+      window.clearTimeout(
+        timer
+      );
+    };
+  }, [
+    currentSlide,
+    slides.length,
+  ]);
+
+  /* =======================================================
+     CONTROLS
+     ======================================================= */
+
+  function nextSlide() {
+    if (
+      slides.length ===
+      0
+    ) {
+      return;
+    }
+
+    setSlideIndex(
       (
-        event.clientX -
-        rect.left
-      ) /
-        rect.width -
-        0.5
-    );
-
-    mouseY.set(
-      (
-        event.clientY -
-        rect.top
-      ) /
-        rect.height -
-        0.5
+        value
+      ) =>
+        (value +
+          1) %
+        slides.length
     );
   }
 
-  function onMouseLeave() {
-    mouseX.set(0);
-    mouseY.set(0);
+  function previousSlide() {
+    if (
+      slides.length ===
+      0
+    ) {
+      return;
+    }
+
+    setSlideIndex(
+      (
+        value
+      ) =>
+        (value -
+          1 +
+          slides.length) %
+        slides.length
+    );
   }
 
   /* =======================================================
@@ -285,25 +309,13 @@ export function Hero({
     return null;
   }
 
-  /* =======================================================
-     HERO
-     ======================================================= */
-
   return (
     <section
       id="home"
-      onMouseMove={
-        onMouseMove
-      }
-      onMouseLeave={
-        onMouseLeave
-      }
       className="
         relative
 
         overflow-hidden
-
-        bg-white
 
         pb-16
         pt-28
@@ -312,83 +324,51 @@ export function Hero({
         md:pt-40
       "
     >
-      {/* ===================================================
-          BACKGROUND — BASE
-          =================================================== */}
+      {/* =====================================================
+          BACKGROUND
+          ===================================================== */}
 
       <div
-        aria-hidden="true"
-        className="
-          pointer-events-none
-
-          absolute
-          inset-0
-          -z-30
-
-          bg-white
-        "
-      />
-
-      {/* ===================================================
-          BACKGROUND — GRID
-          =================================================== */}
-
-      <div
-        aria-hidden="true"
         className="
           bg-grid
           grid-animated
 
-          pointer-events-none
-
           absolute
           inset-0
-          -z-20
 
-          opacity-60
+          -z-10
 
-          [mask-image:radial-gradient(ellipse_78%_68%_at_50%_15%,black,transparent)]
+          opacity-55
+
+          [mask-image:radial-gradient(ellipse_75%_65%_at_50%_0%,black,transparent)]
         "
       />
 
-      {/* ===================================================
-          BACKGROUND — DIAGONAL RED LINES
-          =================================================== */}
-
       <div
-        aria-hidden="true"
         className="
           stripes-red
 
-          pointer-events-none
-
           absolute
           inset-0
-          -z-20
 
-          opacity-25
+          -z-10
 
-          [mask-image:radial-gradient(ellipse_72%_60%_at_50%_40%,black,transparent)]
+          opacity-35
+
+          [mask-image:radial-gradient(ellipse_70%_60%_at_50%_40%,black,transparent)]
         "
       />
 
-      {/* ===================================================
-          BACKGROUND — LARGE RADAR
-          =================================================== */}
-
       <div
-        aria-hidden="true"
         className="
           radar-sweep
-
-          pointer-events-none
 
           absolute
 
           left-1/2
           top-1/2
 
-          -z-20
+          -z-10
 
           h-[70rem]
           w-[70rem]
@@ -398,20 +378,13 @@ export function Hero({
 
           rounded-full
 
-          opacity-20
+          opacity-30
         "
       />
 
-      {/* ===================================================
-          BACKGROUND — SCAN
-          =================================================== */}
-
       <div
-        aria-hidden="true"
         className="
           red-scan
-
-          pointer-events-none
 
           absolute
 
@@ -425,107 +398,61 @@ export function Hero({
           bg-gradient-to-b
 
           from-transparent
-          via-brand/[0.055]
+          via-brand/[0.06]
           to-transparent
         "
       />
 
-      {/* ===================================================
-          BACKGROUND — LEFT RED GLOW
-          =================================================== */}
-
       <div
-        aria-hidden="true"
         className="
           animate-orb
 
-          pointer-events-none
-
           absolute
 
-          -left-48
-          -top-44
+          -left-40
+          -top-40
 
-          -z-20
-
-          h-[36rem]
-          w-[36rem]
-
-          rounded-full
-
-          bg-brand/[0.09]
-
-          blur-[135px]
-        "
-      />
-
-      {/* ===================================================
-          BACKGROUND — RIGHT RED GLOW
-          =================================================== */}
-
-      <div
-        aria-hidden="true"
-        className="
-          animate-pulse-glow
-
-          pointer-events-none
-
-          absolute
-
-          -right-48
-          top-20
-
-          -z-20
+          -z-10
 
           h-[34rem]
           w-[34rem]
 
           rounded-full
 
-          bg-brand-soft/[0.08]
+          bg-brand/[0.09]
 
-          blur-[135px]
+          blur-[130px]
         "
       />
 
-      {/* ===================================================
-          BLACK / RED DECORATIVE CORNER
-          =================================================== */}
-
       <div
-        aria-hidden="true"
         className="
-          pointer-events-none
+          animate-pulse-glow
 
           absolute
 
-          -right-24
-          top-20
+          -right-40
+          top-24
 
           -z-10
 
-          hidden
+          h-[30rem]
+          w-[30rem]
 
-          h-72
-          w-72
+          rounded-full
 
-          rotate-45
+          bg-brand-soft/[0.07]
 
-          border-l
-          border-brand/10
-
-          lg:block
+          blur-[120px]
         "
       />
 
-      {/* ===================================================
-          MAIN CONTENT
-          =================================================== */}
+      {/* =====================================================
+          GRID
+          ===================================================== */}
 
       <div
         className="
-          relative
-
           mx-auto
 
           grid
@@ -541,14 +468,11 @@ export function Hero({
           md:px-8
 
           lg:grid-cols-2
-          lg:gap-12
-
-          xl:gap-20
         "
       >
-        {/* =================================================
-            LEFT SIDE
-            ================================================= */}
+        {/* ===================================================
+            LEFT
+            =================================================== */}
 
         <motion.div
           initial="hidden"
@@ -560,20 +484,17 @@ export function Hero({
           variants={
             container
           }
-          className="
-            relative
-            z-10
-          "
         >
-          {/* ===============================================
-              EYEBROW
-              =============================================== */}
+          {/* EYEBROW */}
 
-          <motion.div
+          <motion.span
             variants={
               item
             }
-            custom={0}
+            custom={
+              0
+            }
+            className="inline-block"
           >
             <span
               className="
@@ -588,35 +509,25 @@ export function Hero({
                 border
                 border-brand/20
 
-                bg-brand/[0.06]
+                bg-brand/[0.07]
 
                 px-4
-                py-2
+                py-1.5
 
-                text-[10px]
+                text-xs
 
-                font-extrabold
+                font-bold
 
                 uppercase
 
-                tracking-[0.24em]
+                tracking-[0.25em]
 
                 text-brand
 
-                shadow-[0_10px_30px_-20px_rgba(230,0,0,0.45)]
-
-                backdrop-blur-sm
-
-                sm:text-xs
+                shadow-[0_8px_28px_-20px_rgba(230,0,0,0.35)]
               "
             >
-              <Zap
-                className="
-                  h-3.5
-                  w-3.5
-                  fill-brand
-                "
-              />
+              <Zap className="h-3.5 w-3.5" />
 
               <ScrambleText
                 text={
@@ -627,17 +538,13 @@ export function Hero({
                 }
               />
             </span>
-          </motion.div>
+          </motion.span>
 
-          {/* ===============================================
-              MAIN HEADING
-              =============================================== */}
+          {/* HEADING */}
 
           <h1
             className="
               mt-6
-
-              max-w-3xl
 
               font-display
 
@@ -653,198 +560,160 @@ export function Hero({
 
               text-brand-deep
 
-              sm:text-6xl
+              sm:text-5xl
 
-              lg:text-[4.25rem]
+              md:text-6xl
 
               xl:text-7xl
             "
           >
-            {/* LINE 1 */}
-
-            <span className="block">
-              <motion.span
-                variants={
-                  item
-                }
-                custom={1}
-                className="
-                  inline-block
-                "
-              >
-                {
+            <motion.span
+              variants={
+                item
+              }
+              custom={
+                1
+              }
+              className="block"
+            >
+              <GlitchText
+                text={
                   content.headingLine1
                 }
-              </motion.span>
-            </span>
+              />
+            </motion.span>
 
-            {/* LINE 2 */}
+            <motion.span
+              variants={
+                item
+              }
+              custom={
+                2
+              }
+              className="
+                mt-1
 
-            <span className="block">
-              <motion.span
-                variants={
-                  item
-                }
-                custom={2}
-                className="
-                  inline-block
-                "
-              >
+                flex
+
+                flex-wrap
+
+                items-baseline
+
+                gap-x-3
+              "
+            >
+              <span>
                 {
                   content.headingLine2
                 }
-                &nbsp;
-              </motion.span>
+              </span>
 
-              {/* =============================================
-                  ROTATING WORD
-                  ============================================= */}
-
-              <motion.span
-                variants={
-                  item
-                }
-                custom={3}
+              <span
                 className="
-                  inline-block
+                  relative
 
-                  align-bottom
+                  inline-flex
+
+                  min-w-[4.6em]
 
                   text-brand
                 "
               >
-                <span
-                  className="
-                    relative
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={`${wordIndex}-${words[wordIndex]}`}
+                    initial={{
+                      opacity:
+                        0,
 
-                    inline-block
+                      y:
+                        18,
 
-                    overflow-hidden
+                      filter:
+                        "blur(7px)",
+                    }}
+                    animate={{
+                      opacity:
+                        1,
 
-                    align-bottom
-                  "
-                >
-                  <AnimatePresence
-                    mode="wait"
+                      y:
+                        0,
+
+                      filter:
+                        "blur(0px)",
+                    }}
+                    exit={{
+                      opacity:
+                        0,
+
+                      y:
+                        -18,
+
+                      filter:
+                        "blur(7px)",
+                    }}
+                    transition={{
+                      duration:
+                        0.35,
+
+                      ease: [
+                        0.22,
+                        1,
+                        0.36,
+                        1,
+                      ],
+                    }}
                   >
-                    <motion.span
-                      key={
-                        words[
-                          wordIndex
-                        ]
-                      }
-                      initial={{
-                        y:
-                          "105%",
-
-                        opacity:
-                          0,
-                      }}
-                      animate={{
-                        y:
-                          0,
-
-                        opacity:
-                          1,
-                      }}
-                      exit={{
-                        y:
-                          "-105%",
-
-                        opacity:
-                          0,
-                      }}
-                      transition={{
-                        duration:
-                          0.45,
-
-                        ease:
-                          "easeOut",
-                      }}
-                      className="
-                        inline-block
-                      "
-                    >
-                      <GlitchText
-                        text={
-                          words[
-                            wordIndex
-                          ]
-                        }
-                      />
-                    </motion.span>
-                  </AnimatePresence>
-                </span>
-              </motion.span>
-            </span>
+                    {
+                      words[
+                        wordIndex
+                      ]
+                    }
+                  </motion.span>
+                </AnimatePresence>
+              </span>
+            </motion.span>
           </h1>
 
-          {/* ===============================================
-              RED ACCENT LINE
-              =============================================== */}
+          {/* DIVIDER */}
 
           <motion.div
             variants={
               item
             }
-            custom={3.5}
+            custom={
+              3
+            }
             className="
-              mt-5
+              mt-6
 
               flex
+
               items-center
+
               gap-3
             "
           >
-            <span
-              className="
-                h-[3px]
-                w-16
+            <span className="h-[3px] w-16 rounded-full bg-brand" />
 
-                rounded-full
+            <span className="h-[3px] w-5 rounded-full bg-black/70" />
 
-                bg-brand
-
-                shadow-[0_0_14px_rgba(230,0,0,0.35)]
-              "
-            />
-
-            <span
-              className="
-                h-[3px]
-                w-5
-
-                rounded-full
-
-                bg-black/75
-              "
-            />
-
-            <span
-              className="
-                h-[3px]
-                w-2
-
-                rounded-full
-
-                bg-brand/40
-              "
-            />
+            <span className="h-[3px] w-2 rounded-full bg-brand/40" />
           </motion.div>
 
-          {/* ===============================================
-              DESCRIPTION
-              =============================================== */}
+          {/* DESCRIPTION */}
 
           <motion.p
             variants={
               item
             }
-            custom={4}
+            custom={
+              4
+            }
             className="
               mt-6
 
-              max-w-xl
+              max-w-2xl
 
               text-base
 
@@ -854,7 +723,7 @@ export function Hero({
 
               text-slate-600
 
-              md:text-lg
+              sm:text-lg
             "
           >
             {
@@ -862,41 +731,31 @@ export function Hero({
             }
           </motion.p>
 
-          {/* ===============================================
-              BUTTONS
-              =============================================== */}
+          {/* BUTTONS */}
 
           <motion.div
             variants={
               item
             }
-            custom={5}
+            custom={
+              5
+            }
             className="
-              mt-9
+              mt-8
 
               flex
 
               flex-wrap
 
-              items-center
-
               gap-3
-
-              sm:gap-4
             "
           >
-            {/* =============================================
-                PRIMARY BUTTON
-                ============================================= */}
-
             <Magnetic>
               <a
                 href={
                   content.primaryButtonLink
                 }
                 className="
-                  cta-pulse
-
                   group
 
                   relative
@@ -904,6 +763,7 @@ export function Hero({
                   inline-flex
 
                   items-center
+                  justify-center
 
                   gap-2
 
@@ -914,7 +774,7 @@ export function Hero({
                   bg-brand
 
                   px-7
-                  py-3.5
+                  py-4
 
                   font-display
 
@@ -924,11 +784,11 @@ export function Hero({
 
                   uppercase
 
-                  tracking-widest
+                  tracking-[0.12em]
 
                   text-white
 
-                  shadow-[0_16px_38px_-17px_rgba(230,0,0,0.75)]
+                  shadow-[0_16px_38px_-18px_rgba(230,0,0,0.72)]
 
                   transition-all
 
@@ -937,16 +797,9 @@ export function Hero({
                   hover:-translate-y-0.5
 
                   hover:bg-[#c90000]
-
-                  hover:shadow-[0_20px_42px_-17px_rgba(230,0,0,0.85)]
-
-                  sm:text-sm
                 "
               >
-                {/* BUTTON SHINE */}
-
                 <span
-                  aria-hidden="true"
                   className="
                     absolute
 
@@ -954,11 +807,11 @@ export function Hero({
                     top-0
 
                     h-full
-                    w-9
+                    w-10
 
                     -skew-x-12
 
-                    bg-white/25
+                    bg-white/20
 
                     transition-all
 
@@ -968,11 +821,7 @@ export function Hero({
                   "
                 />
 
-                <span
-                  className="
-                    relative
-                  "
-                >
+                <span className="relative">
                   {
                     content.primaryButtonText
                   }
@@ -994,15 +843,7 @@ export function Hero({
               </a>
             </Magnetic>
 
-            {/* =============================================
-                SECONDARY BUTTON
-                ============================================= */}
-
-            <Magnetic
-              strength={
-                0.25
-              }
-            >
+            <Magnetic>
               <a
                 href={
                   content.secondaryButtonLink
@@ -1013,6 +854,7 @@ export function Hero({
                   inline-flex
 
                   items-center
+                  justify-center
 
                   gap-2
 
@@ -1024,7 +866,7 @@ export function Hero({
                   bg-white
 
                   px-7
-                  py-3.5
+                  py-4
 
                   font-display
 
@@ -1034,11 +876,9 @@ export function Hero({
 
                   uppercase
 
-                  tracking-widest
+                  tracking-[0.12em]
 
                   text-brand-deep
-
-                  shadow-[0_12px_30px_-22px_rgba(0,0,0,0.35)]
 
                   transition-all
 
@@ -1046,15 +886,11 @@ export function Hero({
 
                   hover:-translate-y-0.5
 
-                  hover:border-brand/40
+                  hover:border-brand/35
 
-                  hover:bg-brand/[0.04]
+                  hover:bg-[#fff8f8]
 
                   hover:text-brand
-
-                  hover:shadow-[0_14px_34px_-22px_rgba(230,0,0,0.35)]
-
-                  sm:text-sm
                 "
               >
                 {
@@ -1072,207 +908,87 @@ export function Hero({
 
                     transition-transform
 
-                    group-hover:scale-150
+                    duration-300
+
+                    group-hover:scale-125
                   "
                 />
               </a>
             </Magnetic>
           </motion.div>
 
-          {/* ===============================================
-              TRUST POINTS
-              =============================================== */}
+          {/* TRUST POINTS */}
 
           <motion.div
             variants={
               item
             }
-            custom={6}
+            custom={
+              6
+            }
             className="
               mt-10
 
-              flex
+              grid
 
-              flex-wrap
+              max-w-xl
 
-              items-center
-
-              gap-x-7
-              gap-y-4
+              gap-3
 
               border-t
+              border-black/[0.07]
 
-              border-black/[0.06]
+              pt-5
 
-              pt-6
-
-              text-sm
-
-              font-semibold
-
-              text-slate-500
+              sm:grid-cols-3
             "
           >
-            {/* TRUST 1 */}
-
-            <span
-              className="
-                group
-
-                inline-flex
-
-                items-center
-
-                gap-2
-              "
-            >
-              <span
-                className="
-                  grid
-
-                  h-8
-                  w-8
-
-                  place-items-center
-
-                  rounded-lg
-
-                  bg-brand/[0.07]
-
-                  text-brand
-
-                  transition-all
-
-                  group-hover:bg-brand
-
-                  group-hover:text-white
-                "
-              >
-                <Gauge
-                  className="
-                    h-4
-                    w-4
-                  "
-                />
-              </span>
-
-              {
+            <TrustPoint
+              icon={
+                <Gauge className="h-4 w-4" />
+              }
+              text={
                 content.trustPoint1
               }
-            </span>
+            />
 
-            {/* TRUST 2 */}
-
-            <span
-              className="
-                group
-
-                inline-flex
-
-                items-center
-
-                gap-2
-              "
-            >
-              <span
-                className="
-                  grid
-
-                  h-8
-                  w-8
-
-                  place-items-center
-
-                  rounded-lg
-
-                  bg-brand/[0.07]
-
-                  text-brand
-
-                  transition-all
-
-                  group-hover:bg-brand
-
-                  group-hover:text-white
-                "
-              >
-                <Cpu
-                  className="
-                    h-4
-                    w-4
-                  "
-                />
-              </span>
-
-              {
+            <TrustPoint
+              icon={
+                <Cpu className="h-4 w-4" />
+              }
+              text={
                 content.trustPoint2
               }
-            </span>
+            />
 
-            {/* TRUST 3 */}
-
-            <span
-              className="
-                group
-
-                inline-flex
-
-                items-center
-
-                gap-2
-              "
-            >
-              <span
-                className="
-                  grid
-
-                  h-8
-                  w-8
-
-                  place-items-center
-
-                  rounded-lg
-
-                  bg-brand/[0.07]
-
-                  text-brand
-
-                  transition-all
-
-                  group-hover:bg-brand
-
-                  group-hover:text-white
-                "
-              >
-                <MousePointerClick
-                  className="
-                    h-4
-                    w-4
-                  "
-                />
-              </span>
-
-              {
+            <TrustPoint
+              icon={
+                <MousePointerClick className="h-4 w-4" />
+              }
+              text={
                 content.trustPoint3
               }
-            </span>
+            />
           </motion.div>
         </motion.div>
 
-        {/* =================================================
-            RIGHT SIDE
-            ================================================= */}
+        {/* ===================================================
+            RIGHT — MEDIA SLIDER
+
+            NO FLOATING CARDS
+            NO IMAGE CROPPING
+            =================================================== */}
 
         <motion.div
           initial={{
             opacity:
               0,
 
-            scale:
-              0.94,
-
             y:
-              20,
+              34,
+
+            scale:
+              0.97,
           }}
           animate={
             ready
@@ -1280,21 +996,21 @@ export function Hero({
                   opacity:
                     1,
 
-                  scale:
-                    1,
-
                   y:
                     0,
+
+                  scale:
+                    1,
                 }
               : {
                   opacity:
                     0,
 
-                  scale:
-                    0.94,
-
                   y:
-                    20,
+                    34,
+
+                  scale:
+                    0.97,
                 }
           }
           transition={{
@@ -1302,7 +1018,7 @@ export function Hero({
               0.9,
 
             delay:
-              0.35,
+              0.28,
 
             ease: [
               0.22,
@@ -1311,281 +1027,222 @@ export function Hero({
               1,
             ],
           }}
-          className="
-            relative
-
-            mx-auto
-
-            w-full
-
-            max-w-xl
-          "
+          className="relative"
         >
-          {/* ===============================================
-              OUTER DASHED FRAME
-              =============================================== */}
-
           <div
-            aria-hidden="true"
-            className="
-              animate-spin-slow
-
-              absolute
-
-              -inset-8
-
-              -z-20
-
-              rounded-[3rem]
-
-              border
-
-              border-dashed
-
-              border-brand/15
-
-              [animation-duration:50s]
-            "
-          />
-
-          {/* ===============================================
-              BLACK CORNER ACCENT
-              =============================================== */}
-
-          <div
-            aria-hidden="true"
             className="
               absolute
 
-              -right-4
-              -top-4
+              -inset-5
 
               -z-10
 
-              h-24
-              w-24
+              rounded-[2.4rem]
 
-              rotate-12
+              bg-brand/[0.07]
 
-              rounded-2xl
-
-              border-r-2
-              border-t-2
-
-              border-black/10
+              blur-3xl
             "
           />
 
-          {/* ===============================================
-              PARALLAX IMAGE
-              =============================================== */}
-
-          <motion.div
-            style={{
-              rotateX,
-              rotateY,
-
-              transformPerspective:
-                1100,
-            }}
+          <div
             className="
               relative
+
+              overflow-hidden
+
+              rounded-[1.8rem]
+
+              border
+              border-brand/20
+
+              bg-[#111]
+
+              shadow-[0_30px_90px_-35px_rgba(230,0,0,0.42)]
             "
           >
-            {/* =============================================
-                RED GLOW
-                ============================================= */}
+            {/* FRAME */}
 
             <div
-              aria-hidden="true"
               className="
-                animate-pulse-glow
+                pointer-events-none
 
                 absolute
+                inset-0
 
-                -inset-7
+                z-30
 
-                -z-20
+                rounded-[1.8rem]
 
-                rounded-[2.4rem]
-
-                bg-brand/[0.11]
-
-                blur-3xl
+                ring-1
+                ring-inset
+                ring-white/10
               "
             />
 
-            {/* =============================================
-                RED / BLACK ROTATING BORDER
-                ============================================= */}
-
             <div
-              aria-hidden="true"
               className="
-                animate-spin-slow
+                pointer-events-none
 
                 absolute
 
-                -inset-[2px]
+                inset-x-0
+                top-0
 
-                rounded-[1.9rem]
+                z-30
 
-                opacity-80
+                h-[3px]
 
-                [animation-duration:14s]
+                bg-gradient-to-r
 
-                [background:conic-gradient(from_0deg,transparent_0%,#e60000_18%,transparent_36%,#181818_50%,transparent_65%,#ff2a2a_82%,transparent_100%)]
+                from-transparent
+                via-brand
+                to-transparent
               "
             />
 
-            {/* =============================================
-                MAIN IMAGE CARD
-                ============================================= */}
+            {/* =================================================
+                MEDIA AREA
+
+                Stable 16:10 frame.
+
+                object-contain preserves the source ratio and
+                keeps the complete image/video visible.
+                ================================================= */}
 
             <div
               className="
-                glow
-
                 relative
 
-                overflow-hidden
+                aspect-[16/10]
 
-                rounded-[1.75rem]
+                w-full
 
-                border
-                border-black/[0.08]
-
-                bg-white
-
-                shadow-[0_32px_80px_-38px_rgba(230,0,0,0.28)]
+                bg-[#0d0d0d]
               "
             >
-              <div
-                className="
-                  relative
+              {currentSlide ? (
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={`${currentSlide.id}-${slideIndex}`}
+                    initial={{
+                      opacity:
+                        0,
 
-                  aspect-[4/3]
+                      scale:
+                        1.015,
+                    }}
+                    animate={{
+                      opacity:
+                        1,
 
-                  overflow-hidden
+                      scale:
+                        1,
+                    }}
+                    exit={{
+                      opacity:
+                        0,
 
-                  bg-[#fff7f7]
-                "
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
+                      scale:
+                        0.99,
+                    }}
+                    transition={{
+                      duration:
+                        0.45,
 
-                <img
-                  src={
-                    content.image
-                  }
-                  alt={
-                    content.imageAlt
-                  }
-                  className="
-                    animate-kenburns
-
-                    h-full
-                    w-full
-
-                    object-cover
-                  "
-                />
-
-                {/* ===========================================
-                    IMAGE DARK OVERLAY
-
-                    Kept because white information text
-                    sits on the image.
-                    =========================================== */}
-
-                <div
-                  className="
-                    absolute
-                    inset-0
-
-                    bg-gradient-to-t
-
-                    from-black/80
-                    via-black/10
-                    to-black/5
-                  "
-                />
-
-                {/* RED IMAGE TINT */}
-
-                <div
-                  aria-hidden="true"
-                  className="
-                    absolute
-                    inset-0
-
-                    bg-gradient-to-tr
-
-                    from-brand/10
-                    via-transparent
-                    to-brand/5
-
-                    mix-blend-screen
-                  "
-                />
-
-                {/* SCAN LINE */}
-
-                <div className="scanline" />
-
-                {/* ===========================================
-                    IMAGE TOP RED DETAIL
-                    =========================================== */}
-
-                <div
-                  aria-hidden="true"
-                  className="
-                    absolute
-
-                    left-0
-                    top-0
-
-                    h-[3px]
-
-                    w-1/2
-
-                    bg-gradient-to-r
-
-                    from-brand
-
-                    to-transparent
-                  "
-                />
-
-                {/* ===========================================
-                    IMAGE INFORMATION
-                    =========================================== */}
-
-                <div
-                  className="
-                    absolute
-
-                    bottom-4
-                    left-4
-                    right-4
-
-                    flex
-
-                    items-end
-
-                    justify-between
-
-                    gap-4
-                  "
-                >
-                  <div
+                      ease: [
+                        0.22,
+                        1,
+                        0.36,
+                        1,
+                      ],
+                    }}
                     className="
-                      min-w-0
+                      absolute
+                      inset-0
                     "
                   >
-                    {/* TITLE */}
+                    {currentSlide.mediaType ===
+                    "video" ? (
+                      <video
+                        src={
+                          currentSlide.url
+                        }
+                        aria-label={
+                          currentSlide.alt ||
+                          "Gamex Hero video"
+                        }
+                        autoPlay
+                        muted
+                        playsInline
+                        loop={
+                          slides.length ===
+                          1
+                        }
+                        onEnded={
+                          slides.length >
+                          1
+                            ? nextSlide
+                            : undefined
+                        }
+                        className="
+                          h-full
+                          w-full
+
+                          object-contain
+                        "
+                      />
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={
+                          currentSlide.url
+                        }
+                        alt={
+                          currentSlide.alt ||
+                          "Gamex Hero image"
+                        }
+                        className="
+                          h-full
+                          w-full
+
+                          object-contain
+                        "
+                      />
+                    )}
+                  </motion.div>
+                </AnimatePresence>
+              ) : (
+                <div
+                  className="
+                    absolute
+                    inset-0
+
+                    grid
+
+                    place-items-center
+
+                    px-8
+
+                    text-center
+                  "
+                >
+                  <div>
+                    <Zap
+                      className="
+                        mx-auto
+
+                        h-10
+                        w-10
+
+                        text-brand
+                      "
+                    />
 
                     <p
                       className="
+                        mt-4
+
                         font-display
 
                         text-sm
@@ -1597,449 +1254,343 @@ export function Hero({
                         tracking-wider
 
                         text-white
-
-                        drop-shadow
                       "
                     >
-                      {
-                        content.imageTitle
-                      }
+                      Hero Media
                     </p>
-
-                    {/* SUBTITLE */}
 
                     <p
                       className="
-                        mt-1
+                        mt-2
 
-                        text-[10px]
+                        text-xs
 
-                        font-semibold
+                        leading-relaxed
 
-                        uppercase
-
-                        tracking-widest
-
-                        text-white/65
-
-                        sm:text-xs
+                        text-white/50
                       "
                     >
-                      {
-                        content.imageSubtitle
-                      }
+                      Add images or video from Admin → Hero
+                      Settings.
                     </p>
                   </div>
+                </div>
+              )}
 
-                  {/* BADGE */}
+              {/* ===============================================
+                  SLIDER CONTROLS
+                  =============================================== */}
 
-                  <span
+              {slides.length >
+              1 ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={
+                      previousSlide
+                    }
+                    aria-label="Previous Hero media"
                     className="
-                      shrink-0
+                      absolute
 
-                      rounded-lg
+                      left-3
+                      top-1/2
+
+                      z-40
+
+                      grid
+
+                      h-10
+                      w-10
+
+                      -translate-y-1/2
+
+                      place-items-center
+
+                      rounded-full
 
                       border
-                      border-white/25
+                      border-white/20
 
-                      bg-white/95
+                      bg-black/45
 
-                      px-3
-                      py-1.5
-
-                      font-display
-
-                      text-[10px]
-
-                      font-bold
-
-                      uppercase
-
-                      tracking-wider
-
-                      text-brand
-
-                      shadow-[0_8px_25px_-14px_rgba(0,0,0,0.55)]
+                      text-white
 
                       backdrop-blur-md
 
-                      sm:text-xs
+                      transition-all
+
+                      hover:border-brand
+
+                      hover:bg-brand
+
+                      sm:left-4
                     "
                   >
-                    {
-                      content.imageBadge
+                    <ChevronLeft className="h-5 w-5" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={
+                      nextSlide
                     }
-                  </span>
-                </div>
-              </div>
+                    aria-label="Next Hero media"
+                    className="
+                      absolute
+
+                      right-3
+                      top-1/2
+
+                      z-40
+
+                      grid
+
+                      h-10
+                      w-10
+
+                      -translate-y-1/2
+
+                      place-items-center
+
+                      rounded-full
+
+                      border
+                      border-white/20
+
+                      bg-black/45
+
+                      text-white
+
+                      backdrop-blur-md
+
+                      transition-all
+
+                      hover:border-brand
+
+                      hover:bg-brand
+
+                      sm:right-4
+                    "
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </button>
+
+                  {/* DOTS */}
+
+                  <div
+                    className="
+                      absolute
+
+                      bottom-4
+                      left-1/2
+
+                      z-40
+
+                      flex
+
+                      -translate-x-1/2
+
+                      items-center
+
+                      gap-2
+
+                      rounded-full
+
+                      border
+                      border-white/15
+
+                      bg-black/45
+
+                      px-3
+                      py-2
+
+                      backdrop-blur-md
+                    "
+                  >
+                    {slides.map(
+                      (
+                        slide,
+                        index
+                      ) => (
+                        <button
+                          key={
+                            slide.id
+                          }
+                          type="button"
+                          onClick={() =>
+                            setSlideIndex(
+                              index
+                            )
+                          }
+                          aria-label={`Show Hero media ${
+                            index +
+                            1
+                          }`}
+                          className={`
+                            h-1.5
+
+                            rounded-full
+
+                            transition-all
+
+                            duration-300
+
+                            ${
+                              index ===
+                              slideIndex
+                                ? "w-7 bg-brand"
+                                : "w-1.5 bg-white/55 hover:bg-white"
+                            }
+                          `}
+                        />
+                      )
+                    )}
+                  </div>
+                </>
+              ) : null}
             </div>
-          </motion.div>
+          </div>
 
-          {/* ===============================================
-              CHIP 1
-              =============================================== */}
+          {/* COUNTER */}
 
-          <motion.div
-            style={{
-              x:
-                chip1x,
-
-              y:
-                chip1y,
-            }}
-            className="
-              absolute
-
-              -left-2
-              top-7
-
-              z-20
-
-              sm:-left-8
-            "
-          >
+          {slides.length >
+          0 ? (
             <div
               className="
-                animate-float
+                mt-3
 
-                relative
+                flex
 
-                overflow-hidden
+                items-center
+                justify-between
 
-                rounded-xl
+                px-1
 
-                border
-                border-brand/15
+                text-[10px]
 
-                bg-white/95
+                font-bold
 
-                px-4
-                py-3
+                uppercase
 
-                shadow-[0_16px_38px_-22px_rgba(230,0,0,0.35)]
+                tracking-[0.18em]
 
-                backdrop-blur-xl
+                text-slate-400
               "
             >
-              <span
-                aria-hidden="true"
-                className="
-                  absolute
+              <span>
+                {currentSlide?.mediaType ===
+                "video"
+                  ? "Video"
+                  : "Image"}
+              </span>
 
-                  left-0
-                  top-0
-
-                  h-full
-                  w-[3px]
-
-                  bg-brand
-                "
-              />
-
-              <p
-                className="
-                  font-display
-
-                  text-base
-
-                  font-extrabold
-
-                  text-brand-deep
-
-                  sm:text-lg
-                "
-              >
+              <span>
+                {slideIndex +
+                  1}{" "}
+                /{" "}
                 {
-                  content.chip1Title
+                  slides.length
                 }
-              </p>
-
-              <p
-                className="
-                  mt-0.5
-
-                  text-[9px]
-
-                  font-bold
-
-                  uppercase
-
-                  tracking-widest
-
-                  text-slate-500
-
-                  sm:text-xs
-                "
-              >
-                {
-                  content.chip1Subtitle
-                }
-              </p>
+              </span>
             </div>
-          </motion.div>
-
-          {/* ===============================================
-              CHIP 2
-              =============================================== */}
-
-          <motion.div
-            style={{
-              x:
-                chip2x,
-            }}
-            className="
-              absolute
-
-              -right-2
-              top-1/2
-
-              z-20
-
-              sm:-right-8
-            "
-          >
-            <div
-              className="
-                animate-float-slow
-
-                relative
-
-                overflow-hidden
-
-                rounded-xl
-
-                border
-                border-brand/15
-
-                bg-white/95
-
-                px-4
-                py-3
-
-                shadow-[0_16px_38px_-22px_rgba(230,0,0,0.35)]
-
-                backdrop-blur-xl
-              "
-            >
-              <span
-                aria-hidden="true"
-                className="
-                  absolute
-
-                  right-0
-                  top-0
-
-                  h-full
-                  w-[3px]
-
-                  bg-brand
-                "
-              />
-
-              <p
-                className="
-                  font-display
-
-                  text-base
-
-                  font-extrabold
-
-                  text-brand-deep
-
-                  sm:text-lg
-                "
-              >
-                {
-                  content.chip2Title
-                }
-              </p>
-
-              <p
-                className="
-                  mt-0.5
-
-                  text-[9px]
-
-                  font-bold
-
-                  uppercase
-
-                  tracking-widest
-
-                  text-slate-500
-
-                  sm:text-xs
-                "
-              >
-                {
-                  content.chip2Subtitle
-                }
-              </p>
-            </div>
-          </motion.div>
-
-          {/* ===============================================
-              CHIP 3
-              =============================================== */}
-
-          <motion.div
-            style={{
-              x:
-                chip3x,
-            }}
-            className="
-              absolute
-
-              -bottom-5
-              left-7
-
-              z-20
-            "
-          >
-            <div
-              className="
-                animate-float
-
-                relative
-
-                overflow-hidden
-
-                rounded-xl
-
-                border
-                border-brand/20
-
-                bg-white/95
-
-                px-4
-                py-3
-
-                shadow-[0_18px_42px_-22px_rgba(230,0,0,0.42)]
-
-                backdrop-blur-xl
-              "
-            >
-              <span
-                aria-hidden="true"
-                className="
-                  absolute
-
-                  inset-x-0
-                  bottom-0
-
-                  h-[3px]
-
-                  bg-gradient-to-r
-
-                  from-black
-                  via-brand
-                  to-brand-soft
-                "
-              />
-
-              <p
-                className="
-                  font-display
-
-                  text-base
-
-                  font-extrabold
-
-                  text-brand
-
-                  sm:text-lg
-                "
-              >
-                {
-                  content.chip3Title
-                }
-              </p>
-
-              <p
-                className="
-                  mt-0.5
-
-                  text-[9px]
-
-                  font-bold
-
-                  uppercase
-
-                  tracking-widest
-
-                  text-slate-500
-
-                  sm:text-xs
-                "
-              >
-                {
-                  content.chip3Subtitle
-                }
-              </p>
-            </div>
-          </motion.div>
+          ) : null}
         </motion.div>
       </div>
 
-      {/* ===================================================
-          SCROLL INDICATOR
-          =================================================== */}
+      {/* SCROLL */}
 
       <motion.div
         initial={{
           opacity:
             0,
         }}
-        animate={{
-          opacity:
-            ready
-              ? 1
-              : 0,
-        }}
+        animate={
+          ready
+            ? {
+                opacity:
+                  1,
+              }
+            : {
+                opacity:
+                  0,
+              }
+        }
         transition={{
           delay:
-            1.4,
+            1,
 
           duration:
             0.5,
         }}
         className="
-          mt-14
+          mt-12
 
           flex
 
           justify-center
+
+          md:mt-16
         "
       >
         <MouseIndicator />
       </motion.div>
-
-      {/* ===================================================
-          BOTTOM RED FADE
-          =================================================== */}
-
-      <div
-        aria-hidden="true"
-        className="
-          pointer-events-none
-
-          absolute
-
-          bottom-0
-          left-1/2
-
-          h-px
-          w-[80%]
-
-          -translate-x-1/2
-
-          bg-gradient-to-r
-
-          from-transparent
-          via-brand/20
-          to-transparent
-        "
-      />
     </section>
+  );
+}
+
+/* =========================================================
+   TRUST POINT
+   ========================================================= */
+
+function TrustPoint({
+  icon,
+  text,
+}: {
+  icon: ReactNode;
+
+  text: string;
+}) {
+  return (
+    <div
+      className="
+        flex
+
+        items-center
+
+        gap-2.5
+
+        text-xs
+
+        font-semibold
+
+        text-slate-500
+      "
+    >
+      <span
+        className="
+          grid
+
+          h-8
+          w-8
+
+          shrink-0
+
+          place-items-center
+
+          rounded-lg
+
+          bg-brand/[0.07]
+
+          text-brand
+        "
+      >
+        {icon}
+      </span>
+
+      <span className="leading-snug">
+        {text}
+      </span>
+    </div>
   );
 }

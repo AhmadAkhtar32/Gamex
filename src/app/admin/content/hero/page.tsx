@@ -1,116 +1,52 @@
-import type { ReactNode } from "react";
+import type {
+  ReactNode,
+} from "react";
 
 import Link from "next/link";
 
 import {
   ArrowLeft,
   CheckCircle2,
+  Eye,
   Gauge,
-  ImageIcon,
-  LinkIcon,
   MousePointerClick,
   Save,
   Sparkles,
-  Upload,
-  Zap,
+  Type,
 } from "lucide-react";
 
-import { eq } from "drizzle-orm";
+import {
+  asc,
+  eq,
+} from "drizzle-orm";
 
-import { db } from "@/db";
-import { heroSettings } from "@/db/schema";
-import { requireAdmin } from "@/lib/admin-auth";
+import {
+  db,
+} from "@/db";
 
-import { saveHeroSettings } from "./actions";
+import {
+  heroMedia,
+  heroSettings,
+} from "@/db/schema";
 
-/* =========================================================
-   DEFAULT HERO CONTENT
+import {
+  requireAdmin,
+} from "@/lib/admin-auth";
 
-   These values match the current public Hero.tsx.
-   They are used only when hero_settings is still empty.
-   ========================================================= */
+import {
+  DEFAULT_HERO_CONTENT,
+} from "@/lib/hero-content";
 
-const DEFAULT_HERO = {
-  id: "main",
+import {
+  HeroMediaManager,
+} from "./HeroMediaManager";
 
-  eyebrow:
-    "Premium Gaming Hardware",
-
-  headingLine1:
-    "Dominate",
-
-  headingLine2:
-    "every",
-
-  rotatingWords: [
-    "MATCH.",
-    "RAID.",
-    "BATTLE.",
-    "FRAME.",
-  ],
-
-  description:
-    "Gamex builds custom high-performance gaming PCs and supplies pro-grade graphics cards, memory, processors and accessories — engineered for players who refuse to lose.",
-
-  primaryButtonText:
-    "Explore Builds",
-
-  primaryButtonLink:
-    "#builds",
-
-  secondaryButtonText:
-    "Shop Components",
-
-  secondaryButtonLink:
-    "#products",
-
-  trustPoint1:
-    "Benchmark-tested",
-
-  trustPoint2:
-    "Certified silicon",
-
-  trustPoint3:
-    "12,000+ happy gamers",
-
-  image:
-    "https://images.pexels.com/photos/34301924/pexels-photo-34301924.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200",
-
-  imageAlt:
-    "Gamex custom gaming PC with RGB lighting",
-
-  imageTitle:
-    "Titan Series",
-
-  imageSubtitle:
-    "Flagship Build",
-
-  imageBadge:
-    "Live",
-
-  chip1Title:
-    "Flagship GPU",
-
-  chip1Subtitle:
-    "Next-gen VRAM",
-
-  chip2Title:
-    "High-Capacity",
-
-  chip2Subtitle:
-    "Blazing Fast Memory",
-
-  chip3Title:
-    "300+ FPS",
-
-  chip3Subtitle:
-    "Esports Ready",
-
-  isVisible: true,
-};
+import {
+  saveHeroSettings,
+} from "./actions";
 
 /* =========================================================
-   PAGE TYPES
+   TYPES
    ========================================================= */
 
 type HeroAdminPageProps = {
@@ -121,66 +57,145 @@ type HeroAdminPageProps = {
 };
 
 /* =========================================================
+   INPUT CLASS
+   ========================================================= */
+
+const inputClass = `
+  w-full
+
+  rounded-xl
+
+  border
+  border-brand/15
+
+  bg-white
+
+  px-4
+  py-3
+
+  text-sm
+  text-brand-deep
+
+  outline-none
+
+  transition-all
+
+  placeholder:text-slate-400
+
+  focus:border-brand/50
+
+  focus:shadow-[0_0_0_4px_rgba(230,0,0,0.08)]
+`;
+
+/* =========================================================
    PAGE
    ========================================================= */
 
 export default async function HeroAdminPage({
   searchParams,
 }: HeroAdminPageProps) {
-  /* =========================================================
-     SECURITY
-     ========================================================= */
-
   await requireAdmin();
 
   const query =
     await searchParams;
 
-  /* =========================================================
-     LOAD HERO FROM NEON
-     ========================================================= */
+  /* =======================================================
+     LOAD HERO
+     ======================================================= */
 
-  const rows = await db
-    .select()
-    .from(heroSettings)
-    .where(
-      eq(
-        heroSettings.id,
-        "main"
+  const heroRows =
+    await db
+      .select()
+      .from(
+        heroSettings
       )
-    )
-    .limit(1);
+      .where(
+        eq(
+          heroSettings.id,
+          "main"
+        )
+      )
+      .limit(
+        1
+      );
 
-  /*
-   * If Neon does not have a Hero row yet,
-   * use the current Hero.tsx values.
-   */
   const hero =
-    rows[0] ??
-    DEFAULT_HERO;
+    heroRows[0] ??
+    DEFAULT_HERO_CONTENT;
 
   const rotatingWords =
     hero.rotatingWords.join(
       "\n"
     );
 
+  /* =======================================================
+     LOAD MEDIA
+     ======================================================= */
+
+  const mediaItems =
+    await db
+      .select({
+        id:
+          heroMedia.id,
+
+        mediaType:
+          heroMedia.mediaType,
+
+        url:
+          heroMedia.url,
+
+        alt:
+          heroMedia.alt,
+
+        isVisible:
+          heroMedia.isVisible,
+
+        sortOrder:
+          heroMedia.sortOrder,
+      })
+      .from(
+        heroMedia
+      )
+      .orderBy(
+        asc(
+          heroMedia.sortOrder
+        ),
+
+        asc(
+          heroMedia.id
+        )
+      );
+
   return (
-    <main className="min-h-screen bg-[#f7f9fc]">
+    <main className="min-h-screen bg-[#fff8f8]">
       {/* =====================================================
           HEADER
           ===================================================== */}
 
-      <header className="border-b border-brand/10 bg-white">
+      <header
+        className="
+          border-b
+          border-brand/10
+
+          bg-white
+        "
+      >
         <div
           className="
             mx-auto
+
             flex
+
             max-w-6xl
+
             items-center
             justify-between
+
             gap-4
+
             px-5
             py-4
+
             md:px-8
           "
         >
@@ -188,17 +203,30 @@ export default async function HeroAdminPage({
             <p
               className="
                 font-display
+
                 text-lg
+
                 font-extrabold
+
                 uppercase
+
                 tracking-widest
+
                 text-brand-deep
               "
             >
               Gamex Admin
             </p>
 
-            <p className="mt-0.5 text-xs text-slate-500">
+            <p
+              className="
+                mt-0.5
+
+                text-xs
+
+                text-slate-500
+              "
+            >
               Website Content
             </p>
           </div>
@@ -207,22 +235,37 @@ export default async function HeroAdminPage({
             href="/admin"
             className="
               inline-flex
+
               items-center
+
               gap-2
+
               rounded-lg
+
               border
               border-brand/15
+
               bg-white
+
               px-4
               py-2.5
+
               text-xs
+
               font-bold
+
               uppercase
+
               tracking-wider
+
               text-brand
+
               transition-all
+
               hover:border-brand
+
               hover:bg-brand
+
               hover:text-white
             "
           >
@@ -234,37 +277,48 @@ export default async function HeroAdminPage({
       </header>
 
       {/* =====================================================
-          MAIN CONTENT
+          CONTENT
           ===================================================== */}
 
       <div
         className="
           mx-auto
+
           max-w-6xl
+
           px-5
           py-10
+
           md:px-8
           md:py-14
         "
       >
-        {/* ===================================================
-            TITLE
-            =================================================== */}
+        {/* TITLE */}
 
         <div>
           <div
             className="
               inline-flex
+
               items-center
+
               gap-2
+
               rounded-full
+
               bg-brand/[0.07]
+
               px-3
               py-1.5
+
               text-xs
+
               font-bold
+
               uppercase
+
               tracking-[0.2em]
+
               text-brand
             "
           >
@@ -276,11 +330,17 @@ export default async function HeroAdminPage({
           <h1
             className="
               mt-4
+
               font-display
+
               text-3xl
+
               font-extrabold
+
               uppercase
+
               text-brand-deep
+
               md:text-4xl
             "
           >
@@ -290,37 +350,50 @@ export default async function HeroAdminPage({
           <p
             className="
               mt-3
+
               max-w-3xl
+
               text-sm
+
               leading-relaxed
+
               text-slate-500
             "
           >
-            Manage the main Hero content displayed at the top of
-            the Gamex homepage. The visual design, animations and
-            effects remain protected in the website code.
+            Manage the Hero text and its image/video slider.
+            The old floating specification cards are no longer
+            displayed on the public website.
           </p>
         </div>
 
-        {/* ===================================================
-            SUCCESS
-            =================================================== */}
+        {/* STATUS */}
 
-        {query.saved === "1" ? (
+        {query.saved ===
+        "1" ? (
           <div
             className="
               mt-7
+
               flex
+
               items-start
+
               gap-3
+
               rounded-xl
+
               border
               border-emerald-200
+
               bg-emerald-50
+
               px-5
               py-4
+
               text-sm
+
               font-semibold
+
               text-emerald-700
             "
           >
@@ -330,22 +403,25 @@ export default async function HeroAdminPage({
           </div>
         ) : null}
 
-        {/* ===================================================
-            ERROR
-            =================================================== */}
-
         {query.error ? (
           <div
             className="
               mt-7
+
               rounded-xl
+
               border
               border-red-200
+
               bg-red-50
+
               px-5
               py-4
+
               text-sm
+
               font-semibold
+
               text-red-700
             "
           >
@@ -354,25 +430,138 @@ export default async function HeroAdminPage({
         ) : null}
 
         {/* ===================================================
-            FORM
+            HERO MEDIA
+            =================================================== */}
+
+        <div
+          className="
+            mt-8
+
+            rounded-3xl
+
+            border
+            border-brand/10
+
+            bg-white
+
+            p-5
+
+            shadow-[0_30px_80px_-50px_rgba(230,0,0,0.32)]
+
+            sm:p-7
+          "
+        >
+          <div
+            className="
+              mb-6
+
+              flex
+
+              items-start
+
+              gap-3
+
+              border-b
+              border-brand/10
+
+              pb-5
+            "
+          >
+            <span
+              className="
+                grid
+
+                h-10
+                w-10
+
+                shrink-0
+
+                place-items-center
+
+                rounded-xl
+
+                bg-brand
+
+                text-white
+              "
+            >
+              <Eye className="h-5 w-5" />
+            </span>
+
+            <div>
+              <h2
+                className="
+                  font-display
+
+                  text-lg
+
+                  font-extrabold
+
+                  uppercase
+
+                  text-brand-deep
+                "
+              >
+                Hero Image / Video Slider
+              </h2>
+
+              <p
+                className="
+                  mt-1
+
+                  text-xs
+
+                  leading-relaxed
+
+                  text-slate-500
+                "
+              >
+                Up to 10 media items. Images and videos are
+                displayed using contain mode, so the complete
+                media remains visible without cropping.
+              </p>
+            </div>
+          </div>
+
+          <HeroMediaManager
+            items={
+              mediaItems
+            }
+          />
+        </div>
+
+        {/* ===================================================
+            HERO TEXT FORM
             =================================================== */}
 
         <form
-          action={saveHeroSettings}
-          className="mt-8 space-y-7"
+          action={
+            saveHeroSettings
+          }
+          className="
+            mt-8
+
+            space-y-6
+          "
         >
-          {/* =================================================
-              HERO TEXT
-              ================================================= */}
+          {/* HEADLINE */}
 
           <SettingsCard
             icon={
-              <Zap className="h-5 w-5" />
+              <Type className="h-5 w-5" />
             }
-            title="Hero Text"
-            description="Main headline and introductory content."
+            title="Hero Headline"
+            description="Control the eyebrow, large heading and rotating word animation."
           >
-            <div className="grid gap-6 md:grid-cols-2">
+            <div
+              className="
+                grid
+
+                gap-5
+
+                md:grid-cols-2
+              "
+            >
               <FormField
                 label="Eyebrow"
                 htmlFor="eyebrow"
@@ -428,43 +617,36 @@ export default async function HeroAdminPage({
                     inputClass
                   }
                 />
-
-                <p className="mt-2 text-xs text-slate-400">
-                  The rotating word appears after this text.
-                </p>
               </FormField>
 
               <FormField
                 label="Rotating Words"
                 htmlFor="rotatingWords"
+                help="Enter one rotating word or phrase per line."
               >
                 <textarea
                   id="rotatingWords"
                   name="rotatingWords"
                   required
-                  rows={6}
+                  rows={5}
                   defaultValue={
                     rotatingWords
                   }
                   className={`${inputClass} resize-y`}
                 />
-
-                <p className="mt-2 text-xs text-slate-400">
-                  Enter one rotating word per line.
-                </p>
               </FormField>
             </div>
 
-            <div className="mt-6">
+            <div className="mt-5">
               <FormField
-                label="Hero Description"
+                label="Description"
                 htmlFor="description"
               >
                 <textarea
                   id="description"
                   name="description"
                   required
-                  rows={5}
+                  rows={4}
                   defaultValue={
                     hero.description
                   }
@@ -474,43 +656,55 @@ export default async function HeroAdminPage({
             </div>
           </SettingsCard>
 
-          {/* =================================================
-              CTA BUTTONS
-              ================================================= */}
+          {/* BUTTONS */}
 
           <SettingsCard
             icon={
               <MousePointerClick className="h-5 w-5" />
             }
             title="Hero Buttons"
-            description="Control the two calls-to-action shown beneath the Hero description."
+            description="Manage the two Hero call-to-action buttons."
           >
-            <div className="grid gap-6 md:grid-cols-2">
+            <div
+              className="
+                grid
+
+                gap-6
+
+                lg:grid-cols-2
+              "
+            >
               {/* PRIMARY */}
 
               <div
                 className="
-                  rounded-xl
+                  rounded-2xl
+
                   border
                   border-brand/10
-                  bg-[#f7f9fc]
+
+                  bg-[#fffafa]
+
                   p-5
                 "
               >
                 <p
                   className="
-                    mb-5
-                    text-xs
-                    font-bold
+                    text-[10px]
+
+                    font-extrabold
+
                     uppercase
-                    tracking-wider
+
+                    tracking-[0.18em]
+
                     text-brand
                   "
                 >
                   Primary Button
                 </p>
 
-                <div className="space-y-5">
+                <div className="mt-4 space-y-4">
                   <FormField
                     label="Button Text"
                     htmlFor="primaryButtonText"
@@ -533,22 +727,21 @@ export default async function HeroAdminPage({
                   <FormField
                     label="Button Link"
                     htmlFor="primaryButtonLink"
+                    help="Examples: #builds, /shop or https://..."
                   >
-                    <div className="relative">
-                      <LinkIcon className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-
-                      <input
-                        id="primaryButtonLink"
-                        name="primaryButtonLink"
-                        type="text"
-                        required
-                        maxLength={500}
-                        defaultValue={
-                          hero.primaryButtonLink
-                        }
-                        className={`${inputClass} pl-11`}
-                      />
-                    </div>
+                    <input
+                      id="primaryButtonLink"
+                      name="primaryButtonLink"
+                      type="text"
+                      required
+                      maxLength={500}
+                      defaultValue={
+                        hero.primaryButtonLink
+                      }
+                      className={
+                        inputClass
+                      }
+                    />
                   </FormField>
                 </div>
               </div>
@@ -557,27 +750,33 @@ export default async function HeroAdminPage({
 
               <div
                 className="
-                  rounded-xl
+                  rounded-2xl
+
                   border
                   border-brand/10
-                  bg-[#f7f9fc]
+
+                  bg-[#fffafa]
+
                   p-5
                 "
               >
                 <p
                   className="
-                    mb-5
-                    text-xs
-                    font-bold
+                    text-[10px]
+
+                    font-extrabold
+
                     uppercase
-                    tracking-wider
+
+                    tracking-[0.18em]
+
                     text-brand
                   "
                 >
                   Secondary Button
                 </p>
 
-                <div className="space-y-5">
+                <div className="mt-4 space-y-4">
                   <FormField
                     label="Button Text"
                     htmlFor="secondaryButtonText"
@@ -601,45 +800,43 @@ export default async function HeroAdminPage({
                     label="Button Link"
                     htmlFor="secondaryButtonLink"
                   >
-                    <div className="relative">
-                      <LinkIcon className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-
-                      <input
-                        id="secondaryButtonLink"
-                        name="secondaryButtonLink"
-                        type="text"
-                        required
-                        maxLength={500}
-                        defaultValue={
-                          hero.secondaryButtonLink
-                        }
-                        className={`${inputClass} pl-11`}
-                      />
-                    </div>
+                    <input
+                      id="secondaryButtonLink"
+                      name="secondaryButtonLink"
+                      type="text"
+                      required
+                      maxLength={500}
+                      defaultValue={
+                        hero.secondaryButtonLink
+                      }
+                      className={
+                        inputClass
+                      }
+                    />
                   </FormField>
                 </div>
               </div>
             </div>
-
-            <p className="mt-4 text-xs text-slate-400">
-              You can use section links such as #builds and
-              #products, internal paths such as /contact, or full
-              https:// links.
-            </p>
           </SettingsCard>
 
-          {/* =================================================
-              TRUST POINTS
-              ================================================= */}
+          {/* TRUST POINTS */}
 
           <SettingsCard
             icon={
               <Gauge className="h-5 w-5" />
             }
             title="Trust Points"
-            description="Three short benefit statements displayed below the Hero buttons."
+            description="The three small selling points underneath the Hero buttons."
           >
-            <div className="grid gap-6 md:grid-cols-3">
+            <div
+              className="
+                grid
+
+                gap-5
+
+                lg:grid-cols-3
+              "
+            >
               <FormField
                 label="Trust Point 1"
                 htmlFor="trustPoint1"
@@ -699,458 +896,31 @@ export default async function HeroAdminPage({
             </div>
           </SettingsCard>
 
-          {/* =================================================
-              HERO IMAGE
-              ================================================= */}
-
-          <SettingsCard
-            icon={
-              <ImageIcon className="h-5 w-5" />
-            }
-            title="Hero Image"
-            description="Manage the large gaming PC image shown on the right side of the Hero."
-          >
-            {/* Current image */}
-
-            <div
-              className="
-                rounded-xl
-                border
-                border-brand/10
-                bg-[#f7f9fc]
-                p-5
-              "
-            >
-              <p
-                className="
-                  text-xs
-                  font-bold
-                  uppercase
-                  tracking-wider
-                  text-slate-500
-                "
-              >
-                Current Image
-              </p>
-
-              <div
-                className="
-                  mt-4
-                  flex
-                  flex-col
-                  gap-5
-                  md:flex-row
-                  md:items-center
-                "
-              >
-                <div
-                  className="
-                    aspect-[4/3]
-                    w-full
-                    overflow-hidden
-                    rounded-xl
-                    border
-                    border-brand/10
-                    bg-white
-                    md:w-72
-                  "
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={hero.image}
-                    alt={
-                      hero.imageAlt
-                    }
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-
-                <div className="min-w-0">
-                  <p className="text-sm font-bold text-brand-deep">
-                    Hero image currently in use
-                  </p>
-
-                  <p className="mt-2 break-all text-xs leading-relaxed text-slate-400">
-                    {hero.image}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* PC upload */}
-
-            <div className="mt-6">
-              <label
-                htmlFor="imageFile"
-                className="
-                  mb-2
-                  block
-                  text-xs
-                  font-bold
-                  uppercase
-                  tracking-wider
-                  text-slate-600
-                "
-              >
-                Upload From PC
-              </label>
-
-              <div
-                className="
-                  rounded-xl
-                  border
-                  border-dashed
-                  border-brand/25
-                  bg-[#f7f9fc]
-                  p-7
-                  text-center
-                "
-              >
-                <div
-                  className="
-                    mx-auto
-                    grid
-                    h-11
-                    w-11
-                    place-items-center
-                    rounded-xl
-                    bg-brand/[0.08]
-                    text-brand
-                  "
-                >
-                  <Upload className="h-5 w-5" />
-                </div>
-
-                <p className="mt-3 text-sm font-bold text-brand-deep">
-                  Choose Hero Image
-                </p>
-
-                <p className="mt-1 text-xs text-slate-400">
-                  JPG, PNG or WebP — maximum 5 MB
-                </p>
-
-                <input
-                  id="imageFile"
-                  name="imageFile"
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  className="
-                    mt-4
-                    block
-                    w-full
-                    text-xs
-                    text-slate-500
-
-                    file:mr-4
-                    file:rounded-lg
-                    file:border-0
-                    file:bg-brand
-                    file:px-4
-                    file:py-2.5
-                    file:text-xs
-                    file:font-bold
-                    file:text-white
-
-                    hover:file:bg-brand-soft
-                  "
-                />
-              </div>
-            </div>
-
-            {/* OR */}
-
-            <div className="my-6 flex items-center gap-4">
-              <div className="h-px flex-1 bg-brand/10" />
-
-              <span
-                className="
-                  text-xs
-                  font-bold
-                  uppercase
-                  tracking-[0.2em]
-                  text-slate-400
-                "
-              >
-                Or
-              </span>
-
-              <div className="h-px flex-1 bg-brand/10" />
-            </div>
-
-            {/* Image URL */}
-
-            <FormField
-              label="Image URL"
-              htmlFor="imageUrl"
-            >
-              <div className="relative">
-                <LinkIcon className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-
-                <input
-                  id="imageUrl"
-                  name="imageUrl"
-                  type="url"
-                  maxLength={1000}
-                  defaultValue={
-                    hero.image
-                  }
-                  className={`${inputClass} pl-11`}
-                />
-              </div>
-
-              <p className="mt-2 text-xs text-slate-400">
-                If you upload an image from your PC, that image
-                takes priority over this URL.
-              </p>
-            </FormField>
-
-            {/* Image text */}
-
-            <div className="mt-6 grid gap-6 md:grid-cols-2">
-              <FormField
-                label="Image Alt Text"
-                htmlFor="imageAlt"
-              >
-                <input
-                  id="imageAlt"
-                  name="imageAlt"
-                  type="text"
-                  required
-                  maxLength={500}
-                  defaultValue={
-                    hero.imageAlt
-                  }
-                  className={
-                    inputClass
-                  }
-                />
-              </FormField>
-
-              <FormField
-                label="Image Badge"
-                htmlFor="imageBadge"
-              >
-                <input
-                  id="imageBadge"
-                  name="imageBadge"
-                  type="text"
-                  required
-                  maxLength={120}
-                  defaultValue={
-                    hero.imageBadge
-                  }
-                  className={
-                    inputClass
-                  }
-                />
-              </FormField>
-
-              <FormField
-                label="Image Title"
-                htmlFor="imageTitle"
-              >
-                <input
-                  id="imageTitle"
-                  name="imageTitle"
-                  type="text"
-                  required
-                  maxLength={255}
-                  defaultValue={
-                    hero.imageTitle
-                  }
-                  className={
-                    inputClass
-                  }
-                />
-              </FormField>
-
-              <FormField
-                label="Image Subtitle"
-                htmlFor="imageSubtitle"
-              >
-                <input
-                  id="imageSubtitle"
-                  name="imageSubtitle"
-                  type="text"
-                  required
-                  maxLength={255}
-                  defaultValue={
-                    hero.imageSubtitle
-                  }
-                  className={
-                    inputClass
-                  }
-                />
-              </FormField>
-            </div>
-          </SettingsCard>
-
-          {/* =================================================
-              FLOATING CHIPS
-              ================================================= */}
-
-          <SettingsCard
-            icon={
-              <Sparkles className="h-5 w-5" />
-            }
-            title="Floating Specification Cards"
-            description="Control the three animated specification cards surrounding the Hero image."
-          >
-            <div className="grid gap-5 lg:grid-cols-3">
-              {/* CHIP 1 */}
-
-              <ChipEditor
-                number="1"
-              >
-                <FormField
-                  label="Title"
-                  htmlFor="chip1Title"
-                >
-                  <input
-                    id="chip1Title"
-                    name="chip1Title"
-                    type="text"
-                    required
-                    maxLength={255}
-                    defaultValue={
-                      hero.chip1Title
-                    }
-                    className={
-                      inputClass
-                    }
-                  />
-                </FormField>
-
-                <FormField
-                  label="Subtitle"
-                  htmlFor="chip1Subtitle"
-                >
-                  <input
-                    id="chip1Subtitle"
-                    name="chip1Subtitle"
-                    type="text"
-                    required
-                    maxLength={255}
-                    defaultValue={
-                      hero.chip1Subtitle
-                    }
-                    className={
-                      inputClass
-                    }
-                  />
-                </FormField>
-              </ChipEditor>
-
-              {/* CHIP 2 */}
-
-              <ChipEditor
-                number="2"
-              >
-                <FormField
-                  label="Title"
-                  htmlFor="chip2Title"
-                >
-                  <input
-                    id="chip2Title"
-                    name="chip2Title"
-                    type="text"
-                    required
-                    maxLength={255}
-                    defaultValue={
-                      hero.chip2Title
-                    }
-                    className={
-                      inputClass
-                    }
-                  />
-                </FormField>
-
-                <FormField
-                  label="Subtitle"
-                  htmlFor="chip2Subtitle"
-                >
-                  <input
-                    id="chip2Subtitle"
-                    name="chip2Subtitle"
-                    type="text"
-                    required
-                    maxLength={255}
-                    defaultValue={
-                      hero.chip2Subtitle
-                    }
-                    className={
-                      inputClass
-                    }
-                  />
-                </FormField>
-              </ChipEditor>
-
-              {/* CHIP 3 */}
-
-              <ChipEditor
-                number="3"
-              >
-                <FormField
-                  label="Title"
-                  htmlFor="chip3Title"
-                >
-                  <input
-                    id="chip3Title"
-                    name="chip3Title"
-                    type="text"
-                    required
-                    maxLength={255}
-                    defaultValue={
-                      hero.chip3Title
-                    }
-                    className={
-                      inputClass
-                    }
-                  />
-                </FormField>
-
-                <FormField
-                  label="Subtitle"
-                  htmlFor="chip3Subtitle"
-                >
-                  <input
-                    id="chip3Subtitle"
-                    name="chip3Subtitle"
-                    type="text"
-                    required
-                    maxLength={255}
-                    defaultValue={
-                      hero.chip3Subtitle
-                    }
-                    className={
-                      inputClass
-                    }
-                  />
-                </FormField>
-              </ChipEditor>
-            </div>
-          </SettingsCard>
-
-          {/* =================================================
-              VISIBILITY
-              ================================================= */}
+          {/* VISIBILITY */}
 
           <div
             className="
               rounded-2xl
+
               border
               border-brand/10
+
               bg-white
+
               p-6
-              shadow-[0_25px_65px_-45px_rgba(23,49,96,0.35)]
+
+              shadow-[0_25px_65px_-45px_rgba(230,0,0,0.3)]
             "
           >
             <label
               htmlFor="isVisible"
               className="
                 flex
+
                 cursor-pointer
+
                 items-start
+
                 gap-3
               "
             >
@@ -1163,9 +933,11 @@ export default async function HeroAdminPage({
                 }
                 className="
                   mt-1
+
                   h-4
                   w-4
-                  accent-[#173160]
+
+                  accent-[#e60000]
                 "
               />
 
@@ -1173,8 +945,11 @@ export default async function HeroAdminPage({
                 <span
                   className="
                     block
+
                     text-sm
+
                     font-bold
+
                     text-brand-deep
                   "
                 >
@@ -1184,45 +959,60 @@ export default async function HeroAdminPage({
                 <span
                   className="
                     mt-1
+
                     block
+
                     text-xs
+
                     leading-relaxed
+
                     text-slate-500
                   "
                 >
-                  Turning this off will eventually hide the entire
-                  Hero section from the public homepage.
+                  Turning this off hides the complete Hero
+                  section from the public homepage.
                 </span>
               </span>
             </label>
           </div>
 
-          {/* =================================================
-              SAVE
-              ================================================= */}
+          {/* SAVE */}
 
           <div
             className="
               sticky
+
               bottom-4
+
               z-20
+
               flex
+
               flex-col
+
               gap-3
+
               rounded-2xl
+
               border
               border-brand/10
+
               bg-white/95
+
               p-4
-              shadow-[0_20px_55px_-30px_rgba(23,49,96,0.45)]
+
+              shadow-[0_20px_55px_-30px_rgba(230,0,0,0.3)]
+
               backdrop-blur-xl
+
               sm:flex-row
               sm:items-center
               sm:justify-between
             "
           >
             <p className="text-xs text-slate-500">
-              Save your changes before leaving this page.
+              Slider media saves separately. This button saves
+              Hero text, buttons and visibility.
             </p>
 
             <div className="flex gap-3">
@@ -1230,20 +1020,32 @@ export default async function HeroAdminPage({
                 href="/admin"
                 className="
                   inline-flex
+
                   items-center
                   justify-center
+
                   rounded-xl
+
                   border
                   border-brand/15
+
                   bg-white
+
                   px-5
                   py-3
+
                   text-xs
+
                   font-bold
+
                   uppercase
+
                   tracking-wider
+
                   text-brand
+
                   transition-all
+
                   hover:bg-brand/[0.05]
                 "
               >
@@ -1254,22 +1056,36 @@ export default async function HeroAdminPage({
                 type="submit"
                 className="
                   inline-flex
+
                   items-center
                   justify-center
+
                   gap-2
+
                   rounded-xl
+
                   bg-brand
+
                   px-6
                   py-3
+
                   font-display
+
                   text-xs
+
                   font-bold
+
                   uppercase
+
                   tracking-wider
+
                   text-white
+
                   transition-all
+
                   hover:-translate-y-0.5
-                  hover:bg-brand-soft
+
+                  hover:bg-[#c90000]
                 "
               >
                 <Save className="h-4 w-4" />
@@ -1295,45 +1111,76 @@ function SettingsCard({
   children,
 }: {
   icon: ReactNode;
+
   title: string;
+
   description: string;
+
   children: ReactNode;
 }) {
   return (
     <section
       className="
-        rounded-2xl
+        rounded-3xl
+
         border
         border-brand/10
+
         bg-white
-        p-6
-        shadow-[0_25px_65px_-45px_rgba(23,49,96,0.35)]
-        md:p-8
+
+        p-5
+
+        shadow-[0_30px_80px_-50px_rgba(230,0,0,0.3)]
+
+        sm:p-7
       "
     >
-      <div className="flex items-start gap-3">
-        <div
+      <div
+        className="
+          flex
+
+          items-start
+
+          gap-3
+
+          border-b
+          border-brand/10
+
+          pb-5
+        "
+      >
+        <span
           className="
             grid
+
             h-10
             w-10
+
             shrink-0
+
             place-items-center
+
             rounded-xl
+
             bg-brand/[0.08]
+
             text-brand
           "
         >
           {icon}
-        </div>
+        </span>
 
         <div>
           <h2
             className="
               font-display
+
               text-lg
-              font-bold
+
+              font-extrabold
+
               uppercase
+
               text-brand-deep
             "
           >
@@ -1343,8 +1190,11 @@ function SettingsCard({
           <p
             className="
               mt-1
+
               text-xs
+
               leading-relaxed
+
               text-slate-500
             "
           >
@@ -1353,51 +1203,10 @@ function SettingsCard({
         </div>
       </div>
 
-      <div className="mt-7">
+      <div className="mt-6">
         {children}
       </div>
     </section>
-  );
-}
-
-/* =========================================================
-   FLOATING CHIP EDITOR
-   ========================================================= */
-
-function ChipEditor({
-  number,
-  children,
-}: {
-  number: string;
-  children: ReactNode;
-}) {
-  return (
-    <div
-      className="
-        rounded-xl
-        border
-        border-brand/10
-        bg-[#f7f9fc]
-        p-5
-      "
-    >
-      <p
-        className="
-          mb-5
-          text-xs
-          font-bold
-          uppercase
-          tracking-wider
-          text-brand
-        "
-      >
-        Floating Card {number}
-      </p>
-
-      <div className="space-y-5">
-        {children}
-      </div>
-    </div>
   );
 }
 
@@ -1408,53 +1217,59 @@ function ChipEditor({
 function FormField({
   label,
   htmlFor,
+  help,
   children,
 }: {
   label: string;
+
   htmlFor: string;
+
+  help?: string;
+
   children: ReactNode;
 }) {
   return (
     <div>
       <label
-        htmlFor={htmlFor}
+        htmlFor={
+          htmlFor
+        }
         className="
           mb-2
+
           block
-          text-xs
-          font-bold
+
+          text-[10px]
+
+          font-extrabold
+
           uppercase
-          tracking-wider
-          text-slate-600
+
+          tracking-[0.15em]
+
+          text-brand-deep
         "
       >
         {label}
       </label>
 
       {children}
+
+      {help ? (
+        <p
+          className="
+            mt-2
+
+            text-xs
+
+            leading-relaxed
+
+            text-slate-400
+          "
+        >
+          {help}
+        </p>
+      ) : null}
     </div>
   );
 }
-
-/* =========================================================
-   INPUT STYLE
-   ========================================================= */
-
-const inputClass = `
-  w-full
-  rounded-xl
-  border
-  border-brand/15
-  bg-[#f7f9fc]
-  px-4
-  py-3.5
-  text-sm
-  text-brand-deep
-  outline-none
-  transition-all
-  placeholder:text-slate-400
-  hover:border-brand/25
-  focus:border-brand/60
-  focus:bg-white
-  focus:shadow-[0_0_0_3px_rgba(23,49,96,0.10)]
-`;
