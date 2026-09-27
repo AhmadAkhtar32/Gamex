@@ -31,6 +31,7 @@ const orbitron =
 const googleSans =
   Google_Sans_Flex({
     subsets: ["latin"],
+    weight: "500",           // medium — avoids the "too slim" look
     variable: "--font-google-sans",
     display: "swap",
   });
