@@ -2,38 +2,14 @@ import {
   FaWhatsapp,
 } from "react-icons/fa6";
 
+import { createWhatsAppUrl } from "@/lib/whatsapp";
+
 export function WhatsAppFloat() {
-  /*
-   * Replace this with your real WhatsApp number.
-   *
-   * IMPORTANT:
-   * Use international format.
-   *
-   * Example Pakistan:
-   *
-   * 0300 1234567
-   *
-   * becomes:
-   *
-   * 923001234567
-   *
-   * Do NOT include:
-   * +
-   * spaces
-   * dashes
-   * brackets
-   */
-
-  const whatsappNumber =
-    "923036009123";
-
   const message =
     "Hi Gamex! I would like to know more about your gaming products and custom PC builds.";
 
   const whatsappUrl =
-    `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-      message
-    )}`;
+    createWhatsAppUrl(message);
 
   return (
     <a

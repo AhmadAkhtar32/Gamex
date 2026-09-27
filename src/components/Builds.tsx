@@ -1,4 +1,9 @@
+"use client";
+
+import { useState } from "react";
 import { ArrowRight, Check } from "lucide-react";
+
+import { DetailsModal } from "@/components/DetailsModal";
 
 import {
   SectionHeading,
@@ -33,7 +38,11 @@ export function Builds({
 }: {
   builds: PublicBuild[];
 }) {
+  const [selectedBuild, setSelectedBuild] =
+    useState<PublicBuild | null>(null);
+
   return (
+    <>
     <section
       id="builds"
       className="
@@ -111,11 +120,44 @@ export function Builds({
             {builds.map(
               (build, index) => (
                 <BlurReveal
-                  key={build.id}
-                  delay={index * 0.1}
-                  className="h-full"
-                >
-                  <SpotlightCard
+  key={build.id}
+  delay={index * 0.1}
+  className="h-full"
+>
+  <div
+    role="button"
+    tabIndex={0}
+
+    aria-label={`View details for ${build.name}`}
+
+    onClick={() =>
+      setSelectedBuild(build)
+    }
+
+    onKeyDown={(event) => {
+      if (
+        event.key === "Enter" ||
+        event.key === " "
+      ) {
+        event.preventDefault();
+
+        setSelectedBuild(
+          build
+        );
+      }
+    }}
+
+    className="
+      h-full
+      cursor-pointer
+      rounded-2xl
+
+      focus:outline-none
+      focus-visible:ring-4
+      focus-visible:ring-brand/20
+    "
+  >
+    <SpotlightCard
                     className="
                       group
                       flex
@@ -300,57 +342,60 @@ export function Builds({
 
                       {/* CTA */}
 
-                      <a
-                        href="#contact"
-                        className="
-                          mt-6
-                          inline-flex
-                          items-center
-                          gap-2
-                          self-start
+                      <span
+  className="
+    mt-6
 
-                          rounded-lg
+    inline-flex
+    items-center
+    gap-2
+    self-start
 
-                          border
-                          border-brand/18
+    rounded-lg
 
-                          bg-white
+    border
+    border-brand/18
 
-                          px-5
-                          py-2.5
+    bg-white
 
-                          font-display
-                          text-xs
-                          font-bold
-                          uppercase
-                          tracking-widest
-                          text-brand-deep
+    px-5
+    py-2.5
 
-                          shadow-[0_10px_26px_-22px_rgba(23,49,96,0.45)]
+    font-display
+    text-xs
+    font-bold
+    uppercase
+    tracking-widest
+    text-brand-deep
 
-                          transition-all
-                          duration-300
+    shadow-[0_10px_26px_-22px_rgba(23,49,96,0.45)]
 
-                          hover:border-brand/40
-                          hover:bg-brand/[0.05]
-                          hover:text-brand
-                        "
-                      >
-                        Configure This Build
+    transition-all
+    duration-300
 
-                        <ArrowRight
-                          className="
-                            h-4
-                            w-4
-                            transition-transform
-                            duration-300
-                            group-hover:translate-x-1
-                          "
-                        />
-                      </a>
+    group-hover:border-brand/40
+    group-hover:bg-brand/[0.05]
+    group-hover:text-brand
+  "
+>
+  View Build Details
+
+  <ArrowRight
+    className="
+      h-4
+      w-4
+
+      transition-transform
+      duration-300
+
+      group-hover:translate-x-1
+    "
+  />
+</span>
                     </div>
-                  </SpotlightCard>
-                </BlurReveal>
+                        </SpotlightCard>
+  </div>
+</BlurReveal>
               )
             )}
           </ScrollSkew>
@@ -386,6 +431,41 @@ export function Builds({
           </div>
         )}
       </div>
-    </section>
-  );
+     </section>
+
+    <DetailsModal
+      item={
+        selectedBuild
+          ? {
+              kind: "build",
+
+              name:
+                selectedBuild.name,
+
+              eyebrow:
+                "Custom Build",
+
+              badge:
+                selectedBuild.badge,
+
+              secondaryLabel:
+                selectedBuild.role,
+
+              description:
+                selectedBuild.description,
+
+              specs:
+                selectedBuild.specs,
+
+              image:
+                selectedBuild.image,
+            }
+          : null
+      }
+      onClose={() =>
+        setSelectedBuild(null)
+      }
+    />
+  </>
+);
 }

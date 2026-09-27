@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUpRight, Check } from "lucide-react";
+import { DetailsModal } from "@/components/DetailsModal";
 
 import {
   categories,
@@ -39,6 +40,8 @@ export default function Products({
 }) {
   const [active, setActive] =
     useState<CategoryId>("all");
+    const [selectedProduct, setSelectedProduct] =
+  useState<PublicProduct | null>(null);
 
   const filteredProducts =
     active === "all"
@@ -49,6 +52,7 @@ export default function Products({
         );
 
   return (
+    <>
     <section
       id="products"
       className="
@@ -163,24 +167,59 @@ export default function Products({
             {filteredProducts.map(
               (product) => (
                 <motion.div
-                  layout
-                  key={product.id}
-                  initial={{
-                    opacity: 0,
-                    y: 20,
-                  }}
-                  animate={{
-                    opacity: 1,
-                    y: 0,
-                  }}
-                  exit={{
-                    opacity: 0,
-                    scale: 0.96,
-                  }}
-                  transition={{
-                    duration: 0.3,
-                  }}
-                >
+  layout
+  key={product.id}
+
+  role="button"
+  tabIndex={0}
+
+  aria-label={`View details for ${product.name}`}
+
+  onClick={() =>
+    setSelectedProduct(product)
+  }
+
+  onKeyDown={(event) => {
+    if (
+      event.key === "Enter" ||
+      event.key === " "
+    ) {
+      event.preventDefault();
+
+      setSelectedProduct(
+        product
+      );
+    }
+  }}
+
+  className="
+    cursor-pointer
+    rounded-2xl
+
+    focus:outline-none
+    focus-visible:ring-4
+    focus-visible:ring-brand/20
+  "
+
+  initial={{
+    opacity: 0,
+    y: 20,
+  }}
+
+  animate={{
+    opacity: 1,
+    y: 0,
+  }}
+
+  exit={{
+    opacity: 0,
+    scale: 0.96,
+  }}
+
+  transition={{
+    duration: 0.3,
+  }}
+>
                   <SpotlightCard
                     className="
                       group
@@ -371,35 +410,42 @@ export default function Products({
 
                       {/* CTA */}
 
-                      <a
-                        href="#contact"
-                        className="
-                          mt-6
-                          inline-flex
-                          items-center
-                          justify-between
-                          rounded-xl
-                          border
-                          border-brand/10
-                          bg-[#f7f9fc]
-                          px-4
-                          py-3
-                          text-xs
-                          font-bold
-                          uppercase
-                          tracking-wider
-                          text-brand-deep
-                          transition-all
-                          duration-300
-                          hover:border-brand
-                          hover:bg-brand
-                          hover:text-white
-                        "
-                      >
-                        Enquire Now
+                      <span
+  className="
+    mt-6
 
-                        <ArrowUpRight className="h-4 w-4" />
-                      </a>
+    inline-flex
+    items-center
+    justify-between
+
+    rounded-xl
+
+    border
+    border-brand/10
+
+    bg-[#f7f9fc]
+
+    px-4
+    py-3
+
+    text-xs
+    font-bold
+    uppercase
+    tracking-wider
+    text-brand-deep
+
+    transition-all
+    duration-300
+
+    group-hover:border-brand
+    group-hover:bg-brand
+    group-hover:text-white
+  "
+>
+  View Details
+
+  <ArrowUpRight className="h-4 w-4" />
+</span>
                     </div>
                   </SpotlightCard>
                 </motion.div>
@@ -442,6 +488,43 @@ export default function Products({
           </div>
         ) : null}
       </div>
-    </section>
-  );
+        </section>
+
+    <DetailsModal
+      item={
+        selectedProduct
+          ? {
+              kind: "product",
+
+              name:
+                selectedProduct.name,
+
+              eyebrow:
+                categories.find(
+                  (category) =>
+                    category.id ===
+                    selectedProduct.category
+                )?.label ??
+                selectedProduct.category,
+
+              badge:
+                selectedProduct.tag,
+
+              description:
+                selectedProduct.description,
+
+              specs:
+                selectedProduct.specs,
+
+              image:
+                selectedProduct.image,
+            }
+          : null
+      }
+      onClose={() =>
+        setSelectedProduct(null)
+      }
+    />
+  </>
+);
 }
