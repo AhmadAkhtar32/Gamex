@@ -2,41 +2,115 @@
 
 @theme {
   /* =========================================================
-     GAMEX — WHITE + BLUE DESIGN SYSTEM
+     GAMEX — RED + WHITE DESIGN SYSTEM
      ========================================================= */
 
-  --color-brand: #173160;
-  --color-brand-soft: #315b91;
-  --color-brand-deep: #0d2246;
+  /*
+   * Main GameX red.
+   *
+   * Used by:
+   * buttons
+   * links
+   * labels
+   * borders
+   * highlights
+   * active states
+   * icons
+   */
+  --color-brand: #e60000;
 
-  /* Existing "ink" names are retained for compatibility.
-     They now represent light surfaces instead of dark ones. */
+  /*
+   * Brighter red.
+   *
+   * Used mostly for:
+   * hover states
+   * gradients
+   * secondary highlights
+   */
+  --color-brand-soft: #ff2a2a;
+
+  /*
+   * Near black.
+   *
+   * Your new logo contains black,
+   * so this is used for:
+   * headings
+   * important text
+   * deep contrast
+   */
+  --color-brand-deep: #181818;
+
+  /* =========================================================
+     LIGHT SURFACES
+     ========================================================= */
+
+  /*
+   * Existing "ink" names are kept so we do not have
+   * to rewrite existing components.
+   */
+
   --color-ink: #ffffff;
-  --color-ink-2: #f7f9fc;
-  --color-ink-3: #edf3f8;
 
-  /* Additional reusable light-theme colors */
+  --color-ink-2: #fff8f8;
+
+  --color-ink-3: #fff1f1;
+
+  /* =========================================================
+     REUSABLE SURFACES
+     ========================================================= */
+
   --color-surface: #ffffff;
-  --color-surface-soft: #f7f9fc;
-  --color-surface-blue: #edf3f8;
 
-  --color-text-main: #26364f;
-  --color-text-muted: #64748b;
+  --color-surface-soft: #fff8f8;
 
---font-display: var(--font-orbitron);
---font-body: var(--font-google-sans);
+  /*
+   * Name retained for compatibility.
+   * This is no longer blue.
+   */
+  --color-surface-blue: #fff1f1;
 
-  --animate-float: float 6s ease-in-out infinite;
-  --animate-float-slow: float 9s ease-in-out infinite;
-  --animate-spin-slow: spin 12s linear infinite;
-  --animate-marquee: marquee 32s linear infinite;
-  --animate-marquee-reverse: marquee-reverse 32s linear infinite;
-  --animate-pulse-glow: pulse-glow 3.2s ease-in-out infinite;
+  /* =========================================================
+     TEXT
+     ========================================================= */
+
+  --color-text-main: #292929;
+
+  --color-text-muted: #6b7280;
+
+  /* =========================================================
+     FONTS
+     ========================================================= */
+
+  --font-display: var(--font-orbitron);
+
+  --font-body: var(--font-google-sans);
+
+  /* =========================================================
+     ANIMATIONS
+     ========================================================= */
+
+  --animate-float:
+    float 6s ease-in-out infinite;
+
+  --animate-float-slow:
+    float 9s ease-in-out infinite;
+
+  --animate-spin-slow:
+    spin 12s linear infinite;
+
+  --animate-marquee:
+    marquee 32s linear infinite;
+
+  --animate-marquee-reverse:
+    marquee-reverse 32s linear infinite;
+
+  --animate-pulse-glow:
+    pulse-glow 3.2s ease-in-out infinite;
 }
 
 
 /* =========================================================
-   KEYFRAMES
+   FLOAT
    ========================================================= */
 
 @keyframes float {
@@ -51,6 +125,10 @@
 }
 
 
+/* =========================================================
+   PULSE GLOW
+   ========================================================= */
+
 @keyframes pulse-glow {
   0%,
   100% {
@@ -62,6 +140,10 @@
   }
 }
 
+
+/* =========================================================
+   MARQUEE
+   ========================================================= */
 
 @keyframes marquee {
   from {
@@ -85,6 +167,10 @@
 }
 
 
+/* =========================================================
+   SCAN LINE
+   ========================================================= */
+
 @keyframes scanline {
   0% {
     top: -25%;
@@ -95,6 +181,10 @@
   }
 }
 
+
+/* =========================================================
+   SHIMMER
+   ========================================================= */
 
 @keyframes shimmer {
   0% {
@@ -107,180 +197,417 @@
 }
 
 
+/* =========================================================
+   KEN BURNS
+   ========================================================= */
+
 @keyframes kenburns {
   0% {
-    transform: scale(1) translate(0, 0);
+    transform:
+      scale(1)
+      translate(0, 0);
   }
 
   50% {
-    transform: scale(1.09) translate(1.2%, -1.2%);
+    transform:
+      scale(1.09)
+      translate(
+        1.2%,
+        -1.2%
+      );
   }
 
   100% {
-    transform: scale(1) translate(0, 0);
+    transform:
+      scale(1)
+      translate(0, 0);
   }
 }
 
+
+/* =========================================================
+   ORB DRIFT
+   ========================================================= */
 
 @keyframes orb-drift {
   0%,
   100% {
-    transform: translate(0, 0) scale(1);
+    transform:
+      translate(0, 0)
+      scale(1);
   }
 
   33% {
-    transform: translate(34px, -26px) scale(1.06);
+    transform:
+      translate(
+        34px,
+        -26px
+      )
+      scale(1.06);
   }
 
   66% {
-    transform: translate(-26px, 22px) scale(0.96);
+    transform:
+      translate(
+        -26px,
+        22px
+      )
+      scale(0.96);
   }
 }
 
+
+/* =========================================================
+   CTA RED PULSE
+   ========================================================= */
 
 @keyframes cta-pulse {
   0%,
   100% {
     box-shadow:
-      0 0 22px rgba(23, 49, 96, 0.18),
-      0 10px 35px rgba(23, 49, 96, 0.12);
+      0 0 22px
+        rgba(
+          230,
+          0,
+          0,
+          0.18
+        ),
+      0 10px 35px
+        rgba(
+          230,
+          0,
+          0,
+          0.12
+        );
   }
 
   50% {
     box-shadow:
-      0 0 42px rgba(23, 49, 96, 0.34),
-      0 16px 45px rgba(23, 49, 96, 0.18);
+      0 0 42px
+        rgba(
+          230,
+          0,
+          0,
+          0.34
+        ),
+      0 16px 45px
+        rgba(
+          230,
+          0,
+          0,
+          0.18
+        );
   }
 }
 
+
+/* =========================================================
+   GRADIENT MOVEMENT
+   ========================================================= */
 
 @keyframes gradient-x {
   0% {
-    background-position: 0% 50%;
+    background-position:
+      0% 50%;
   }
 
   50% {
-    background-position: 100% 50%;
+    background-position:
+      100% 50%;
   }
 
   100% {
-    background-position: 0% 50%;
+    background-position:
+      0% 50%;
   }
 }
 
+
+/* =========================================================
+   GLITCH 1
+   ========================================================= */
 
 @keyframes glitch-1 {
   0%,
   86% {
     opacity: 0;
-    transform: translate(0);
-    clip-path: inset(0 0 0 0);
+
+    transform:
+      translate(0);
+
+    clip-path:
+      inset(
+        0
+        0
+        0
+        0
+      );
   }
 
   88% {
     opacity: 0.55;
-    transform: translate(-4px, -2px);
-    clip-path: inset(20% 0 58% 0);
+
+    transform:
+      translate(
+        -4px,
+        -2px
+      );
+
+    clip-path:
+      inset(
+        20%
+        0
+        58%
+        0
+      );
   }
 
   90% {
     opacity: 0.48;
-    transform: translate(3px, 1px);
-    clip-path: inset(55% 0 22% 0);
+
+    transform:
+      translate(
+        3px,
+        1px
+      );
+
+    clip-path:
+      inset(
+        55%
+        0
+        22%
+        0
+      );
   }
 
   92% {
     opacity: 0.4;
-    transform: translate(-2px, 2px);
-    clip-path: inset(8% 0 80% 0);
+
+    transform:
+      translate(
+        -2px,
+        2px
+      );
+
+    clip-path:
+      inset(
+        8%
+        0
+        80%
+        0
+      );
   }
 
   94% {
     opacity: 0.5;
-    transform: translate(4px, -1px);
-    clip-path: inset(72% 0 8% 0);
+
+    transform:
+      translate(
+        4px,
+        -1px
+      );
+
+    clip-path:
+      inset(
+        72%
+        0
+        8%
+        0
+      );
   }
 
   96%,
   100% {
     opacity: 0;
-    transform: translate(0);
-    clip-path: inset(0 0 0 0);
+
+    transform:
+      translate(0);
+
+    clip-path:
+      inset(
+        0
+        0
+        0
+        0
+      );
   }
 }
 
+
+/* =========================================================
+   GLITCH 2
+   ========================================================= */
 
 @keyframes glitch-2 {
   0%,
   84% {
     opacity: 0;
-    transform: translate(0);
-    clip-path: inset(0 0 0 0);
+
+    transform:
+      translate(0);
+
+    clip-path:
+      inset(
+        0
+        0
+        0
+        0
+      );
   }
 
   86% {
     opacity: 0.45;
-    transform: translate(4px, 2px);
-    clip-path: inset(64% 0 12% 0);
+
+    transform:
+      translate(
+        4px,
+        2px
+      );
+
+    clip-path:
+      inset(
+        64%
+        0
+        12%
+        0
+      );
   }
 
   89% {
     opacity: 0.38;
-    transform: translate(-3px, -1px);
-    clip-path: inset(12% 0 70% 0);
+
+    transform:
+      translate(
+        -3px,
+        -1px
+      );
+
+    clip-path:
+      inset(
+        12%
+        0
+        70%
+        0
+      );
   }
 
   92% {
     opacity: 0.42;
-    transform: translate(2px, 3px);
-    clip-path: inset(40% 0 40% 0);
+
+    transform:
+      translate(
+        2px,
+        3px
+      );
+
+    clip-path:
+      inset(
+        40%
+        0
+        40%
+        0
+      );
   }
 
   95% {
     opacity: 0.35;
-    transform: translate(-4px, 1px);
-    clip-path: inset(78% 0 6% 0);
+
+    transform:
+      translate(
+        -4px,
+        1px
+      );
+
+    clip-path:
+      inset(
+        78%
+        0
+        6%
+        0
+      );
   }
 
   98%,
   100% {
     opacity: 0;
-    transform: translate(0);
-    clip-path: inset(0 0 0 0);
+
+    transform:
+      translate(0);
+
+    clip-path:
+      inset(
+        0
+        0
+        0
+        0
+      );
   }
 }
 
+
+/* =========================================================
+   AURORA
+   ========================================================= */
 
 @keyframes aurora {
   0%,
   100% {
-    transform: translate(0, 0) scale(1);
+    transform:
+      translate(0, 0)
+      scale(1);
   }
 
   25% {
-    transform: translate(6%, -8%) scale(1.12);
+    transform:
+      translate(
+        6%,
+        -8%
+      )
+      scale(1.12);
   }
 
   50% {
-    transform: translate(-8%, 4%) scale(0.95);
+    transform:
+      translate(
+        -8%,
+        4%
+      )
+      scale(0.95);
   }
 
   75% {
-    transform: translate(4%, 8%) scale(1.08);
+    transform:
+      translate(
+        4%,
+        8%
+      )
+      scale(1.08);
   }
 }
 
+
+/* =========================================================
+   GRID MOVEMENT
+   ========================================================= */
 
 @keyframes grid-move {
   from {
-    background-position: 0 0, 0 0;
+    background-position:
+      0 0,
+      0 0;
   }
 
   to {
-    background-position: 46px 46px, 46px 46px;
+    background-position:
+      46px 46px,
+      46px 46px;
   }
 }
 
+
+/* =========================================================
+   GRAIN
+   ========================================================= */
 
 @keyframes grain-flicker {
   0%,
@@ -294,10 +621,16 @@
 }
 
 
+/* =========================================================
+   MOUSE WHEEL
+   ========================================================= */
+
 @keyframes wheel {
   0% {
     opacity: 0;
-    transform: translateY(0);
+
+    transform:
+      translateY(0);
   }
 
   30% {
@@ -306,7 +639,9 @@
 
   100% {
     opacity: 0;
-    transform: translateY(9px);
+
+    transform:
+      translateY(9px);
   }
 }
 
@@ -317,15 +652,27 @@
 
 html {
   scroll-behavior: smooth;
-  background: #ffffff;
+
+  background:
+    #ffffff;
 }
 
 
 body {
-  background-color: #ffffff;
-  color: #26364f;
-  font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  background-color:
+    #ffffff;
+
+  color:
+    #292929;
+
+  font-family:
+    var(--font-body),
+    ui-sans-serif,
+    system-ui,
+    sans-serif;
+
   font-weight: 500;
+
   overflow-x: hidden;
 }
 
@@ -335,8 +682,11 @@ body {
    ========================================================= */
 
 ::selection {
-  background: #173160;
-  color: #ffffff;
+  background:
+    #e60000;
+
+  color:
+    #ffffff;
 }
 
 
@@ -346,24 +696,33 @@ body {
 
 ::-webkit-scrollbar {
   width: 10px;
+
   height: 10px;
 }
 
 
 ::-webkit-scrollbar-track {
-  background: #f2f6fa;
+  background:
+    #fff3f3;
 }
 
 
 ::-webkit-scrollbar-thumb {
-  background: #b9c7d9;
-  border-radius: 999px;
-  border: 2px solid #f2f6fa;
+  background:
+    #f4b8b5;
+
+  border-radius:
+    999px;
+
+  border:
+    2px solid
+    #fff3f3;
 }
 
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #173160;
+  background:
+    #e60000;
 }
 
 
@@ -372,7 +731,8 @@ body {
    ========================================================= */
 
 section[id] {
-  scroll-margin-top: 84px;
+  scroll-margin-top:
+    84px;
 }
 
 
@@ -381,16 +741,22 @@ section[id] {
    ========================================================= */
 
 .text-gradient {
-  background: linear-gradient(
-    100deg,
-    #0d2246 0%,
-    #315b91 50%,
-    #173160 100%
-  );
+  background:
+    linear-gradient(
+      100deg,
+      #181818 0%,
+      #e60000 52%,
+      #ff2a2a 100%
+    );
 
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  -webkit-background-clip:
+    text;
+
+  background-clip:
+    text;
+
+  color:
+    transparent;
 }
 
 
@@ -402,31 +768,56 @@ section[id] {
   background-image:
     linear-gradient(
       to right,
-      rgba(23, 49, 96, 0.05) 1px,
-      transparent 1px
+      rgba(
+        230,
+        0,
+        0,
+        0.05
+      )
+      1px,
+      transparent
+      1px
     ),
     linear-gradient(
       to bottom,
-      rgba(23, 49, 96, 0.05) 1px,
-      transparent 1px
+      rgba(
+        230,
+        0,
+        0,
+        0.05
+      )
+      1px,
+      transparent
+      1px
     );
 
-  background-size: 46px 46px;
+  background-size:
+    46px 46px;
 }
 
 
 .grid-animated {
-  animation: grid-move 26s linear infinite;
+  animation:
+    grid-move
+    26s
+    linear
+    infinite;
 }
 
 
 /* =========================================================
-   SOFT BLUE GLOW
+   SOFT RED GLOW
    ========================================================= */
 
 .glow {
   box-shadow:
-    0 28px 85px -42px rgba(23, 49, 96, 0.34);
+    0 28px 85px -42px
+    rgba(
+      230,
+      0,
+      0,
+      0.34
+    );
 }
 
 
@@ -436,47 +827,70 @@ section[id] {
 
 .scanline {
   position: absolute;
+
   left: 0;
+
   right: 0;
 
   height: 110px;
 
-  background: linear-gradient(
-    to bottom,
-    transparent,
-    rgba(23, 49, 96, 0.085),
-    transparent
-  );
+  background:
+    linear-gradient(
+      to bottom,
+      transparent,
+      rgba(
+        230,
+        0,
+        0,
+        0.085
+      ),
+      transparent
+    );
 
-  animation: scanline 4.2s linear infinite;
+  animation:
+    scanline
+    4.2s
+    linear
+    infinite;
 
-  pointer-events: none;
+  pointer-events:
+    none;
 }
 
 
 /* =========================================================
-   SHIMMER TEXT
+   RED / BLACK SHIMMER TEXT
    ========================================================= */
 
 .shimmer-text {
-  background: linear-gradient(
-    90deg,
-    #173160 0%,
-    #6f8fb6 22%,
-    #0d2246 42%,
-    #173160 65%,
-    #6f8fb6 82%,
-    #173160 100%
-  );
+  background:
+    linear-gradient(
+      90deg,
+      #181818 0%,
+      #ff7b76 22%,
+      #e60000 42%,
+      #181818 65%,
+      #ff7b76 82%,
+      #e60000 100%
+    );
 
-  background-size: 200% auto;
+  background-size:
+    200% auto;
 
-  -webkit-background-clip: text;
-  background-clip: text;
+  -webkit-background-clip:
+    text;
 
-  color: transparent;
+  background-clip:
+    text;
 
-  animation: shimmer 6s linear infinite;
+  color:
+    transparent;
+
+  animation:
+    shimmer
+    6s
+    linear
+    infinite;
 }
 
 
@@ -485,33 +899,59 @@ section[id] {
    ========================================================= */
 
 .animate-kenburns {
-  animation: kenburns 18s ease-in-out infinite;
+  animation:
+    kenburns
+    18s
+    ease-in-out
+    infinite;
 }
 
 
 .animate-orb {
-  animation: orb-drift 14s ease-in-out infinite;
+  animation:
+    orb-drift
+    14s
+    ease-in-out
+    infinite;
 }
 
 
 .animate-aurora {
-  animation: aurora 22s ease-in-out infinite;
+  animation:
+    aurora
+    22s
+    ease-in-out
+    infinite;
 }
 
 
 .cta-pulse {
-  animation: cta-pulse 3s ease-in-out infinite;
+  animation:
+    cta-pulse
+    3s
+    ease-in-out
+    infinite;
 }
 
 
 .animated-gradient {
-  background-size: 200% auto;
-  animation: gradient-x 6s ease infinite;
+  background-size:
+    200% auto;
+
+  animation:
+    gradient-x
+    6s
+    ease
+    infinite;
 }
 
 
 .animate-wheel {
-  animation: wheel 1.6s ease-in-out infinite;
+  animation:
+    wheel
+    1.6s
+    ease-in-out
+    infinite;
 }
 
 
@@ -520,41 +960,61 @@ section[id] {
    ========================================================= */
 
 .glitch {
-  position: relative;
-  display: inline-block;
+  position:
+    relative;
+
+  display:
+    inline-block;
+
   z-index: 1;
 }
 
 
 .glitch::before,
 .glitch::after {
-  content: attr(data-text);
+  content:
+    attr(data-text);
 
-  position: absolute;
+  position:
+    absolute;
 
   left: 0;
+
   top: 0;
 
-  width: 100%;
-  height: 100%;
+  width:
+    100%;
+
+  height:
+    100%;
 }
 
 
 .glitch::before {
-  color: #173160;
+  color:
+    #e60000;
 
-  z-index: -1;
+  z-index:
+    -1;
 
-  animation: glitch-1 3.6s infinite;
+  animation:
+    glitch-1
+    3.6s
+    infinite;
 }
 
 
 .glitch::after {
-  color: #9fb4cd;
+  color:
+    #ffb7b4;
 
-  z-index: -2;
+  z-index:
+    -2;
 
-  animation: glitch-2 4.4s infinite;
+  animation:
+    glitch-2
+    4.4s
+    infinite;
 }
 
 
@@ -563,27 +1023,43 @@ section[id] {
    ========================================================= */
 
 .film-grain {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-image:
+    url(
+      "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"
+    );
 
-  background-size: 160px 160px;
+  background-size:
+    160px
+    160px;
 }
 
 
 .grain-animated {
-  animation: grain-flicker 3s ease-in-out infinite;
+  animation:
+    grain-flicker
+    3s
+    ease-in-out
+    infinite;
 }
 
 
 /* =========================================================
-   LIGHT-THEME VIGNETTE
+   RED LIGHT VIGNETTE
    ========================================================= */
 
 .vignette {
-  background: radial-gradient(
-    ellipse at center,
-    transparent 56%,
-    rgba(23, 49, 96, 0.07) 100%
-  );
+  background:
+    radial-gradient(
+      ellipse at center,
+      transparent 56%,
+      rgba(
+        230,
+        0,
+        0,
+        0.07
+      )
+      100%
+    );
 }
 
 
@@ -602,43 +1078,44 @@ section[id] {
  */
 
 .custom-cursor-dot {
-  position: fixed;
+  position:
+    fixed;
 
-  top: 0;
-  left: 0;
+  top:
+    0;
 
-  pointer-events: none;
+  left:
+    0;
 
-  z-index: 999999;
+  pointer-events:
+    none;
 
-  /*
-   * Position is updated directly from chrome.tsx.
-   */
-  transform: translate3d(0, 0, 0);
+  z-index:
+    999999;
 
-  /*
-   * Improves cursor movement performance.
-   */
-  will-change: transform;
+  transform:
+    translate3d(
+      0,
+      0,
+      0
+    );
 
-  /*
-   * Cursor arrow begins exactly from the mouse position.
-   */
-  transform-origin: top left;
+  will-change:
+    transform;
+
+  transform-origin:
+    top left;
 }
 
 
 /* =========================================================
    OLD CURSOR ELEMENTS
-
-   These classes existed in the earlier implementation.
-   Hide them so an old ring/dot cannot accidentally produce
-   a second custom cursor.
    ========================================================= */
 
 .custom-ring,
 .custom-dot {
-  display: none !important;
+  display:
+    none !important;
 }
 
 
@@ -646,41 +1123,34 @@ section[id] {
    DESKTOP MOUSE / TRACKPAD ONLY
    ========================================================= */
 
-@media (hover: hover) and (pointer: fine) {
-
-  /*
-   * chrome.tsx adds "custom-cursor" to <html> only when
-   * the device actually has a precise pointing device.
-   */
+@media
+  (hover: hover)
+  and
+  (pointer: fine) {
 
   html.custom-cursor,
   html.custom-cursor body,
   html.custom-cursor * {
-    cursor: none !important;
+    cursor:
+      none !important;
   }
 }
 
 
 /* =========================================================
    MOBILE / TOUCH DEVICES
-
-   The JavaScript already prevents CustomCursor from being
-   rendered on touch devices.
-
-   These rules are an additional safety layer.
    ========================================================= */
 
-@media (hover: none), (pointer: coarse) {
+@media
+  (hover: none),
+  (pointer: coarse) {
 
   .custom-cursor-dot,
   .custom-ring,
   .custom-dot {
-    display: none !important;
+    display:
+      none !important;
   }
-
-  /*
-   * Make sure normal browser/touch behavior is restored.
-   */
 
   html,
   body,
@@ -690,7 +1160,8 @@ section[id] {
   textarea,
   select,
   label {
-    cursor: auto !important;
+    cursor:
+      auto !important;
   }
 }
 
@@ -701,113 +1172,176 @@ section[id] {
 
 @keyframes radar {
   to {
-    transform: rotate(360deg);
+    transform:
+      rotate(360deg);
   }
 }
 
 
 @keyframes stripes-move {
   from {
-    background-position: 0 0;
+    background-position:
+      0 0;
   }
 
   to {
-    background-position: 60px 60px;
+    background-position:
+      60px
+      60px;
   }
 }
 
 
-/*
-   Name retained because existing components may reference
-   "red-scan". The effect is now blue.
-*/
+/* =========================================================
+   RED SCAN
+   ========================================================= */
+
 @keyframes red-scan {
   0% {
-    transform: translateY(-120%);
+    transform:
+      translateY(
+        -120%
+      );
   }
 
   100% {
-    transform: translateY(150vh);
+    transform:
+      translateY(
+        150vh
+      );
   }
 }
 
+
+/* =========================================================
+   RING PULSE
+   ========================================================= */
 
 @keyframes ring-pulse {
   0% {
-    transform: scale(1);
-    opacity: 0.32;
+    transform:
+      scale(1);
+
+    opacity:
+      0.32;
   }
 
   100% {
-    transform: scale(1.7);
-    opacity: 0;
+    transform:
+      scale(1.7);
+
+    opacity:
+      0;
   }
 }
 
 
 /* =========================================================
-   RADAR
+   RED RADAR
    ========================================================= */
 
 .radar-sweep {
-  background: conic-gradient(
-    from 0deg,
-    rgba(23, 49, 96, 0.24) 0deg,
-    rgba(49, 91, 145, 0.08) 38deg,
-    transparent 72deg,
-    transparent 360deg
-  );
+  background:
+    conic-gradient(
+      from 0deg,
+      rgba(
+        230,
+        0,
+        0,
+        0.24
+      )
+      0deg,
+      rgba(
+        255,
+        42,
+        42,
+        0.08
+      )
+      38deg,
+      transparent
+      72deg,
+      transparent
+      360deg
+    );
 
-  animation: radar 9s linear infinite;
+  animation:
+    radar
+    9s
+    linear
+    infinite;
 }
 
 
 /* =========================================================
-   DIAGONAL TECH STRIPES
+   RED DIAGONAL TECH STRIPES
    ========================================================= */
 
-/*
-   Class name retained for compatibility.
-   The actual stripes are blue.
-*/
 .stripes-red {
-  background-image: repeating-linear-gradient(
-    45deg,
-    rgba(23, 49, 96, 0.055) 0px,
-    rgba(23, 49, 96, 0.055) 2px,
-    transparent 2px,
-    transparent 16px
-  );
+  background-image:
+    repeating-linear-gradient(
+      45deg,
+      rgba(
+        230,
+        0,
+        0,
+        0.055
+      )
+      0px,
+      rgba(
+        230,
+        0,
+        0,
+        0.055
+      )
+      2px,
+      transparent
+      2px,
+      transparent
+      16px
+    );
 
-  background-size: 30px 30px;
+  background-size:
+    30px
+    30px;
 
-  animation: stripes-move 2s linear infinite;
+  animation:
+    stripes-move
+    2s
+    linear
+    infinite;
 }
 
 
 /* =========================================================
-   MOVING SCANNER
+   MOVING RED SCANNER
    ========================================================= */
 
 .red-scan {
-  animation: red-scan 7s linear infinite;
+  animation:
+    red-scan
+    7s
+    linear
+    infinite;
 }
 
 
 /* =========================================================
-   SOFT EDGE VIGNETTE
+   SOFT RED EDGE VIGNETTE
    ========================================================= */
 
-/*
-   Name retained for compatibility.
-   The visual effect is now soft navy/blue.
-*/
 .red-vignette {
-  background: radial-gradient(
-    ellipse at center,
-    transparent 56%,
-    rgba(23, 49, 96, 0.065) 100%
-  );
+  background:
+    radial-gradient(
+      ellipse at center,
+      transparent 56%,
+      rgba(
+        230,
+        0,
+        0,
+        0.065
+      )
+      100%
+    );
 }
 
 
@@ -816,7 +1350,11 @@ section[id] {
    ========================================================= */
 
 .ring-pulse {
-  animation: ring-pulse 3s ease-out infinite;
+  animation:
+    ring-pulse
+    3s
+    ease-out
+    infinite;
 }
 
 
@@ -824,7 +1362,9 @@ section[id] {
    REDUCED MOTION
    ========================================================= */
 
-@media (prefers-reduced-motion: reduce) {
+@media
+  (prefers-reduced-motion: reduce) {
+
   .grid-animated,
   .scanline,
   .shimmer-text,
@@ -841,6 +1381,302 @@ section[id] {
   .stripes-red,
   .red-scan,
   .ring-pulse {
-    animation: none !important;
+    animation:
+      none !important;
   }
+}
+
+
+/* =========================================================
+   LEGACY BLUE UTILITY COMPATIBILITY
+   ========================================================= */
+
+/*
+ * Your older components contain a number of direct
+ * blue Tailwind arbitrary values.
+ *
+ * Instead of rewriting dozens of components immediately,
+ * this compatibility section converts those old values
+ * into the new GameX red/white design.
+ *
+ * This also applies to the Admin panel.
+ */
+
+
+/* =========================================================
+   OLD PALE-BLUE BACKGROUNDS
+   ========================================================= */
+
+[class~="bg-[#f7f9fc]"] {
+  background-color:
+    #fff8f8 !important;
+}
+
+
+[class~="bg-[#edf3f8]"] {
+  background-color:
+    #fff1f1 !important;
+}
+
+
+[class~="bg-[#fbfcfe]"] {
+  background-color:
+    #fffafa !important;
+}
+
+
+[class~="bg-[#f9fbfe]"] {
+  background-color:
+    #fffafa !important;
+}
+
+
+[class~="bg-[#f5f8fc]"] {
+  background-color:
+    #fff6f6 !important;
+}
+
+
+[class~="bg-[#eef4fa]"] {
+  background-color:
+    #fff1f1 !important;
+}
+
+
+[class~="bg-[#f3f6fa]"] {
+  background-color:
+    #fff4f4 !important;
+}
+
+
+[class~="bg-[#f4f7fb]"] {
+  background-color:
+    #fff5f5 !important;
+}
+
+
+/* =========================================================
+   OLD BLUE CHECKBOX / RADIO COLOR
+   ========================================================= */
+
+[class~="accent-[#173160]"] {
+  accent-color:
+    #e60000 !important;
+}
+
+
+/* =========================================================
+   OLD BLUE SHADOWS
+   ========================================================= */
+
+/*
+ * This catches old arbitrary Tailwind shadows such as:
+ *
+ * shadow-[...rgba(23,49,96,...)]
+ *
+ * and converts them into red shadows.
+ */
+
+[class*="shadow-["]
+[class*="rgba(23,49,96"] {
+  box-shadow:
+    0 18px 55px -38px
+    rgba(
+      230,
+      0,
+      0,
+      0.30
+    )
+    !important;
+}
+
+
+/* =========================================================
+   OLD BLUE HOVER SHADOWS
+   ========================================================= */
+
+[class*="hover:shadow-["]
+[class*="rgba(23,49,96"]:hover {
+  box-shadow:
+    0 24px 64px -38px
+    rgba(
+      230,
+      0,
+      0,
+      0.38
+    )
+    !important;
+}
+
+
+/* =========================================================
+   OLD BLUE FOCUS RINGS
+   ========================================================= */
+
+[class*="focus:shadow-["]
+[class*="rgba(23,49,96"]:focus {
+  box-shadow:
+    0 0 0 3px
+    rgba(
+      230,
+      0,
+      0,
+      0.13
+    )
+    !important;
+}
+
+
+/* =========================================================
+   OLD GROUP HOVER GLOWS
+   ========================================================= */
+
+.group:hover
+[class*="group-hover:shadow-["]
+[class*="rgba(23,49,96"] {
+  box-shadow:
+    0 0 24px
+    rgba(
+      230,
+      0,
+      0,
+      0.24
+    )
+    !important;
+}
+
+
+/* =========================================================
+   OLD PEER CHECKED GLOWS
+   ========================================================= */
+
+.peer:checked
+~
+[class*="peer-checked:shadow-["]
+[class*="rgba(23,49,96"] {
+  box-shadow:
+    0 0 0 2px
+    rgba(
+      230,
+      0,
+      0,
+      0.09
+    )
+    !important;
+}
+
+
+/* =========================================================
+   OLD BLUE RADIAL BACKGROUNDS
+   ========================================================= */
+
+/*
+ * Handles the decorative backgrounds currently used by:
+ *
+ * Products
+ * global background layers
+ * several public sections
+ */
+
+[class*="bg-[radial-gradient"]
+[class*="rgba(23,49,96"] {
+  background-image:
+    radial-gradient(
+      circle at
+      15% 12%,
+      rgba(
+        230,
+        0,
+        0,
+        0.075
+      ),
+      transparent
+      29%
+    ),
+    radial-gradient(
+      circle at
+      84% 26%,
+      rgba(
+        255,
+        42,
+        42,
+        0.055
+      ),
+      transparent
+      28%
+    ),
+    radial-gradient(
+      circle at
+      52% 80%,
+      rgba(
+        230,
+        0,
+        0,
+        0.04
+      ),
+      transparent
+      35%
+    )
+    !important;
+}
+
+
+/* =========================================================
+   OLD HERO BLUE ROTATING RING
+   ========================================================= */
+
+[class*="[background:conic-gradient"]
+[class*="#173160"] {
+  background:
+    conic-gradient(
+      from 0deg,
+      transparent 0%,
+      #e60000 25%,
+      transparent 50%,
+      #ff2a2a 75%,
+      transparent 100%
+    )
+    !important;
+}
+
+
+/* =========================================================
+   OLD STATS BLUE TOP LINE
+   ========================================================= */
+
+[class*="[background-image:linear-gradient"]
+[class*="#173160"] {
+  background-image:
+    linear-gradient(
+      90deg,
+      transparent,
+      #e60000,
+      #ff8f8b,
+      #e60000,
+      transparent
+    )
+    !important;
+}
+
+
+/* =========================================================
+   SPOTLIGHT CARD COLOR
+   ========================================================= */
+
+/*
+ * SpotlightCard currently calculates its mouse position
+ * dynamically in JavaScript and uses old blue rgba colors.
+ *
+ * We keep that movement intact and shift only its color.
+ */
+
+[style*="rgba(23,49,96,0.12)"],
+[style*="rgba(112,147,193,0.10)"] {
+  filter:
+    hue-rotate(
+      145deg
+    )
+    saturate(
+      1.55
+    );
 }
