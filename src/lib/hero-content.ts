@@ -1,4 +1,22 @@
 /* =========================================================
+   HERO MEDIA TYPE
+   ========================================================= */
+
+export type HeroMediaItem = {
+  id: number;
+
+  mediaType:
+    | "image"
+    | "video";
+
+  url: string;
+
+  alt: string;
+
+  sortOrder: number;
+};
+
+/* =========================================================
    HERO CONTENT TYPE
    ========================================================= */
 
@@ -24,33 +42,26 @@ export type HeroContent = {
   trustPoint2: string;
   trustPoint3: string;
 
-  image: string;
-  imageAlt: string;
+  /*
+   * Legacy image fields.
+   *
+   * They are kept temporarily so the old Hero image can
+   * remain visible until Slider media is added.
+   */
+  image?: string;
 
-  imageTitle: string;
-  imageSubtitle: string;
-  imageBadge: string;
-
-  chip1Title: string;
-  chip1Subtitle: string;
-
-  chip2Title: string;
-  chip2Subtitle: string;
-
-  chip3Title: string;
-  chip3Subtitle: string;
+  imageAlt?: string;
 
   isVisible: boolean;
 };
 
 /* =========================================================
    DEFAULT HERO CONTENT
-
-   Used when the database does not yet contain Hero settings.
    ========================================================= */
 
 export const DEFAULT_HERO_CONTENT: HeroContent = {
-  id: "main",
+  id:
+    "main",
 
   eyebrow:
     "Premium Gaming Hardware",
@@ -92,38 +103,18 @@ export const DEFAULT_HERO_CONTENT: HeroContent = {
   trustPoint3:
     "12,000+ happy gamers",
 
+  /*
+   * Temporary fallback.
+   *
+   * Once Hero slider media exists in the database,
+   * the slider uses that instead.
+   */
   image:
     "https://images.pexels.com/photos/34301924/pexels-photo-34301924.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200",
 
   imageAlt:
     "Gamex custom gaming PC with RGB lighting",
 
-  imageTitle:
-    "Titan Series",
-
-  imageSubtitle:
-    "Flagship Build",
-
-  imageBadge:
-    "Live",
-
-  chip1Title:
-    "Flagship GPU",
-
-  chip1Subtitle:
-    "Next-gen VRAM",
-
-  chip2Title:
-    "High-Capacity",
-
-  chip2Subtitle:
-    "Blazing Fast Memory",
-
-  chip3Title:
-    "300+ FPS",
-
-  chip3Subtitle:
-    "Esports Ready",
-
-  isVisible: true,
+  isVisible:
+    true,
 };

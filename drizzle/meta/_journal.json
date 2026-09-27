@@ -85,6 +85,13 @@
       "when": 1790505141830,
       "tag": "0011_gifted_shockwave",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1790515959435,
+      "tag": "0012_pale_kate_bishop",
+      "breakpoints": true
     }
   ]
 }

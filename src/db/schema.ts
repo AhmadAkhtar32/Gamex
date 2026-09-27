@@ -1643,6 +1643,82 @@ export const homepageStats = pgTable(
   }
 
 );
+/* =========================================================
+   HERO MEDIA SLIDER
+   ========================================================= */
+
+export const heroMedia = pgTable(
+  "hero_media",
+  {
+    id: serial("id")
+      .primaryKey(),
+
+    /*
+     * Supported:
+     *
+     * image
+     * video
+     */
+    mediaType: varchar(
+      "media_type",
+      {
+        length: 20,
+      }
+    ).notNull(),
+
+    /*
+     * Cloudinary or external URL.
+     */
+    url: varchar(
+      "url",
+      {
+        length: 2000,
+      }
+    ).notNull(),
+
+    /*
+     * Image alt text / video accessible description.
+     */
+    alt: varchar(
+      "alt",
+      {
+        length: 500,
+      }
+    )
+      .default("")
+      .notNull(),
+
+    isVisible: boolean(
+      "is_visible"
+    )
+      .default(true)
+      .notNull(),
+
+    sortOrder: integer(
+      "sort_order"
+    )
+      .default(0)
+      .notNull(),
+
+    createdAt: timestamp(
+      "created_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+
+    updatedAt: timestamp(
+      "updated_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+  }
+);
 
 /* =========================================================
 

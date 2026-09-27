@@ -1,29 +1,106 @@
 "use server";
 
-import { createHash } from "node:crypto";
+import {
+  createHash,
+} from "node:crypto";
 
-import { eq } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import {
+  eq,
+} from "drizzle-orm";
 
-import { db } from "@/db";
-import { heroSettings } from "@/db/schema";
-import { requireAdmin } from "@/lib/admin-auth";
+import {
+  revalidatePath,
+} from "next/cache";
+
+import {
+  redirect,
+} from "next/navigation";
+
+import {
+  db,
+} from "@/db";
+
+import {
+  heroMedia,
+  heroSettings,
+} from "@/db/schema";
+
+import {
+  requireAdmin,
+} from "@/lib/admin-auth";
 
 /* =========================================================
-   SETTINGS
+   CONSTANTS
    ========================================================= */
 
-const HERO_ID = "main";
+const HERO_ID =
+  "main";
 
-const MAX_IMAGE_SIZE =
-  5 * 1024 * 1024;
+const MAX_HERO_MEDIA =
+  10;
 
-const ALLOWED_IMAGE_TYPES = [
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-];
+const HERO_MEDIA_FOLDER =
+  "gamex/hero-media";
+
+/*
+ * The old columns still exist in hero_settings.
+ *
+ * We preserve them for database compatibility,
+ * but Hero.tsx no longer displays the floating cards.
+ */
+const LEGACY_HERO_DEFAULTS = {
+  image:
+    "https://images.pexels.com/photos/34301924/pexels-photo-34301924.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200",
+
+  imageAlt:
+    "Gamex gaming hardware",
+
+  imageTitle:
+    "Gamex",
+
+  imageSubtitle:
+    "Gaming Hardware",
+
+  imageBadge:
+    "Live",
+
+  chip1Title:
+    "Performance",
+
+  chip1Subtitle:
+    "Gaming Hardware",
+
+  chip2Title:
+    "Gamex",
+
+  chip2Subtitle:
+    "Custom Gaming",
+
+  chip3Title:
+    "Ready",
+
+  chip3Subtitle:
+    "Built to Win",
+};
+
+export type HeroMediaType =
+  | "image"
+  | "video";
+
+/* =========================================================
+   HELPERS
+   ========================================================= */
+
+function getText(
+  formData: FormData,
+  name: string
+) {
+  return String(
+    formData.get(
+      name
+    ) ?? ""
+  ).trim();
+}
 
 /* =========================================================
    ERROR REDIRECT
@@ -40,18 +117,34 @@ function redirectHeroError(
 }
 
 /* =========================================================
-   IMAGE URL VALIDATION
+   BUTTON LINK VALIDATION
    ========================================================= */
 
-function isValidImageUrl(
+function isValidButtonLink(
   value: string
 ) {
+  if (
+    value.startsWith(
+      "#"
+    ) ||
+    value.startsWith(
+      "/"
+    )
+  ) {
+    return true;
+  }
+
   try {
-    const url = new URL(value);
+    const url =
+      new URL(
+        value
+      );
 
     return (
-      url.protocol === "http:" ||
-      url.protocol === "https:"
+      url.protocol ===
+        "http:" ||
+      url.protocol ===
+        "https:"
     );
   } catch {
     return false;
@@ -59,43 +152,99 @@ function isValidImageUrl(
 }
 
 /* =========================================================
-   BUTTON LINK VALIDATION
+   MEDIA URL VALIDATION
    ========================================================= */
 
-/*
- * We want to allow:
- *
- * #builds
- * #products
- * /products
- * /contact
- * https://example.com
- *
- * but reject dangerous values such as:
- *
- * javascript:...
- */
-
-function isValidButtonLink(
+function isValidMediaUrl(
   value: string
 ) {
-  if (
-    value.startsWith("#") ||
-    value.startsWith("/")
-  ) {
-    return true;
-  }
-
   try {
-    const url = new URL(value);
+    const url =
+      new URL(
+        value
+      );
 
     return (
-      url.protocol === "http:" ||
-      url.protocol === "https:"
+      url.protocol ===
+        "http:" ||
+      url.protocol ===
+        "https:"
     );
   } catch {
     return false;
   }
+}
+
+/* =========================================================
+   MEDIA TYPE VALIDATION
+   ========================================================= */
+
+function isHeroMediaType(
+  value: string
+): value is HeroMediaType {
+  return (
+    value ===
+      "image" ||
+    value ===
+      "video"
+  );
+}
+
+/* =========================================================
+   ID VALIDATION
+   ========================================================= */
+
+function parseId(
+  value: number
+) {
+  if (
+    !Number.isInteger(
+      value
+    ) ||
+    value <= 0
+  ) {
+    throw new Error(
+      "Invalid Hero media item."
+    );
+  }
+
+  return value;
+}
+
+/* =========================================================
+   SORT ORDER VALIDATION
+   ========================================================= */
+
+function parseSortOrder(
+  value: number
+) {
+  if (
+    !Number.isInteger(
+      value
+    ) ||
+    value < 0 ||
+    value > 9999
+  ) {
+    throw new Error(
+      "Display order must be between 0 and 9999."
+    );
+  }
+
+  return value;
+}
+
+/* =========================================================
+   REVALIDATE
+   ========================================================= */
+
+function refreshHero() {
+  revalidatePath(
+    "/"
+  );
+
+  revalidatePath(
+    "/admin/content/hero"
+  );
 }
 
 /* =========================================================
@@ -114,338 +263,129 @@ function createCloudinarySignature({
   const stringToSign =
     `folder=${folder}&timestamp=${timestamp}${apiSecret}`;
 
-  return createHash("sha1")
-    .update(stringToSign)
-    .digest("hex");
-}
-
-/* =========================================================
-   UPLOAD HERO IMAGE
-   ========================================================= */
-
-async function uploadHeroImage(
-  imageFile: File
-) {
-  const cloudName =
-    process.env.CLOUDINARY_CLOUD_NAME;
-
-  const apiKey =
-    process.env.CLOUDINARY_API_KEY;
-
-  const apiSecret =
-    process.env.CLOUDINARY_API_SECRET;
-
-  if (
-    !cloudName ||
-    !apiKey ||
-    !apiSecret
-  ) {
-    throw new Error(
-      "Cloudinary image upload is not configured."
-    );
-  }
-
-  /* =======================================================
-     FILE SIZE
-     ======================================================= */
-
-  if (
-    imageFile.size >
-    MAX_IMAGE_SIZE
-  ) {
-    throw new Error(
-      "Hero image must be smaller than 5 MB."
-    );
-  }
-
-  /* =======================================================
-     FILE TYPE
-     ======================================================= */
-
-  if (
-    !ALLOWED_IMAGE_TYPES.includes(
-      imageFile.type
+  return createHash(
+    "sha1"
+  )
+    .update(
+      stringToSign
     )
-  ) {
-    throw new Error(
-      "Only JPG, PNG and WebP images are allowed."
+    .digest(
+      "hex"
     );
-  }
-
-  /* =======================================================
-     CLOUDINARY SETTINGS
-     ======================================================= */
-
-  const folder =
-    "gamex/hero";
-
-  const timestamp =
-    Math.floor(Date.now() / 1000);
-
-  const signature =
-    createCloudinarySignature({
-      timestamp,
-      folder,
-      apiSecret,
-    });
-
-  const uploadForm =
-    new FormData();
-
-  uploadForm.append(
-    "file",
-    imageFile
-  );
-
-  uploadForm.append(
-    "api_key",
-    apiKey
-  );
-
-  uploadForm.append(
-    "timestamp",
-    String(timestamp)
-  );
-
-  uploadForm.append(
-    "folder",
-    folder
-  );
-
-  uploadForm.append(
-    "signature",
-    signature
-  );
-
-  /* =======================================================
-     UPLOAD
-     ======================================================= */
-
-  const response = await fetch(
-    `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-    {
-      method: "POST",
-      body: uploadForm,
-    }
-  );
-
-  const result =
-    (await response.json()) as {
-      secure_url?: string;
-
-      error?: {
-        message?: string;
-      };
-    };
-
-  if (
-    !response.ok ||
-    !result.secure_url
-  ) {
-    throw new Error(
-      result.error?.message ||
-        "Hero image upload failed."
-    );
-  }
-
-  return result.secure_url;
 }
 
 /* =========================================================
-   SAVE HERO SETTINGS
+   SAVE HERO TEXT SETTINGS
    ========================================================= */
 
 export async function saveHeroSettings(
   formData: FormData
 ) {
-  /* =======================================================
-     SECURITY
-     ======================================================= */
-
   await requireAdmin();
 
   /* =======================================================
      BASIC TEXT
      ======================================================= */
 
-  const eyebrow = String(
-    formData.get("eyebrow") ?? ""
-  ).trim();
+  const eyebrow =
+    getText(
+      formData,
+      "eyebrow"
+    );
 
-  const headingLine1 = String(
-    formData.get("headingLine1") ?? ""
-  ).trim();
+  const headingLine1 =
+    getText(
+      formData,
+      "headingLine1"
+    );
 
-  const headingLine2 = String(
-    formData.get("headingLine2") ?? ""
-  ).trim();
+  const headingLine2 =
+    getText(
+      formData,
+      "headingLine2"
+    );
 
-  const rotatingWordsText = String(
-    formData.get("rotatingWords") ?? ""
-  ).trim();
+  const rotatingWords =
+    getText(
+      formData,
+      "rotatingWords"
+    )
+      .split(
+        "\n"
+      )
+      .map(
+        (
+          word
+        ) =>
+          word.trim()
+      )
+      .filter(
+        Boolean
+      );
 
-  const description = String(
-    formData.get("description") ?? ""
-  ).trim();
+  const description =
+    getText(
+      formData,
+      "description"
+    );
 
   /* =======================================================
      BUTTONS
      ======================================================= */
 
-  const primaryButtonText = String(
-    formData.get(
+  const primaryButtonText =
+    getText(
+      formData,
       "primaryButtonText"
-    ) ?? ""
-  ).trim();
+    );
 
-  const primaryButtonLink = String(
-    formData.get(
+  const primaryButtonLink =
+    getText(
+      formData,
       "primaryButtonLink"
-    ) ?? ""
-  ).trim();
+    );
 
-  const secondaryButtonText = String(
-    formData.get(
+  const secondaryButtonText =
+    getText(
+      formData,
       "secondaryButtonText"
-    ) ?? ""
-  ).trim();
+    );
 
-  const secondaryButtonLink = String(
-    formData.get(
+  const secondaryButtonLink =
+    getText(
+      formData,
       "secondaryButtonLink"
-    ) ?? ""
-  ).trim();
+    );
 
   /* =======================================================
      TRUST POINTS
      ======================================================= */
 
-  const trustPoint1 = String(
-    formData.get("trustPoint1") ?? ""
-  ).trim();
+  const trustPoint1 =
+    getText(
+      formData,
+      "trustPoint1"
+    );
 
-  const trustPoint2 = String(
-    formData.get("trustPoint2") ?? ""
-  ).trim();
+  const trustPoint2 =
+    getText(
+      formData,
+      "trustPoint2"
+    );
 
-  const trustPoint3 = String(
-    formData.get("trustPoint3") ?? ""
-  ).trim();
-
-  /* =======================================================
-     IMAGE TEXT
-     ======================================================= */
-
-  const imageAlt = String(
-    formData.get("imageAlt") ?? ""
-  ).trim();
-
-  const imageTitle = String(
-    formData.get("imageTitle") ?? ""
-  ).trim();
-
-  const imageSubtitle = String(
-    formData.get(
-      "imageSubtitle"
-    ) ?? ""
-  ).trim();
-
-  const imageBadge = String(
-    formData.get("imageBadge") ?? ""
-  ).trim();
-
-  /* =======================================================
-     FLOATING CHIP 1
-     ======================================================= */
-
-  const chip1Title = String(
-    formData.get("chip1Title") ?? ""
-  ).trim();
-
-  const chip1Subtitle = String(
-    formData.get(
-      "chip1Subtitle"
-    ) ?? ""
-  ).trim();
-
-  /* =======================================================
-     FLOATING CHIP 2
-     ======================================================= */
-
-  const chip2Title = String(
-    formData.get("chip2Title") ?? ""
-  ).trim();
-
-  const chip2Subtitle = String(
-    formData.get(
-      "chip2Subtitle"
-    ) ?? ""
-  ).trim();
-
-  /* =======================================================
-     FLOATING CHIP 3
-     ======================================================= */
-
-  const chip3Title = String(
-    formData.get("chip3Title") ?? ""
-  ).trim();
-
-  const chip3Subtitle = String(
-    formData.get(
-      "chip3Subtitle"
-    ) ?? ""
-  ).trim();
-
-  /* =======================================================
-     VISIBILITY
-     ======================================================= */
+  const trustPoint3 =
+    getText(
+      formData,
+      "trustPoint3"
+    );
 
   const isVisible =
-    formData.get("isVisible") ===
-    "on";
+    formData.get(
+      "isVisible"
+    ) === "on";
 
   /* =======================================================
-     IMAGE INPUTS
-     ======================================================= */
-
-  const imageUrl = String(
-    formData.get("imageUrl") ?? ""
-  ).trim();
-
-  const possibleImageFile =
-    formData.get("imageFile");
-
-  const imageFile =
-    possibleImageFile instanceof File
-      ? possibleImageFile
-      : null;
-
-  const hasImageFile =
-    imageFile !== null &&
-    imageFile.size > 0;
-
-  const hasImageUrl =
-    imageUrl.length > 0;
-
-  /* =======================================================
-     ROTATING WORDS
-     ======================================================= */
-
-  /*
-   * The admin form will contain one rotating
-   * Hero word per line.
-   */
-
-  const rotatingWords =
-    rotatingWordsText
-      .split("\n")
-      .map((word) =>
-        word.trim()
-      )
-      .filter(Boolean);
-
-  /* =======================================================
-     REQUIRED FIELD VALIDATION
+     REQUIRED VALIDATION
      ======================================================= */
 
   if (!eyebrow) {
@@ -467,10 +407,34 @@ export async function saveHeroSettings(
   }
 
   if (
-    rotatingWords.length === 0
+    rotatingWords.length ===
+    0
   ) {
     redirectHeroError(
       "Add at least one rotating word."
+    );
+  }
+
+  if (
+    rotatingWords.length >
+    12
+  ) {
+    redirectHeroError(
+      "Use no more than 12 rotating words."
+    );
+  }
+
+  if (
+    rotatingWords.some(
+      (
+        word
+      ) =>
+        word.length >
+        100
+    )
+  ) {
+    redirectHeroError(
+      "Each rotating word must be 100 characters or fewer."
     );
   }
 
@@ -480,105 +444,37 @@ export async function saveHeroSettings(
     );
   }
 
-  if (!primaryButtonText) {
+  if (
+    !primaryButtonText ||
+    !primaryButtonLink ||
+    !secondaryButtonText ||
+    !secondaryButtonLink
+  ) {
     redirectHeroError(
-      "Primary button text is required."
+      "Both Hero buttons need text and a link."
     );
   }
 
-  if (!primaryButtonLink) {
+  if (
+    !isValidButtonLink(
+      primaryButtonLink
+    ) ||
+    !isValidButtonLink(
+      secondaryButtonLink
+    )
+  ) {
     redirectHeroError(
-      "Primary button link is required."
+      "One of the Hero button links is invalid."
     );
   }
 
-  if (!secondaryButtonText) {
+  if (
+    !trustPoint1 ||
+    !trustPoint2 ||
+    !trustPoint3
+  ) {
     redirectHeroError(
-      "Secondary button text is required."
-    );
-  }
-
-  if (!secondaryButtonLink) {
-    redirectHeroError(
-      "Secondary button link is required."
-    );
-  }
-
-  if (!trustPoint1) {
-    redirectHeroError(
-      "Trust point 1 is required."
-    );
-  }
-
-  if (!trustPoint2) {
-    redirectHeroError(
-      "Trust point 2 is required."
-    );
-  }
-
-  if (!trustPoint3) {
-    redirectHeroError(
-      "Trust point 3 is required."
-    );
-  }
-
-  if (!imageAlt) {
-    redirectHeroError(
-      "Hero image alt text is required."
-    );
-  }
-
-  if (!imageTitle) {
-    redirectHeroError(
-      "Image title is required."
-    );
-  }
-
-  if (!imageSubtitle) {
-    redirectHeroError(
-      "Image subtitle is required."
-    );
-  }
-
-  if (!imageBadge) {
-    redirectHeroError(
-      "Image badge is required."
-    );
-  }
-
-  if (!chip1Title) {
-    redirectHeroError(
-      "Floating chip 1 title is required."
-    );
-  }
-
-  if (!chip1Subtitle) {
-    redirectHeroError(
-      "Floating chip 1 subtitle is required."
-    );
-  }
-
-  if (!chip2Title) {
-    redirectHeroError(
-      "Floating chip 2 title is required."
-    );
-  }
-
-  if (!chip2Subtitle) {
-    redirectHeroError(
-      "Floating chip 2 subtitle is required."
-    );
-  }
-
-  if (!chip3Title) {
-    redirectHeroError(
-      "Floating chip 3 title is required."
-    );
-  }
-
-  if (!chip3Subtitle) {
-    redirectHeroError(
-      "Floating chip 3 subtitle is required."
+      "All three trust points are required."
     );
   }
 
@@ -586,18 +482,16 @@ export async function saveHeroSettings(
      LENGTH VALIDATION
      ======================================================= */
 
-  if (eyebrow.length > 255) {
-    redirectHeroError(
-      "Eyebrow text is too long."
-    );
-  }
-
   if (
-    headingLine1.length > 255 ||
-    headingLine2.length > 255
+    eyebrow.length >
+      255 ||
+    headingLine1.length >
+      255 ||
+    headingLine2.length >
+      255
   ) {
     redirectHeroError(
-      "Hero heading is too long."
+      "A Hero heading field is too long."
     );
   }
 
@@ -624,103 +518,15 @@ export async function saveHeroSettings(
   }
 
   if (
-    trustPoint1.length > 255 ||
-    trustPoint2.length > 255 ||
-    trustPoint3.length > 255
+    trustPoint1.length >
+      255 ||
+    trustPoint2.length >
+      255 ||
+    trustPoint3.length >
+      255
   ) {
     redirectHeroError(
       "A trust point is too long."
-    );
-  }
-
-  if (imageUrl.length > 1000) {
-    redirectHeroError(
-      "Image URL is too long."
-    );
-  }
-
-  if (imageAlt.length > 500) {
-    redirectHeroError(
-      "Image alt text is too long."
-    );
-  }
-
-  if (
-    imageTitle.length > 255 ||
-    imageSubtitle.length > 255
-  ) {
-    redirectHeroError(
-      "Hero image text is too long."
-    );
-  }
-
-  if (imageBadge.length > 120) {
-    redirectHeroError(
-      "Image badge is too long."
-    );
-  }
-
-  if (
-    chip1Title.length > 255 ||
-    chip1Subtitle.length > 255 ||
-    chip2Title.length > 255 ||
-    chip2Subtitle.length > 255 ||
-    chip3Title.length > 255 ||
-    chip3Subtitle.length > 255
-  ) {
-    redirectHeroError(
-      "Floating chip text is too long."
-    );
-  }
-
-  /* =======================================================
-     ROTATING WORD VALIDATION
-     ======================================================= */
-
-  if (
-    rotatingWords.some(
-      (word) => word.length > 100
-    )
-  ) {
-    redirectHeroError(
-      "Each rotating word must be 100 characters or fewer."
-    );
-  }
-
-  /* =======================================================
-     LINK VALIDATION
-     ======================================================= */
-
-  if (
-    !isValidButtonLink(
-      primaryButtonLink
-    )
-  ) {
-    redirectHeroError(
-      "Primary button link is invalid."
-    );
-  }
-
-  if (
-    !isValidButtonLink(
-      secondaryButtonLink
-    )
-  ) {
-    redirectHeroError(
-      "Secondary button link is invalid."
-    );
-  }
-
-  /* =======================================================
-     IMAGE URL VALIDATION
-     ======================================================= */
-
-  if (
-    hasImageUrl &&
-    !isValidImageUrl(imageUrl)
-  ) {
-    redirectHeroError(
-      "Please enter a valid Hero image URL."
     );
   }
 
@@ -731,181 +537,499 @@ export async function saveHeroSettings(
   const currentRows =
     await db
       .select()
-      .from(heroSettings)
+      .from(
+        heroSettings
+      )
       .where(
         eq(
           heroSettings.id,
           HERO_ID
         )
       )
-      .limit(1);
-
-  const currentHero =
-    currentRows[0];
-
-  /* =======================================================
-     DETERMINE FINAL IMAGE
-     ======================================================= */
-
-  /*
-   * If the Hero already exists, keep the
-   * current image by default.
-   */
-
-  let finalImage =
-    currentHero?.image ?? "";
-
-  /*
-   * A new URL replaces the current image.
-   */
-
-  if (hasImageUrl) {
-    finalImage =
-      imageUrl;
-  }
-
-  /*
-   * A PC upload takes priority over both
-   * the old image and a newly supplied URL.
-   */
-
-  if (
-    hasImageFile &&
-    imageFile
-  ) {
-    try {
-      finalImage =
-        await uploadHeroImage(
-          imageFile
-        );
-    } catch (error) {
-      redirectHeroError(
-        error instanceof Error
-          ? error.message
-          : "Hero image upload failed."
+      .limit(
+        1
       );
-    }
-  }
 
-  /* =======================================================
-     FIRST SAVE NEEDS AN IMAGE
-     ======================================================= */
-
-  if (!finalImage) {
-    redirectHeroError(
-      "Please upload a Hero image or enter an image URL."
-    );
-  }
-
-  /* =======================================================
-     SAVE TO NEON
-     ======================================================= */
+  const current =
+    currentRows[0];
 
   const now =
     new Date();
 
+  /*
+   * These old image/chip values are preserved because
+   * their existing database columns are NOT NULL.
+   *
+   * They are no longer rendered publicly.
+   */
+  const updateValues = {
+    eyebrow,
+
+    headingLine1,
+    headingLine2,
+
+    rotatingWords,
+
+    description,
+
+    primaryButtonText,
+    primaryButtonLink,
+
+    secondaryButtonText,
+    secondaryButtonLink,
+
+    trustPoint1,
+    trustPoint2,
+    trustPoint3,
+
+    image:
+      current?.image ??
+      LEGACY_HERO_DEFAULTS.image,
+
+    imageAlt:
+      current?.imageAlt ??
+      LEGACY_HERO_DEFAULTS.imageAlt,
+
+    imageTitle:
+      current?.imageTitle ??
+      LEGACY_HERO_DEFAULTS.imageTitle,
+
+    imageSubtitle:
+      current?.imageSubtitle ??
+      LEGACY_HERO_DEFAULTS.imageSubtitle,
+
+    imageBadge:
+      current?.imageBadge ??
+      LEGACY_HERO_DEFAULTS.imageBadge,
+
+    chip1Title:
+      current?.chip1Title ??
+      LEGACY_HERO_DEFAULTS.chip1Title,
+
+    chip1Subtitle:
+      current?.chip1Subtitle ??
+      LEGACY_HERO_DEFAULTS.chip1Subtitle,
+
+    chip2Title:
+      current?.chip2Title ??
+      LEGACY_HERO_DEFAULTS.chip2Title,
+
+    chip2Subtitle:
+      current?.chip2Subtitle ??
+      LEGACY_HERO_DEFAULTS.chip2Subtitle,
+
+    chip3Title:
+      current?.chip3Title ??
+      LEGACY_HERO_DEFAULTS.chip3Title,
+
+    chip3Subtitle:
+      current?.chip3Subtitle ??
+      LEGACY_HERO_DEFAULTS.chip3Subtitle,
+
+    isVisible,
+
+    updatedAt:
+      now,
+  };
+
+  /* =======================================================
+     SAVE
+     ======================================================= */
+
   await db
-    .insert(heroSettings)
+    .insert(
+      heroSettings
+    )
     .values({
-      id: HERO_ID,
+      id:
+        HERO_ID,
 
-      eyebrow,
-
-      headingLine1,
-      headingLine2,
-      rotatingWords,
-
-      description,
-
-      primaryButtonText,
-      primaryButtonLink,
-
-      secondaryButtonText,
-      secondaryButtonLink,
-
-      trustPoint1,
-      trustPoint2,
-      trustPoint3,
-
-      image: finalImage,
-      imageAlt,
-
-      imageTitle,
-      imageSubtitle,
-      imageBadge,
-
-      chip1Title,
-      chip1Subtitle,
-
-      chip2Title,
-      chip2Subtitle,
-
-      chip3Title,
-      chip3Subtitle,
-
-      isVisible,
-
-      updatedAt: now,
+      ...updateValues,
     })
     .onConflictDoUpdate({
       target:
         heroSettings.id,
 
-      set: {
-        eyebrow,
-
-        headingLine1,
-        headingLine2,
-        rotatingWords,
-
-        description,
-
-        primaryButtonText,
-        primaryButtonLink,
-
-        secondaryButtonText,
-        secondaryButtonLink,
-
-        trustPoint1,
-        trustPoint2,
-        trustPoint3,
-
-        image: finalImage,
-        imageAlt,
-
-        imageTitle,
-        imageSubtitle,
-        imageBadge,
-
-        chip1Title,
-        chip1Subtitle,
-
-        chip2Title,
-        chip2Subtitle,
-
-        chip3Title,
-        chip3Subtitle,
-
-        isVisible,
-
-        updatedAt: now,
-      },
+      set:
+        updateValues,
     });
 
-  /* =======================================================
-     REFRESH WEBSITE
-     ======================================================= */
-
-  revalidatePath("/");
-  revalidatePath(
-    "/admin/content/hero"
-  );
-
-  /* =======================================================
-     SUCCESS
-     ======================================================= */
+  refreshHero();
 
   redirect(
     "/admin/content/hero?saved=1"
   );
+}
+
+/* =========================================================
+   DIRECT CLOUDINARY UPLOAD SIGNATURE
+
+   The browser uploads the media directly to Cloudinary.
+
+   This means large videos do NOT pass through Vercel.
+   ========================================================= */
+
+export async function getHeroMediaUploadSignature(
+  mediaType: HeroMediaType
+) {
+  await requireAdmin();
+
+  if (
+    !isHeroMediaType(
+      mediaType
+    )
+  ) {
+    throw new Error(
+      "Unsupported Hero media type."
+    );
+  }
+
+  const cloudName =
+    process.env
+      .CLOUDINARY_CLOUD_NAME;
+
+  const apiKey =
+    process.env
+      .CLOUDINARY_API_KEY;
+
+  const apiSecret =
+    process.env
+      .CLOUDINARY_API_SECRET;
+
+  if (
+    !cloudName ||
+    !apiKey ||
+    !apiSecret
+  ) {
+    throw new Error(
+      "Cloudinary is not configured."
+    );
+  }
+
+  const timestamp =
+    Math.floor(
+      Date.now() /
+        1000
+    );
+
+  const signature =
+    createCloudinarySignature({
+      timestamp,
+
+      folder:
+        HERO_MEDIA_FOLDER,
+
+      apiSecret,
+    });
+
+  return {
+    cloudName,
+
+    apiKey,
+
+    timestamp,
+
+    folder:
+      HERO_MEDIA_FOLDER,
+
+    signature,
+
+    /*
+     * Cloudinary endpoint becomes:
+     *
+     * /image/upload
+     * or
+     * /video/upload
+     */
+    resourceType:
+      mediaType,
+  };
+}
+
+/* =========================================================
+   CREATE HERO MEDIA
+   ========================================================= */
+
+export async function createHeroMedia(
+  input: {
+    mediaType: HeroMediaType;
+
+    url: string;
+
+    alt: string;
+
+    sortOrder: number;
+  }
+) {
+  await requireAdmin();
+
+  const mediaType =
+    input.mediaType;
+
+  const url =
+    input.url.trim();
+
+  const alt =
+    input.alt.trim();
+
+  const sortOrder =
+    parseSortOrder(
+      input.sortOrder
+    );
+
+  if (
+    !isHeroMediaType(
+      mediaType
+    )
+  ) {
+    throw new Error(
+      "Choose Image or Video."
+    );
+  }
+
+  if (
+    !url ||
+    !isValidMediaUrl(
+      url
+    )
+  ) {
+    throw new Error(
+      "Please enter a valid media URL."
+    );
+  }
+
+  if (
+    url.length >
+    2000
+  ) {
+    throw new Error(
+      "Media URL is too long."
+    );
+  }
+
+  if (
+    alt.length >
+    500
+  ) {
+    throw new Error(
+      "Media description is too long."
+    );
+  }
+
+  /* =======================================================
+     MAXIMUM 10
+     ======================================================= */
+
+  const existing =
+    await db
+      .select({
+        id:
+          heroMedia.id,
+      })
+      .from(
+        heroMedia
+      );
+
+  if (
+    existing.length >=
+    MAX_HERO_MEDIA
+  ) {
+    throw new Error(
+      "The Hero slider supports a maximum of 10 media items."
+    );
+  }
+
+  await db
+    .insert(
+      heroMedia
+    )
+    .values({
+      mediaType,
+
+      url,
+
+      alt,
+
+      sortOrder,
+
+      isVisible:
+        true,
+    });
+
+  refreshHero();
+
+  return {
+    success:
+      true,
+  };
+}
+
+/* =========================================================
+   UPDATE HERO MEDIA
+   ========================================================= */
+
+export async function updateHeroMedia(
+  input: {
+    id: number;
+
+    alt: string;
+
+    sortOrder: number;
+
+    isVisible: boolean;
+  }
+) {
+  await requireAdmin();
+
+  const id =
+    parseId(
+      input.id
+    );
+
+  const alt =
+    input.alt.trim();
+
+  const sortOrder =
+    parseSortOrder(
+      input.sortOrder
+    );
+
+  if (
+    alt.length >
+    500
+  ) {
+    throw new Error(
+      "Media description is too long."
+    );
+  }
+
+  await db
+    .update(
+      heroMedia
+    )
+    .set({
+      alt,
+
+      sortOrder,
+
+      isVisible:
+        input.isVisible,
+
+      updatedAt:
+        new Date(),
+    })
+    .where(
+      eq(
+        heroMedia.id,
+        id
+      )
+    );
+
+  refreshHero();
+
+  return {
+    success:
+      true,
+  };
+}
+
+/* =========================================================
+   TOGGLE HERO MEDIA
+   ========================================================= */
+
+export async function toggleHeroMediaVisibility(
+  idValue: number
+) {
+  await requireAdmin();
+
+  const id =
+    parseId(
+      idValue
+    );
+
+  const rows =
+    await db
+      .select({
+        isVisible:
+          heroMedia.isVisible,
+      })
+      .from(
+        heroMedia
+      )
+      .where(
+        eq(
+          heroMedia.id,
+          id
+        )
+      )
+      .limit(
+        1
+      );
+
+  const item =
+    rows[0];
+
+  if (!item) {
+    throw new Error(
+      "Hero media item not found."
+    );
+  }
+
+  await db
+    .update(
+      heroMedia
+    )
+    .set({
+      isVisible:
+        !item.isVisible,
+
+      updatedAt:
+        new Date(),
+    })
+    .where(
+      eq(
+        heroMedia.id,
+        id
+      )
+    );
+
+  refreshHero();
+
+  return {
+    success:
+      true,
+  };
+}
+
+/* =========================================================
+   DELETE HERO MEDIA
+   ========================================================= */
+
+export async function deleteHeroMedia(
+  idValue: number
+) {
+  await requireAdmin();
+
+  const id =
+    parseId(
+      idValue
+    );
+
+  await db
+    .delete(
+      heroMedia
+    )
+    .where(
+      eq(
+        heroMedia.id,
+        id
+      )
+    );
+
+  refreshHero();
+
+  return {
+    success:
+      true,
+  };
 }
