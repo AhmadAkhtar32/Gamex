@@ -120,18 +120,23 @@ export function Builds({
                       className="h-full cursor-pointer rounded-2xl focus:outline-none focus-visible:ring-4 focus-visible:ring-brand/20"
                     >
                       <SpotlightCard className="group flex h-full flex-col rounded-2xl border border-brand/12 bg-white shadow-[0_20px_55px_-36px_rgba(23,49,96,0.4)] transition-all duration-300 hover:-translate-y-1 hover:border-brand/30 hover:shadow-[0_30px_70px_-38px_rgba(23,49,96,0.5)]">
-                        <div className="relative aspect-[4/3] overflow-hidden bg-[#edf3f8]">
+                        <div className="relative aspect-[4/3] overflow-hidden bg-[#f3f6fa]">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
-                            src={
-                              build.image
-                            }
-                            alt={
-                              build.name
-                            }
-                            loading="lazy"
-                            className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-                          />
+  src={build.image}
+  alt={build.name}
+  loading="lazy"
+  className="
+    h-full
+    w-full
+    object-contain
+    p-4
+    transition-transform
+    duration-700
+    ease-out
+    group-hover:scale-[1.03]
+  "
+/>
 
                           <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/[0.03]" />
 
@@ -193,11 +198,17 @@ export function Builds({
   </p>
 </div>
 
-                          <p className="mt-3 text-sm leading-relaxed text-slate-600">
-                            {
-                              build.description
-                            }
-                          </p>
+                          <p
+  className="
+    mt-3
+    line-clamp-3
+    text-sm
+    leading-relaxed
+    text-slate-600
+  "
+>
+  {build.description}
+</p>
 
                           <ul className="mt-4 space-y-2.5">
                             {build.specs.map(

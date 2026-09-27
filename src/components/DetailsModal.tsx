@@ -31,6 +31,10 @@ import {
   createWhatsAppUrl,
 } from "@/lib/whatsapp";
 
+/* =========================================================
+   TYPES
+   ========================================================= */
+
 export type DetailsModalItem = {
   kind:
     | "product"
@@ -54,6 +58,10 @@ export type DetailsModalItem = {
 
   image: string;
 };
+
+/* =========================================================
+   WHATSAPP MESSAGE
+   ========================================================= */
 
 function buildWhatsAppMessage(
   item: DetailsModalItem,
@@ -125,6 +133,10 @@ function buildWhatsAppMessage(
     );
   }
 
+  /*
+   * Include product/build image URL
+   * in WhatsApp inquiry.
+   */
   if (imageUrl) {
     lines.push(
       "",
@@ -149,6 +161,10 @@ function buildWhatsAppMessage(
   );
 }
 
+/* =========================================================
+   COMPONENT
+   ========================================================= */
+
 export function DetailsModal({
   item,
   onClose,
@@ -163,6 +179,10 @@ export function DetailsModal({
     useRef<HTMLButtonElement>(
       null
     );
+
+  /* =======================================================
+     LOCK BACKGROUND SCROLL
+     ======================================================= */
 
   useEffect(() => {
     if (!item) {
@@ -193,6 +213,9 @@ export function DetailsModal({
         .style
         .overflow;
 
+    /*
+     * Completely freeze website behind popup.
+     */
     document.documentElement.style.overflow =
       "hidden";
 
@@ -207,6 +230,10 @@ export function DetailsModal({
 
     document.body.style.width =
       "100%";
+
+    /* =====================================================
+       CLOSE WITH ESC
+       ===================================================== */
 
     const onKeyDown = (
       event: KeyboardEvent
@@ -224,6 +251,9 @@ export function DetailsModal({
       onKeyDown
     );
 
+    /*
+     * Focus close button after opening.
+     */
     const focusTimer =
       window.setTimeout(
         () => {
@@ -233,6 +263,10 @@ export function DetailsModal({
         },
         50
       );
+
+    /* =====================================================
+       CLEANUP
+       ===================================================== */
 
     return () => {
       window.clearTimeout(
@@ -259,6 +293,10 @@ export function DetailsModal({
       document.body.style.width =
         previousBodyWidth;
 
+      /*
+       * Return visitor to exactly the
+       * same page position.
+       */
       window.scrollTo(
         0,
         scrollY
@@ -269,6 +307,10 @@ export function DetailsModal({
     onClose,
   ]);
 
+  /* =======================================================
+     WHATSAPP
+     ======================================================= */
+
   const handleWhatsAppClick =
     () => {
       if (!item) {
@@ -278,6 +320,10 @@ export function DetailsModal({
       let imageUrl =
         item.image;
 
+      /*
+       * Convert relative image URL into
+       * full absolute URL when necessary.
+       */
       try {
         imageUrl =
           new URL(
@@ -315,14 +361,35 @@ export function DetailsModal({
     return null;
   }
 
+  /* =======================================================
+     MODAL PORTAL
+     ======================================================= */
+
   return createPortal(
     <AnimatePresence>
       {item ? (
         <motion.div
+          /*
+           * Stop Lenis from scrolling
+           * the website behind modal.
+           */
           data-lenis-prevent
           data-lenis-prevent-wheel
           data-lenis-prevent-touch
-          className="fixed inset-0 z-[200] flex items-center justify-center overflow-hidden p-4 sm:p-6"
+          className="
+            fixed
+            inset-0
+            z-[200]
+
+            flex
+            items-center
+            justify-center
+
+            overflow-hidden
+
+            p-4
+            sm:p-6
+          "
           initial={{
             opacity: 0,
           }}
@@ -336,10 +403,23 @@ export function DetailsModal({
             duration: 0.2,
           }}
         >
+          {/* ===============================================
+              BACKDROP
+              =============================================== */}
+
           <motion.button
             type="button"
             aria-label="Close details"
-            className="absolute inset-0 cursor-default bg-brand-deep/70 backdrop-blur-md"
+            className="
+              absolute
+              inset-0
+
+              cursor-default
+
+              bg-brand-deep/70
+
+              backdrop-blur-md
+            "
             onClick={
               onClose
             }
@@ -353,6 +433,10 @@ export function DetailsModal({
               opacity: 0,
             }}
           />
+
+          {/* ===============================================
+              MAIN POPUP
+              =============================================== */}
 
           <motion.div
             role="dialog"
@@ -371,7 +455,34 @@ export function DetailsModal({
             ) => {
               event.stopPropagation();
             }}
-            className="relative z-10 flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden overscroll-contain rounded-3xl border border-white/70 bg-white shadow-[0_35px_100px_-30px_rgba(13,34,70,0.65)] lg:flex-row"
+            className="
+              relative
+              z-10
+
+              flex
+
+              max-h-[92vh]
+
+              w-full
+              max-w-5xl
+
+              flex-col
+
+              overflow-hidden
+
+              overscroll-contain
+
+              rounded-3xl
+
+              border
+              border-white/70
+
+              bg-white
+
+              shadow-[0_35px_100px_-30px_rgba(13,34,70,0.65)]
+
+              lg:flex-row
+            "
             initial={{
               opacity: 0,
               y: 28,
@@ -398,6 +509,10 @@ export function DetailsModal({
               ],
             }}
           >
+            {/* =============================================
+                CLOSE BUTTON
+                ============================================= */}
+
             <button
               ref={
                 closeButtonRef
@@ -407,13 +522,79 @@ export function DetailsModal({
                 onClose
               }
               aria-label="Close details"
-              className="absolute right-3 top-3 z-30 grid h-10 w-10 place-items-center rounded-full border border-white/70 bg-white/95 text-brand-deep shadow-lg backdrop-blur transition hover:scale-105 hover:bg-brand hover:text-white focus:outline-none focus:ring-4 focus:ring-brand/20 sm:right-4 sm:top-4"
+              className="
+                absolute
+
+                right-3
+                top-3
+
+                z-30
+
+                grid
+
+                h-10
+                w-10
+
+                place-items-center
+
+                rounded-full
+
+                border
+                border-white/70
+
+                bg-white/95
+
+                text-brand-deep
+
+                shadow-lg
+
+                backdrop-blur
+
+                transition
+
+                hover:scale-105
+
+                hover:bg-brand
+
+                hover:text-white
+
+                focus:outline-none
+
+                focus:ring-4
+                focus:ring-brand/20
+
+                sm:right-4
+                sm:top-4
+              "
             >
               <X className="h-5 w-5" />
             </button>
 
-            <div className="relative min-h-[240px] shrink-0 overflow-hidden bg-[#f4f7fb] sm:min-h-[280px] lg:min-h-0 lg:w-[46%]">
+            {/* =============================================
+                IMAGE AREA
+                ============================================= */}
+
+            <div
+              className="
+                relative
+
+                min-h-[240px]
+
+                shrink-0
+
+                overflow-hidden
+
+                bg-[#f3f6fa]
+
+                sm:min-h-[280px]
+
+                lg:min-h-0
+
+                lg:w-[46%]
+              "
+            >
               {/* eslint-disable-next-line @next/next/no-img-element */}
+
               <img
                 src={
                   item.image
@@ -421,23 +602,67 @@ export function DetailsModal({
                 alt={
                   item.name
                 }
-                className={`
+                className="
                   h-full
                   w-full
 
-                  ${
-                    item.kind ===
-                    "product"
-                      ? "object-contain p-5 sm:p-8"
-                      : "object-cover"
-                  }
-                `}
+                  object-contain
+
+                  p-5
+
+                  sm:p-8
+                "
               />
 
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-brand-deep/20 via-transparent to-transparent" />
+              <div
+                className="
+                  pointer-events-none
+
+                  absolute
+                  inset-0
+
+                  bg-gradient-to-t
+
+                  from-brand-deep/10
+                  via-transparent
+                  to-transparent
+                "
+              />
+
+              {/* ===========================================
+                  BADGE
+                  =========================================== */}
 
               {item.badge ? (
-                <span className="absolute left-4 top-4 rounded-full border border-white/60 bg-white/90 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-brand shadow-sm backdrop-blur">
+                <span
+                  className="
+                    absolute
+
+                    left-4
+                    top-4
+
+                    rounded-full
+
+                    border
+                    border-white/60
+
+                    bg-white/90
+
+                    px-3
+                    py-1.5
+
+                    text-[11px]
+                    font-bold
+                    uppercase
+                    tracking-wider
+
+                    text-brand
+
+                    shadow-sm
+
+                    backdrop-blur
+                  "
+                >
                   {
                     item.badge
                   }
@@ -445,7 +670,27 @@ export function DetailsModal({
               ) : null}
             </div>
 
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            {/* =============================================
+                RIGHT SIDE
+                ============================================= */}
+
+            <div
+              className="
+                flex
+
+                min-h-0
+
+                flex-1
+
+                flex-col
+
+                overflow-hidden
+              "
+            >
+              {/* ===========================================
+                  SCROLLABLE DETAILS
+                  =========================================== */}
+
               <div
                 data-lenis-prevent
                 data-lenis-prevent-wheel
@@ -460,89 +705,233 @@ export function DetailsModal({
                 ) => {
                   event.stopPropagation();
                 }}
-                className="min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-contain px-5 pb-5 pt-7 sm:px-8 sm:pb-7 sm:pt-9 lg:px-9 lg:pb-8 lg:pt-10"
+                className="
+                  min-h-0
+
+                  flex-1
+
+                  touch-pan-y
+
+                  overflow-y-auto
+
+                  overscroll-contain
+
+                  px-5
+                  pb-5
+                  pt-7
+
+                  sm:px-8
+                  sm:pb-7
+                  sm:pt-9
+
+                  lg:px-9
+                  lg:pb-8
+                  lg:pt-10
+                "
               >
-                <p className="pr-12 text-[11px] font-bold uppercase tracking-[0.22em] text-brand">
+                {/* =========================================
+                    CATEGORY / TYPE
+                    ========================================= */}
+
+                <p
+                  className="
+                    pr-12
+
+                    text-[11px]
+
+                    font-bold
+
+                    uppercase
+
+                    tracking-[0.22em]
+
+                    text-brand
+                  "
+                >
                   {
                     item.eyebrow
                   }
                 </p>
 
+                {/* =========================================
+                    PRODUCT / BUILD NAME
+                    ========================================= */}
+
                 <h2
                   id="details-modal-title"
-                  className="mt-2 pr-12 font-display text-2xl font-extrabold leading-tight text-brand-deep sm:text-3xl"
+                  className="
+                    mt-2
+
+                    pr-12
+
+                    font-display
+
+                    text-2xl
+
+                    font-extrabold
+
+                    leading-tight
+
+                    text-brand-deep
+
+                    sm:text-3xl
+                  "
                 >
                   {
                     item.name
                   }
                 </h2>
 
-                <div
-  className="
-    mt-5
-    inline-flex
-    min-w-[190px]
-    flex-col
-    rounded-xl
-    bg-brand
-    px-5
-    py-3.5
-    shadow-[0_14px_35px_-20px_rgba(23,49,96,0.75)]
-  "
->
-  <span
-    className="
-      text-[9px]
-      font-extrabold
-      uppercase
-      tracking-[0.22em]
-      text-white/60
-    "
-  >
-    {item.kind === "build"
-      ? "Starting Price"
-      : "Price"}
-  </span>
+                {/* =========================================
+                    PRICE
+                    ========================================= */}
 
-  <span
-    className="
-      mt-1
-      font-display
-      text-xl
-      font-extrabold
-      leading-none
-      text-white
-      sm:text-2xl
-    "
-  >
-    {formatPrice(
-      item.price
-    )}
-  </span>
-</div>
+                <div
+                  className="
+                    mt-5
+
+                    inline-flex
+
+                    min-w-[190px]
+
+                    flex-col
+
+                    rounded-xl
+
+                    bg-brand
+
+                    px-5
+                    py-3.5
+
+                    shadow-[0_14px_35px_-20px_rgba(23,49,96,0.75)]
+                  "
+                >
+                  <span
+                    className="
+                      text-[9px]
+
+                      font-extrabold
+
+                      uppercase
+
+                      tracking-[0.22em]
+
+                      text-white/60
+                    "
+                  >
+                    {item.kind ===
+                    "build"
+                      ? "Starting Price"
+                      : "Price"}
+                  </span>
+
+                  <span
+                    className="
+                      mt-1
+
+                      font-display
+
+                      text-xl
+
+                      font-extrabold
+
+                      leading-none
+
+                      text-white
+
+                      sm:text-2xl
+                    "
+                  >
+                    {formatPrice(
+                      item.price
+                    )}
+                  </span>
+                </div>
+
+                {/* =========================================
+                    BUILD ROLE
+                    ========================================= */}
 
                 {item.secondaryLabel ? (
-                  <p className="mt-3 text-sm font-semibold uppercase tracking-wider text-brand-soft">
+                  <p
+                    className="
+                      mt-4
+
+                      text-sm
+
+                      font-semibold
+
+                      uppercase
+
+                      tracking-wider
+
+                      text-brand-soft
+                    "
+                  >
                     {
                       item.secondaryLabel
                     }
                   </p>
                 ) : null}
 
-                <p className="mt-5 text-sm leading-7 text-slate-600 sm:text-[15px]">
+                {/* =========================================
+                    FULL DESCRIPTION
+                    ========================================= */}
+
+                <p
+                  className="
+                    mt-5
+
+                    text-sm
+
+                    leading-7
+
+                    text-slate-600
+
+                    sm:text-[15px]
+                  "
+                >
                   {
                     item.description
                   }
                 </p>
 
+                {/* =========================================
+                    ALL SPECIFICATIONS
+                    ========================================= */}
+
                 {item.specs.length >
                 0 ? (
                   <div className="mt-7">
-                    <h3 className="font-display text-sm font-extrabold uppercase tracking-wider text-brand-deep">
+                    <h3
+                      className="
+                        font-display
+
+                        text-sm
+
+                        font-extrabold
+
+                        uppercase
+
+                        tracking-wider
+
+                        text-brand-deep
+                      "
+                    >
                       Specifications
                     </h3>
 
-                    <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+                    <ul
+                      className="
+                        mt-4
+
+                        grid
+
+                        gap-3
+
+                        sm:grid-cols-2
+                      "
+                    >
                       {item.specs.map(
                         (
                           spec,
@@ -550,9 +939,52 @@ export function DetailsModal({
                         ) => (
                           <li
                             key={`${item.name}-${index}`}
-                            className="flex items-start gap-2.5 rounded-xl border border-brand/[0.08] bg-[#f7f9fc] px-3.5 py-3 text-sm leading-5 text-slate-700"
+                            className="
+                              flex
+
+                              items-start
+
+                              gap-2.5
+
+                              rounded-xl
+
+                              border
+
+                              border-brand/[0.08]
+
+                              bg-[#f7f9fc]
+
+                              px-3.5
+
+                              py-3
+
+                              text-sm
+
+                              leading-5
+
+                              text-slate-700
+                            "
                           >
-                            <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-brand/[0.09] text-brand">
+                            <span
+                              className="
+                                mt-0.5
+
+                                grid
+
+                                h-5
+                                w-5
+
+                                shrink-0
+
+                                place-items-center
+
+                                rounded-full
+
+                                bg-brand/[0.09]
+
+                                text-brand
+                              "
+                            >
                               <Check className="h-3.5 w-3.5" />
                             </span>
 
@@ -569,15 +1001,95 @@ export function DetailsModal({
                 ) : null}
               </div>
 
-              <div className="shrink-0 border-t border-brand/[0.08] bg-white px-5 py-4 sm:px-8 sm:py-5 lg:px-9">
+              {/* ===========================================
+                  WHATSAPP BUTTON
+                  =========================================== */}
+
+              <div
+                className="
+                  shrink-0
+
+                  border-t
+
+                  border-brand/[0.08]
+
+                  bg-white
+
+                  px-5
+                  py-4
+
+                  sm:px-8
+                  sm:py-5
+
+                  lg:px-9
+                "
+              >
                 <button
                   type="button"
                   onClick={
                     handleWhatsAppClick
                   }
-                  className="group flex w-full items-center justify-center gap-2.5 rounded-xl bg-[#25D366] px-5 py-3.5 text-sm font-extrabold uppercase tracking-wider text-white shadow-[0_14px_35px_-16px_rgba(37,211,102,0.7)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#20bd5a] hover:shadow-[0_18px_40px_-16px_rgba(37,211,102,0.85)] focus:outline-none focus:ring-4 focus:ring-[#25D366]/25"
+                  className="
+                    group
+
+                    flex
+
+                    w-full
+
+                    items-center
+
+                    justify-center
+
+                    gap-2.5
+
+                    rounded-xl
+
+                    bg-[#25D366]
+
+                    px-5
+                    py-3.5
+
+                    text-sm
+
+                    font-extrabold
+
+                    uppercase
+
+                    tracking-wider
+
+                    text-white
+
+                    shadow-[0_14px_35px_-16px_rgba(37,211,102,0.7)]
+
+                    transition-all
+
+                    duration-300
+
+                    hover:-translate-y-0.5
+
+                    hover:bg-[#20bd5a]
+
+                    hover:shadow-[0_18px_40px_-16px_rgba(37,211,102,0.85)]
+
+                    focus:outline-none
+
+                    focus:ring-4
+
+                    focus:ring-[#25D366]/25
+                  "
                 >
-                  <FaWhatsapp className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                  <FaWhatsapp
+                    className="
+                      h-5
+                      w-5
+
+                      transition-transform
+
+                      duration-300
+
+                      group-hover:scale-110
+                    "
+                  />
 
                   Chat on WhatsApp
                 </button>
