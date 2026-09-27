@@ -477,13 +477,49 @@ export function DetailsModal({
                   }
                 </h2>
 
-                <div className="mt-4 inline-flex items-center rounded-xl bg-brand/[0.07] px-4 py-2.5">
-                  <span className="font-display text-xl font-extrabold text-brand sm:text-2xl">
-                    {formatPrice(
-                      item.price
-                    )}
-                  </span>
-                </div>
+                <div
+  className="
+    mt-5
+    inline-flex
+    min-w-[190px]
+    flex-col
+    rounded-xl
+    bg-brand
+    px-5
+    py-3.5
+    shadow-[0_14px_35px_-20px_rgba(23,49,96,0.75)]
+  "
+>
+  <span
+    className="
+      text-[9px]
+      font-extrabold
+      uppercase
+      tracking-[0.22em]
+      text-white/60
+    "
+  >
+    {item.kind === "build"
+      ? "Starting Price"
+      : "Price"}
+  </span>
+
+  <span
+    className="
+      mt-1
+      font-display
+      text-xl
+      font-extrabold
+      leading-none
+      text-white
+      sm:text-2xl
+    "
+  >
+    {formatPrice(
+      item.price
+    )}
+  </span>
+</div>
 
                 {item.secondaryLabel ? (
                   <p className="mt-3 text-sm font-semibold uppercase tracking-wider text-brand-soft">

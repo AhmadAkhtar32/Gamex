@@ -242,11 +242,43 @@ export default function Products({
                           }
                         </h3>
 
-                        <p className="mt-3 font-display text-xl font-extrabold text-brand">
-                          {formatPrice(
-                            product.price
-                          )}
-                        </p>
+                        <div
+  className="
+    mt-4
+    rounded-xl
+    bg-brand
+    px-4
+    py-3
+    shadow-[0_12px_30px_-18px_rgba(23,49,96,0.65)]
+  "
+>
+  <p
+    className="
+      text-[9px]
+      font-extrabold
+      uppercase
+      tracking-[0.2em]
+      text-white/60
+    "
+  >
+    Price
+  </p>
+
+  <p
+    className="
+      mt-0.5
+      font-display
+      text-xl
+      font-extrabold
+      leading-tight
+      text-white
+    "
+  >
+    {formatPrice(
+      product.price
+    )}
+  </p>
+</div>
 
                         <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-slate-500">
                           {

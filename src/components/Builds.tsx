@@ -155,11 +155,43 @@ export function Builds({
                             }
                           </p>
 
-                          <p className="mt-3 font-display text-2xl font-extrabold text-brand">
-                            {formatPrice(
-                              build.price
-                            )}
-                          </p>
+                          <div
+  className="
+    mt-4
+    rounded-xl
+    bg-brand
+    px-4
+    py-3
+    shadow-[0_12px_30px_-18px_rgba(23,49,96,0.65)]
+  "
+>
+  <p
+    className="
+      text-[9px]
+      font-extrabold
+      uppercase
+      tracking-[0.2em]
+      text-white/60
+    "
+  >
+    Starting Price
+  </p>
+
+  <p
+    className="
+      mt-0.5
+      font-display
+      text-2xl
+      font-extrabold
+      leading-tight
+      text-white
+    "
+  >
+    {formatPrice(
+      build.price
+    )}
+  </p>
+</div>
 
                           <p className="mt-3 text-sm leading-relaxed text-slate-600">
                             {
