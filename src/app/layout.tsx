@@ -4,7 +4,7 @@ import type {
 
 import {
   Orbitron,
-  Rajdhani,
+  Google_Sans_Flex,
 } from "next/font/google";
 
 import "./globals.css";
@@ -23,36 +23,16 @@ import {
 
 const orbitron =
   Orbitron({
-    subsets: [
-      "latin",
-    ],
-
-    variable:
-      "--font-orbitron",
-
-    display:
-      "swap",
+    subsets: ["latin"],
+    variable: "--font-orbitron",
+    display: "swap",
   });
 
-const rajdhani =
-  Rajdhani({
-    subsets: [
-      "latin",
-    ],
-
-    weight: [
-      "300",
-      "400",
-      "500",
-      "600",
-      "700",
-    ],
-
-    variable:
-      "--font-rajdhani",
-
-    display:
-      "swap",
+const googleSans =
+  Google_Sans_Flex({
+    subsets: ["latin"],
+    variable: "--font-google-sans",
+    display: "swap",
   });
 
 /* =========================================================
@@ -192,9 +172,9 @@ export default function RootLayout({
     <html
       lang="en"
       className={`
-        ${orbitron.variable}
-        ${rajdhani.variable}
-      `}
+  ${orbitron.variable}
+  ${googleSans.variable}
+`}
       suppressHydrationWarning
     >
       <body
