@@ -57,9 +57,14 @@ export type PublicBuild = {
 /* =========================================================
    TWO ROW LIMIT
 
-   Mobile = 1 column = 2 builds
-   Tablet = 2 columns = 4 builds
-   Desktop = 3 columns = 6 builds
+   Mobile:
+   1 column × 2 rows = 2
+
+   Tablet:
+   2 columns × 2 rows = 4
+
+   Desktop:
+   3 columns × 2 rows = 6
    ========================================================= */
 
 function getBuildLimit() {
@@ -117,7 +122,7 @@ export function Builds({
     useState(6);
 
   /* =======================================================
-     RESPONSIVE LIMIT
+     RESPONSIVE 2-ROW LIMIT
      ======================================================= */
 
   useEffect(() => {
@@ -155,6 +160,10 @@ export function Builds({
     builds.length >
     initialLimit;
 
+  /* =======================================================
+     VIEW MORE / LESS
+     ======================================================= */
+
   function toggleBuilds() {
     if (showAll) {
       setShowAll(
@@ -186,6 +195,10 @@ export function Builds({
     );
   }
 
+  /* =======================================================
+     RENDER
+     ======================================================= */
+
   return (
     <>
       <section
@@ -202,7 +215,9 @@ export function Builds({
           md:py-20
         "
       >
-        {/* BACKGROUND */}
+        {/* ===================================================
+            BACKGROUND
+            =================================================== */}
 
         <div
           aria-hidden="true"
@@ -246,6 +261,10 @@ export function Builds({
           "
         />
 
+        {/* ===================================================
+            CONTENT
+            =================================================== */}
+
         <div
           className="
             relative
@@ -259,6 +278,10 @@ export function Builds({
             md:px-8
           "
         >
+          {/* =================================================
+              HEADING
+              ================================================= */}
+
           <SectionHeading
             eyebrow="Custom Builds"
             title="Built for your playstyle"
@@ -306,7 +329,9 @@ export function Builds({
                     >
                       <div
                         role="button"
-                        tabIndex={0}
+                        tabIndex={
+                          0
+                        }
                         aria-label={`View details for ${build.name}`}
                         onClick={() =>
                           setSelectedBuild(
@@ -339,6 +364,7 @@ export function Builds({
                           focus:outline-none
 
                           focus-visible:ring-4
+
                           focus-visible:ring-brand/15
                         "
                       >
@@ -348,6 +374,7 @@ export function Builds({
 
                             flex
                             h-full
+
                             flex-col
 
                             overflow-hidden
@@ -362,6 +389,7 @@ export function Builds({
                             shadow-[0_20px_55px_-38px_rgba(0,0,0,0.28)]
 
                             transition-all
+
                             duration-300
 
                             hover:-translate-y-1
@@ -374,65 +402,30 @@ export function Builds({
                           {/* =================================
                               IMAGE
 
-                              Full image remains visible.
+                              4:3 makes gaming PC towers
+                              larger than the previous 16:10.
 
-                              Blurred background fills unused
-                              space around portrait images.
+                              object-cover fills the entire
+                              thumbnail area.
+
+                              Full uncropped image remains
+                              available in DetailsModal.
                               ================================= */}
 
                           <div
                             className="
                               relative
 
-                              aspect-[16/10]
+                              aspect-[4/3]
 
                               overflow-hidden
 
                               border-b
                               border-black/[0.05]
 
-                              bg-[#f5f5f5]
+                              bg-[#f4f4f4]
                             "
                           >
-                            {/* BACKGROUND */}
-
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-
-                            <img
-                              src={
-                                build.image
-                              }
-                              alt=""
-                              aria-hidden="true"
-                              className="
-                                absolute
-                                inset-0
-
-                                h-full
-                                w-full
-
-                                scale-110
-
-                                object-cover
-
-                                opacity-25
-
-                                blur-xl
-                              "
-                            />
-
-                            <div
-                              aria-hidden="true"
-                              className="
-                                absolute
-                                inset-0
-
-                                bg-white/55
-                              "
-                            />
-
-                            {/* MAIN IMAGE */}
-
                             {/* eslint-disable-next-line @next/next/no-img-element */}
 
                             <img
@@ -444,24 +437,26 @@ export function Builds({
                               }
                               loading="lazy"
                               className="
-                                relative
-                                z-10
+                                absolute
+                                inset-0
 
                                 h-full
                                 w-full
 
-                                object-contain
-
-                                p-2
+                                object-cover
+                                object-center
 
                                 transition-transform
+
                                 duration-500
 
-                                group-hover:scale-[1.025]
+                                ease-out
 
-                                sm:p-3
+                                group-hover:scale-[1.045]
                               "
                             />
+
+                            {/* RED SHADE */}
 
                             <div
                               aria-hidden="true"
@@ -471,13 +466,31 @@ export function Builds({
                                 absolute
                                 inset-0
 
-                                z-20
-
                                 bg-gradient-to-t
 
-                                from-brand/[0.06]
+                                from-brand/[0.055]
+
                                 via-transparent
+
                                 to-transparent
+                              "
+                            />
+
+                            {/* INNER BORDER */}
+
+                            <div
+                              aria-hidden="true"
+                              className="
+                                pointer-events-none
+
+                                absolute
+                                inset-0
+
+                                ring-1
+
+                                ring-inset
+
+                                ring-black/[0.025]
                               "
                             />
 
@@ -490,7 +503,7 @@ export function Builds({
                                 left-3
                                 top-3
 
-                                z-30
+                                z-20
 
                                 rounded-full
 
@@ -505,10 +518,14 @@ export function Builds({
                                 text-[10px]
 
                                 font-extrabold
+
                                 uppercase
+
                                 tracking-wider
 
                                 text-brand
+
+                                shadow-[0_8px_22px_-16px_rgba(230,0,0,0.5)]
 
                                 backdrop-blur-md
                               "
@@ -519,17 +536,22 @@ export function Builds({
                             </span>
                           </div>
 
-                          {/* CONTENT */}
+                          {/* =================================
+                              CONTENT
+                              ================================= */}
 
                           <div
                             className="
                               flex
                               flex-1
+
                               flex-col
 
                               p-5
                             "
                           >
+                            {/* NAME */}
+
                             <h3
                               className="
                                 font-display
@@ -537,6 +559,7 @@ export function Builds({
                                 text-2xl
 
                                 font-extrabold
+
                                 leading-tight
 
                                 text-brand-deep
@@ -551,6 +574,8 @@ export function Builds({
                               }
                             </h3>
 
+                            {/* ROLE */}
+
                             <p
                               className="
                                 mt-1
@@ -558,7 +583,9 @@ export function Builds({
                                 text-xs
 
                                 font-bold
+
                                 uppercase
+
                                 tracking-[0.16em]
 
                                 text-slate-500
@@ -569,7 +596,9 @@ export function Builds({
                               }
                             </p>
 
-                            {/* PRICE */}
+                            {/* =================================
+                                PRICE
+                                ================================= */}
 
                             <div
                               className="
@@ -607,6 +636,25 @@ export function Builds({
                                 "
                               />
 
+                              <div
+                                aria-hidden="true"
+                                className="
+                                  absolute
+
+                                  right-4
+                                  top-1/2
+
+                                  h-9
+                                  w-1
+
+                                  -translate-y-1/2
+
+                                  rounded-full
+
+                                  bg-white/15
+                                "
+                              />
+
                               <p
                                 className="
                                   relative
@@ -614,7 +662,9 @@ export function Builds({
                                   text-[9px]
 
                                   font-extrabold
+
                                   uppercase
+
                                   tracking-[0.22em]
 
                                   text-white/65
@@ -634,6 +684,7 @@ export function Builds({
                                   text-2xl
 
                                   font-extrabold
+
                                   leading-none
 
                                   text-white
@@ -645,7 +696,10 @@ export function Builds({
                               </p>
                             </div>
 
-                            {/* DESCRIPTION */}
+                            {/* =================================
+                                DESCRIPTION
+                                3 LINES
+                                ================================= */}
 
                             <p
                               className="
@@ -654,6 +708,7 @@ export function Builds({
                                 line-clamp-3
 
                                 text-sm
+
                                 leading-relaxed
 
                                 text-slate-600
@@ -664,7 +719,9 @@ export function Builds({
                               }
                             </p>
 
-                            {/* SPECS */}
+                            {/* =================================
+                                SPECS
+                                ================================= */}
 
                             <ul
                               className="
@@ -737,6 +794,8 @@ export function Builds({
                                 )}
                             </ul>
 
+                            {/* MORE SPECS */}
+
                             {build.specs.length >
                             4 ? (
                               <p
@@ -746,7 +805,9 @@ export function Builds({
                                   text-[10px]
 
                                   font-bold
+
                                   uppercase
+
                                   tracking-wider
 
                                   text-brand/70
@@ -759,7 +820,9 @@ export function Builds({
                               </p>
                             ) : null}
 
-                            {/* DETAILS */}
+                            {/* =================================
+                                DETAILS BUTTON
+                                ================================= */}
 
                             <div
                               className="
@@ -775,6 +838,7 @@ export function Builds({
                                   w-full
 
                                   items-center
+
                                   justify-between
 
                                   rounded-xl
@@ -792,15 +856,21 @@ export function Builds({
                                   text-xs
 
                                   font-bold
+
                                   uppercase
+
                                   tracking-wider
 
                                   text-brand-deep
 
                                   transition-all
 
+                                  duration-300
+
                                   group-hover:border-brand
+
                                   group-hover:bg-brand
+
                                   group-hover:text-white
                                 "
                               >
@@ -818,7 +888,7 @@ export function Builds({
               </ScrollSkew>
 
               {/* =============================================
-                  VIEW MORE
+                  VIEW MORE / LESS
                   ============================================= */}
 
               {canToggle ? (
@@ -841,9 +911,10 @@ export function Builds({
 
                       inline-flex
 
-                      min-w-[170px]
+                      min-w-[175px]
 
                       items-center
+
                       justify-center
 
                       gap-2.5
@@ -863,7 +934,9 @@ export function Builds({
                       text-xs
 
                       font-bold
+
                       uppercase
+
                       tracking-[0.14em]
 
                       text-brand
@@ -872,24 +945,48 @@ export function Builds({
 
                       transition-all
 
+                      duration-300
+
                       hover:-translate-y-0.5
 
                       hover:border-brand
+
                       hover:bg-brand
+
                       hover:text-white
+
+                      hover:shadow-[0_15px_34px_-20px_rgba(230,0,0,0.65)]
                     "
                   >
                     {showAll ? (
                       <>
                         Show Less
 
-                        <ChevronUp className="h-4 w-4" />
+                        <ChevronUp
+                          className="
+                            h-4
+                            w-4
+
+                            transition-transform
+
+                            group-hover:-translate-y-0.5
+                          "
+                        />
                       </>
                     ) : (
                       <>
                         View More
 
-                        <ChevronDown className="h-4 w-4" />
+                        <ChevronDown
+                          className="
+                            h-4
+                            w-4
+
+                            transition-transform
+
+                            group-hover:translate-y-0.5
+                          "
+                        />
                       </>
                     )}
                   </button>
@@ -897,6 +994,10 @@ export function Builds({
               ) : null}
             </>
           ) : (
+            /* ===============================================
+               EMPTY
+               =============================================== */
+
             <div
               className="
                 mt-9
@@ -915,7 +1016,18 @@ export function Builds({
                 text-center
               "
             >
-              <div className="mx-auto h-1 w-14 rounded-full bg-brand" />
+              <div
+                className="
+                  mx-auto
+
+                  h-1
+                  w-14
+
+                  rounded-full
+
+                  bg-brand
+                "
+              />
 
               <h3
                 className="
@@ -926,6 +1038,7 @@ export function Builds({
                   text-xl
 
                   font-bold
+
                   uppercase
 
                   text-brand-deep
@@ -938,7 +1051,12 @@ export function Builds({
         </div>
       </section>
 
-      {/* DETAILS */}
+      {/* =====================================================
+          DETAILS MODAL
+
+          Full image remains uncropped in popup because
+          DetailsModal still uses object-contain.
+          ===================================================== */}
 
       <DetailsModal
         item={

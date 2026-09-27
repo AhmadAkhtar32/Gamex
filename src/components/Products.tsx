@@ -60,12 +60,19 @@ export type PublicProduct = {
 };
 
 /* =========================================================
-   GET TWO-ROW LIMIT
+   TWO ROW RESPONSIVE LIMIT
 
-   Mobile: 1 column  = 2
-   Small:  2 columns = 4
-   Large:  3 columns = 6
-   XL:     4 columns = 8
+   Mobile:
+   1 column × 2 rows = 2
+
+   Tablet:
+   2 columns × 2 rows = 4
+
+   Desktop:
+   3 columns × 2 rows = 6
+
+   XL:
+   4 columns × 2 rows = 8
    ========================================================= */
 
 function getProductLimit() {
@@ -138,7 +145,7 @@ export default function Products({
     useState(8);
 
   /* =======================================================
-     RESPONSIVE TWO ROW LIMIT
+     RESPONSIVE 2-ROW LIMIT
      ======================================================= */
 
   useEffect(() => {
@@ -165,7 +172,7 @@ export default function Products({
   }, []);
 
   /* =======================================================
-     FILTER PRODUCTS
+     FILTER
      ======================================================= */
 
   const filteredProducts =
@@ -206,7 +213,7 @@ export default function Products({
   }
 
   /* =======================================================
-     VIEW MORE
+     VIEW MORE / LESS
      ======================================================= */
 
   function toggleProducts() {
@@ -240,13 +247,19 @@ export default function Products({
     );
   }
 
+  /* =======================================================
+     RENDER
+     ======================================================= */
+
   return (
     <>
       <section
         id="products"
         className="
           relative
+
           overflow-hidden
+
           bg-white
 
           py-14
@@ -254,12 +267,15 @@ export default function Products({
           md:py-20
         "
       >
-        {/* BACKGROUND */}
+        {/* ===================================================
+            BACKGROUND
+            =================================================== */}
 
         <div
           aria-hidden="true"
           className="
             pointer-events-none
+
             absolute
             inset-0
 
@@ -271,7 +287,9 @@ export default function Products({
           aria-hidden="true"
           className="
             bg-grid
+
             pointer-events-none
+
             absolute
             inset-0
 
@@ -281,16 +299,27 @@ export default function Products({
           "
         />
 
+        {/* ===================================================
+            CONTENT
+            =================================================== */}
+
         <div
           className="
             relative
+
             mx-auto
+
             max-w-7xl
 
             px-5
+
             md:px-8
           "
         >
+          {/* =================================================
+              HEADING
+              ================================================= */}
+
           <SectionHeading
             eyebrow="Catalogue"
             title="Products"
@@ -306,8 +335,11 @@ export default function Products({
               mt-8
 
               flex
+
               flex-wrap
+
               items-center
+
               justify-center
 
               gap-2
@@ -341,28 +373,39 @@ export default function Products({
                       py-2.5
 
                       text-xs
+
                       font-bold
+
                       uppercase
+
                       tracking-wider
 
                       transition-all
+
                       duration-300
 
                       ${
                         isActive
                           ? `
                             border-brand
+
                             bg-brand
+
                             text-white
+
                             shadow-[0_10px_28px_-14px_rgba(230,0,0,0.65)]
                           `
                           : `
                             border-black/10
+
                             bg-white
+
                             text-slate-600
 
                             hover:border-brand/40
+
                             hover:bg-brand/[0.04]
+
                             hover:text-brand
                           `
                       }
@@ -378,7 +421,7 @@ export default function Products({
           </div>
 
           {/* =================================================
-              PRODUCTS
+              PRODUCT GRID
               ================================================= */}
 
           <motion.div
@@ -419,7 +462,9 @@ export default function Products({
                         product.id
                       }
                       role="button"
-                      tabIndex={0}
+                      tabIndex={
+                        0
+                      }
                       aria-label={`View details for ${product.name}`}
                       onClick={() =>
                         setSelectedProduct(
@@ -475,6 +520,7 @@ export default function Products({
                         focus:outline-none
 
                         focus-visible:ring-4
+
                         focus-visible:ring-brand/15
                       "
                     >
@@ -484,6 +530,7 @@ export default function Products({
 
                           flex
                           h-full
+
                           flex-col
 
                           overflow-hidden
@@ -498,6 +545,7 @@ export default function Products({
                           shadow-[0_18px_50px_-38px_rgba(0,0,0,0.28)]
 
                           transition-all
+
                           duration-300
 
                           hover:-translate-y-1
@@ -510,9 +558,13 @@ export default function Products({
                         {/* ===================================
                             IMAGE
 
-                            Blurred background fills the frame.
+                            Fill complete card image area.
 
-                            Main image remains fully visible.
+                            This intentionally uses object-cover
+                            on the small catalogue thumbnail.
+
+                            Full image remains available in the
+                            DetailsModal.
                             =================================== */}
 
                         <div
@@ -526,50 +578,9 @@ export default function Products({
                             border-b
                             border-black/[0.05]
 
-                            bg-[#f7f7f7]
+                            bg-[#f4f4f4]
                           "
                         >
-                          {/* BACKGROUND IMAGE */}
-
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-
-                          <img
-                            src={
-                              product.image
-                            }
-                            alt=""
-                            aria-hidden="true"
-                            className="
-                              absolute
-                              inset-0
-
-                              h-full
-                              w-full
-
-                              scale-110
-
-                              object-cover
-
-                              opacity-25
-
-                              blur-xl
-                            "
-                          />
-
-                          {/* SOFT OVERLAY */}
-
-                          <div
-                            aria-hidden="true"
-                            className="
-                              absolute
-                              inset-0
-
-                              bg-white/55
-                            "
-                          />
-
-                          {/* MAIN FULL IMAGE */}
-
                           {/* eslint-disable-next-line @next/next/no-img-element */}
 
                           <img
@@ -581,26 +592,26 @@ export default function Products({
                             }
                             loading="lazy"
                             className="
-                              relative
-                              z-10
+                              absolute
+                              inset-0
 
                               h-full
                               w-full
 
-                              object-contain
-
-                              p-2
+                              object-cover
+                              object-center
 
                               transition-transform
+
                               duration-500
 
-                              group-hover:scale-[1.025]
+                              ease-out
 
-                              sm:p-3
+                              group-hover:scale-[1.045]
                             "
                           />
 
-                          {/* BOTTOM SHADE */}
+                          {/* RED SHADE */}
 
                           <div
                             aria-hidden="true"
@@ -610,13 +621,31 @@ export default function Products({
                               absolute
                               inset-0
 
-                              z-20
-
                               bg-gradient-to-t
 
-                              from-brand/[0.06]
+                              from-brand/[0.055]
+
                               via-transparent
+
                               to-transparent
+                            "
+                          />
+
+                          {/* TOP INNER BORDER */}
+
+                          <div
+                            aria-hidden="true"
+                            className="
+                              pointer-events-none
+
+                              absolute
+                              inset-0
+
+                              ring-1
+
+                              ring-inset
+
+                              ring-black/[0.025]
                             "
                           />
 
@@ -629,7 +658,7 @@ export default function Products({
                               left-3
                               top-3
 
-                              z-30
+                              z-20
                             "
                           >
                             <span
@@ -649,10 +678,14 @@ export default function Products({
                                 text-[10px]
 
                                 font-bold
+
                                 uppercase
+
                                 tracking-wider
 
                                 text-brand
+
+                                shadow-[0_8px_22px_-16px_rgba(230,0,0,0.5)]
 
                                 backdrop-blur-md
                               "
@@ -672,6 +705,7 @@ export default function Products({
                           className="
                             flex
                             flex-1
+
                             flex-col
 
                             p-4
@@ -679,12 +713,16 @@ export default function Products({
                             sm:p-5
                           "
                         >
+                          {/* CATEGORY */}
+
                           <p
                             className="
                               text-[10px]
 
                               font-extrabold
+
                               uppercase
+
                               tracking-[0.18em]
 
                               text-brand
@@ -695,6 +733,8 @@ export default function Products({
                             }
                           </p>
 
+                          {/* NAME */}
+
                           <h3
                             className="
                               mt-1.5
@@ -702,7 +742,9 @@ export default function Products({
                               font-display
 
                               text-lg
+
                               font-extrabold
+
                               leading-tight
 
                               text-brand-deep
@@ -717,7 +759,9 @@ export default function Products({
                             }
                           </h3>
 
-                          {/* PRICE */}
+                          {/* =================================
+                              PRICE
+                              ================================= */}
 
                           <div
                             className="
@@ -755,6 +799,25 @@ export default function Products({
                               "
                             />
 
+                            <div
+                              aria-hidden="true"
+                              className="
+                                absolute
+
+                                right-4
+                                top-1/2
+
+                                h-8
+                                w-1
+
+                                -translate-y-1/2
+
+                                rounded-full
+
+                                bg-white/15
+                              "
+                            />
+
                             <p
                               className="
                                 relative
@@ -762,7 +825,9 @@ export default function Products({
                                 text-[9px]
 
                                 font-extrabold
+
                                 uppercase
+
                                 tracking-[0.22em]
 
                                 text-white/65
@@ -780,7 +845,9 @@ export default function Products({
                                 font-display
 
                                 text-xl
+
                                 font-extrabold
+
                                 leading-tight
 
                                 text-white
@@ -792,7 +859,10 @@ export default function Products({
                             </p>
                           </div>
 
-                          {/* DESCRIPTION */}
+                          {/* =================================
+                              DESCRIPTION
+                              3 LINES ONLY
+                              ================================= */}
 
                           <p
                             className="
@@ -801,6 +871,7 @@ export default function Products({
                               line-clamp-3
 
                               text-sm
+
                               leading-relaxed
 
                               text-slate-600
@@ -811,7 +882,9 @@ export default function Products({
                             }
                           </p>
 
-                          {/* SPECS */}
+                          {/* =================================
+                              SPECS
+                              ================================= */}
 
                           <div
                             className="
@@ -882,6 +955,8 @@ export default function Products({
                               )}
                           </div>
 
+                          {/* MORE SPECS */}
+
                           {product.specs.length >
                           4 ? (
                             <p
@@ -891,7 +966,9 @@ export default function Products({
                                 text-[10px]
 
                                 font-bold
+
                                 uppercase
+
                                 tracking-wider
 
                                 text-brand/70
@@ -904,7 +981,9 @@ export default function Products({
                             </p>
                           ) : null}
 
-                          {/* VIEW DETAILS */}
+                          {/* =================================
+                              VIEW DETAILS
+                              ================================= */}
 
                           <span
                             className="
@@ -918,6 +997,7 @@ export default function Products({
                                 flex
 
                                 items-center
+
                                 justify-between
 
                                 rounded-xl
@@ -933,15 +1013,21 @@ export default function Products({
                                 text-xs
 
                                 font-bold
+
                                 uppercase
+
                                 tracking-wider
 
                                 text-brand-deep
 
                                 transition-all
 
+                                duration-300
+
                                 group-hover:border-brand
+
                                 group-hover:bg-brand
+
                                 group-hover:text-white
                               "
                             >
@@ -983,9 +1069,10 @@ export default function Products({
 
                   inline-flex
 
-                  min-w-[170px]
+                  min-w-[175px]
 
                   items-center
+
                   justify-center
 
                   gap-2.5
@@ -1005,7 +1092,9 @@ export default function Products({
                   text-xs
 
                   font-bold
+
                   uppercase
+
                   tracking-[0.14em]
 
                   text-brand
@@ -1014,11 +1103,17 @@ export default function Products({
 
                   transition-all
 
+                  duration-300
+
                   hover:-translate-y-0.5
 
                   hover:border-brand
+
                   hover:bg-brand
+
                   hover:text-white
+
+                  hover:shadow-[0_15px_34px_-20px_rgba(230,0,0,0.65)]
                 "
               >
                 {showAll ? (
@@ -1056,7 +1151,9 @@ export default function Products({
             </div>
           ) : null}
 
-          {/* EMPTY */}
+          {/* =================================================
+              EMPTY
+              ================================================= */}
 
           {filteredProducts.length ===
           0 ? (
@@ -1078,7 +1175,18 @@ export default function Products({
                 text-center
               "
             >
-              <div className="mx-auto h-1 w-14 rounded-full bg-brand" />
+              <div
+                className="
+                  mx-auto
+
+                  h-1
+                  w-14
+
+                  rounded-full
+
+                  bg-brand
+                "
+              />
 
               <h3
                 className="
@@ -1087,7 +1195,9 @@ export default function Products({
                   font-display
 
                   text-xl
+
                   font-bold
+
                   uppercase
 
                   text-brand-deep
@@ -1100,7 +1210,12 @@ export default function Products({
         </div>
       </section>
 
-      {/* DETAILS */}
+      {/* =====================================================
+          DETAILS MODAL
+
+          Popup still uses object-contain,
+          so full uncropped image is visible there.
+          ===================================================== */}
 
       <DetailsModal
         item={
