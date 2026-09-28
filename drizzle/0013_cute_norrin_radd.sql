@@ -12,3 +12,66 @@ CREATE TABLE "catalog_categories" (
 );
 --> statement-breakpoint
 ALTER TABLE "custom_builds" ADD COLUMN "category" varchar(120) DEFAULT 'custom-pcs' NOT NULL;
+/* =========================================================
+   DEFAULT GAMEX CATEGORIES
+   ========================================================= */
+
+INSERT INTO "catalog_categories"
+(
+  "name",
+  "slug",
+  "applies_to",
+  "sort_order",
+  "is_visible",
+  "is_system"
+)
+VALUES
+(
+  'Custom PCs',
+  'custom-pcs',
+  'both',
+  0,
+  true,
+  false
+),
+(
+  'Graphics Cards',
+  'graphics-cards',
+  'product',
+  1,
+  true,
+  false
+),
+(
+  'RAM',
+  'ram',
+  'product',
+  2,
+  true,
+  false
+),
+(
+  'Processors',
+  'processors',
+  'product',
+  3,
+  true,
+  false
+),
+(
+  'Accessories',
+  'accessories',
+  'product',
+  4,
+  true,
+  false
+),
+(
+  'Other',
+  'other',
+  'both',
+  999,
+  true,
+  true
+)
+ON CONFLICT ("slug") DO NOTHING;
