@@ -701,6 +701,16 @@ export const customBuilds = pgTable(
   "custom_builds",
 
   {
+    category: varchar(
+      "category",
+      {
+        length: 120,
+      }
+    )
+      .default(
+        "custom-pcs"
+      )
+      .notNull(),
 
     /*
 
@@ -3040,6 +3050,111 @@ export const navbarLinks = pgTable(
 
   }
 
+);
+/* =========================================================
+   CATALOG CATEGORIES
+
+   Used by:
+   - Products
+   - Custom Builds
+
+   appliesTo:
+   - product
+   - build
+   - both
+   ========================================================= */
+
+export const catalogCategories = pgTable(
+  "catalog_categories",
+  {
+    id: serial("id")
+      .primaryKey(),
+
+    name: varchar(
+      "name",
+      {
+        length: 120,
+      }
+    ).notNull(),
+
+    /*
+     * Stable value stored inside products.category
+     * and custom_builds.category.
+     *
+     * Examples:
+     *
+     * graphics-cards
+     * keyboards
+     * budget-builds
+     * other
+     */
+    slug: varchar(
+      "slug",
+      {
+        length: 120,
+      }
+    )
+      .notNull()
+      .unique(),
+
+    /*
+     * product = Product forms only
+     * build   = Build forms only
+     * both    = Product + Build forms
+     */
+    appliesTo: varchar(
+      "applies_to",
+      {
+        length: 20,
+      }
+    )
+      .default(
+        "product"
+      )
+      .notNull(),
+
+    sortOrder: integer(
+      "sort_order"
+    )
+      .default(0)
+      .notNull(),
+
+    isVisible: boolean(
+      "is_visible"
+    )
+      .default(true)
+      .notNull(),
+
+    /*
+     * System categories cannot be deleted.
+     *
+     * We use this for:
+     * Other
+     */
+    isSystem: boolean(
+      "is_system"
+    )
+      .default(false)
+      .notNull(),
+
+    createdAt: timestamp(
+      "created_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+
+    updatedAt: timestamp(
+      "updated_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+  }
 );
 
 /* =========================================================
