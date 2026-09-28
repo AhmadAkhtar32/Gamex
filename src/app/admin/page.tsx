@@ -17,6 +17,7 @@ import {
   Package,
   PanelsTopLeft,
   Sparkles,
+  Tags,
   Wrench,
 } from "lucide-react";
 
@@ -35,7 +36,7 @@ export default async function AdminPage() {
     <main
       className="
         min-h-screen
-        bg-[#f7f9fc]
+        bg-[#fff8f8]
       "
     >
       {/* =====================================================
@@ -195,8 +196,8 @@ export default async function AdminPage() {
               text-slate-500
             "
           >
-            Manage Gamex products, custom builds and website
-            content from one place.
+            Manage Gamex products, custom builds, categories
+            and website content from one place.
           </p>
         </div>
 
@@ -213,7 +214,7 @@ export default async function AdminPage() {
           "
         >
           <SummaryCard
-            value="2"
+            value="3"
             label="Catalogue Areas"
           />
 
@@ -223,7 +224,7 @@ export default async function AdminPage() {
           />
 
           <SummaryCard
-            value="9"
+            value="10"
             label="Management Tools"
           />
         </div>
@@ -236,7 +237,7 @@ export default async function AdminPage() {
           <SectionHeading
             eyebrow="Store Management"
             title="Catalogue"
-            description="Manage the hardware and custom systems displayed on the Gamex website."
+            description="Manage products, custom gaming systems and the categories used throughout the Gamex catalogue."
           />
 
           <div
@@ -245,8 +246,13 @@ export default async function AdminPage() {
               grid
               gap-5
               md:grid-cols-2
+              xl:grid-cols-3
             "
           >
+            {/* =================================================
+                PRODUCTS
+                ================================================= */}
+
             <DashboardCard
               href="/admin/products"
               icon={
@@ -257,6 +263,10 @@ export default async function AdminPage() {
               action="Manage Products"
             />
 
+            {/* =================================================
+                CUSTOM BUILDS
+                ================================================= */}
+
             <DashboardCard
               href="/admin/builds"
               icon={
@@ -265,6 +275,20 @@ export default async function AdminPage() {
               title="Custom Builds"
               description="Manage Gamex pre-built and custom gaming PC configurations."
               action="Manage Builds"
+            />
+
+            {/* =================================================
+                CATEGORIES
+                ================================================= */}
+
+            <DashboardCard
+              href="/admin/categories"
+              icon={
+                <Tags className="h-6 w-6" />
+              }
+              title="Categories"
+              description="Add, edit, hide or delete categories used by Products and Custom Builds."
+              action="Manage Categories"
             />
           </div>
         </section>
@@ -289,7 +313,9 @@ export default async function AdminPage() {
               xl:grid-cols-3
             "
           >
-            {/* NAVBAR */}
+            {/* =================================================
+                NAVBAR
+                ================================================= */}
 
             <DashboardCard
               href="/admin/content/navbar"
@@ -301,7 +327,9 @@ export default async function AdminPage() {
               action="Edit Navbar"
             />
 
-            {/* HERO */}
+            {/* =================================================
+                HERO
+                ================================================= */}
 
             <DashboardCard
               href="/admin/content/hero"
@@ -309,11 +337,13 @@ export default async function AdminPage() {
                 <Monitor className="h-6 w-6" />
               }
               title="Hero"
-              description="Edit the main homepage headline, rotating words, image and buttons."
+              description="Edit the main homepage headline, rotating words, media slider and buttons."
               action="Edit Hero"
             />
 
-            {/* STATS */}
+            {/* =================================================
+                STATS
+                ================================================= */}
 
             <DashboardCard
               href="/admin/content/stats"
@@ -325,7 +355,9 @@ export default async function AdminPage() {
               action="Manage Stats"
             />
 
-            {/* FEATURES */}
+            {/* =================================================
+                FEATURES
+                ================================================= */}
 
             <DashboardCard
               href="/admin/content/features"
@@ -337,7 +369,9 @@ export default async function AdminPage() {
               action="Edit Features"
             />
 
-            {/* BLOG */}
+            {/* =================================================
+                BLOG
+                ================================================= */}
 
             <DashboardCard
               href="/admin/blog"
@@ -349,7 +383,9 @@ export default async function AdminPage() {
               action="Manage Blog"
             />
 
-            {/* CONTACT */}
+            {/* =================================================
+                CONTACT
+                ================================================= */}
 
             <DashboardCard
               href="/admin/content/contact"
@@ -361,7 +397,9 @@ export default async function AdminPage() {
               action="Edit Contact"
             />
 
-            {/* FOOTER */}
+            {/* =================================================
+                FOOTER
+                ================================================= */}
 
             <DashboardCard
               href="/admin/content/footer"
@@ -431,7 +469,7 @@ export default async function AdminPage() {
                   text-brand-deep
                 "
               >
-                Core Homepage Management Complete
+                Core Website Management
               </h2>
 
               <p
@@ -443,10 +481,10 @@ export default async function AdminPage() {
                   text-slate-500
                 "
               >
-                Products, custom builds, Navbar, Hero, Stats,
-                Features, Blog, Contact and Footer can now be
-                managed through the protected Gamex admin
-                area.
+                Products, custom builds, categories, Navbar,
+                Hero, Stats, Features, Blog, Contact and Footer
+                can be managed through the protected Gamex
+                admin area.
               </p>
             </div>
 
@@ -544,7 +582,9 @@ function DashboardCard({
 }) {
   return (
     <Link
-      href={href}
+      href={
+        href
+      }
       className="
         group
         relative
@@ -556,12 +596,46 @@ function DashboardCard({
         p-6
         transition-all
         duration-300
+
         hover:-translate-y-1
+
         hover:border-brand/25
-        hover:shadow-[0_24px_60px_-38px_rgba(23,49,96,0.40)]
+
+        hover:shadow-[0_24px_60px_-38px_rgba(230,0,0,0.38)]
       "
     >
-      {/* ICON */}
+      {/* =====================================================
+          TOP RED ACCENT
+          ===================================================== */}
+
+      <div
+        aria-hidden="true"
+        className="
+          absolute
+
+          inset-x-0
+          top-0
+
+          h-[2px]
+
+          scale-x-0
+
+          bg-gradient-to-r
+
+          from-transparent
+          via-brand
+          to-transparent
+
+          transition-transform
+          duration-300
+
+          group-hover:scale-x-100
+        "
+      />
+
+      {/* =====================================================
+          ICON
+          ===================================================== */}
 
       <div
         className="
@@ -574,14 +648,19 @@ function DashboardCard({
           text-brand
           transition-all
           duration-300
+
           group-hover:bg-brand
           group-hover:text-white
         "
       >
-        {icon}
+        {
+          icon
+        }
       </div>
 
-      {/* TITLE */}
+      {/* =====================================================
+          TITLE
+          ===================================================== */}
 
       <h3
         className="
@@ -593,10 +672,14 @@ function DashboardCard({
           text-brand-deep
         "
       >
-        {title}
+        {
+          title
+        }
       </h3>
 
-      {/* DESCRIPTION */}
+      {/* =====================================================
+          DESCRIPTION
+          ===================================================== */}
 
       <p
         className="
@@ -607,10 +690,14 @@ function DashboardCard({
           text-slate-500
         "
       >
-        {description}
+        {
+          description
+        }
       </p>
 
-      {/* ACTION */}
+      {/* =====================================================
+          ACTION
+          ===================================================== */}
 
       <div
         className="
@@ -632,7 +719,9 @@ function DashboardCard({
             text-brand
           "
         >
-          {action}
+          {
+            action
+          }
         </span>
 
         <ArrowUpRight
@@ -642,6 +731,7 @@ function DashboardCard({
             text-brand
             transition-transform
             duration-300
+
             group-hover:translate-x-1
             group-hover:-translate-y-1
           "
@@ -666,10 +756,15 @@ function SummaryCard({
     <div
       className="
         rounded-2xl
+
         border
         border-brand/10
+
         bg-white
+
         p-5
+
+        shadow-[0_14px_40px_-34px_rgba(230,0,0,0.3)]
       "
     >
       <p
@@ -680,7 +775,9 @@ function SummaryCard({
           text-brand-deep
         "
       >
-        {value}
+        {
+          value
+        }
       </p>
 
       <p
@@ -693,7 +790,9 @@ function SummaryCard({
           text-slate-400
         "
       >
-        {label}
+        {
+          label
+        }
       </p>
     </div>
   );

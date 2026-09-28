@@ -1,16 +1,15 @@
 "use server";
 
-import {
-  createHash,
-  randomUUID,
-} from "node:crypto";
-
-import { eq } from "drizzle-orm";
+import { createHash, randomUUID } from "node:crypto";
+import { and, eq, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { db } from "@/db";
-import { products } from "@/db/schema";
+import {
+  catalogCategories,
+  products,
+} from "@/db/schema";
 import { requireAdmin } from "@/lib/admin-auth";
 
 const MAX_IMAGE_SIZE =
@@ -45,22 +44,71 @@ function redirectEditProductError(
   );
 }
 
+async function getProductCategory(
+  category: string
+) {
+  const rows =
+    await db
+      .select({
+        id:
+          catalogCategories.id,
+
+        isVisible:
+          catalogCategories.isVisible,
+      })
+      .from(
+        catalogCategories
+      )
+      .where(
+        and(
+          eq(
+            catalogCategories.slug,
+            category
+          ),
+          or(
+            eq(
+              catalogCategories.appliesTo,
+              "product"
+            ),
+            eq(
+              catalogCategories.appliesTo,
+              "both"
+            )
+          )
+        )
+      )
+      .limit(1);
+
+  return rows[0];
+}
+
 function makeProductId(
   name: string
 ) {
-  const slug = name
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 60);
-
-  const suffix =
-    randomUUID().slice(0, 8);
+  const slug =
+    name
+      .toLowerCase()
+      .trim()
+      .replace(
+        /[^a-z0-9]+/g,
+        "-"
+      )
+      .replace(
+        /^-+|-+$/g,
+        ""
+      )
+      .slice(
+        0,
+        60
+      );
 
   return `${
-    slug || "product"
-  }-${suffix}`;
+    slug ||
+    "product"
+  }-${randomUUID().slice(
+    0,
+    8
+  )}`;
 }
 
 function isValidImageUrl(
@@ -68,11 +116,15 @@ function isValidImageUrl(
 ) {
   try {
     const url =
-      new URL(value);
+      new URL(
+        value
+      );
 
     return (
-      url.protocol === "http:" ||
-      url.protocol === "https:"
+      url.protocol ===
+        "http:" ||
+      url.protocol ===
+        "https:"
     );
   } catch {
     return false;
@@ -88,12 +140,15 @@ function createCloudinarySignature({
   folder: string;
   apiSecret: string;
 }) {
-  const stringToSign =
-    `folder=${folder}&timestamp=${timestamp}${apiSecret}`;
-
-  return createHash("sha1")
-    .update(stringToSign)
-    .digest("hex");
+  return createHash(
+    "sha1"
+  )
+    .update(
+      `folder=${folder}&timestamp=${timestamp}${apiSecret}`
+    )
+    .digest(
+      "hex"
+    );
 }
 
 async function uploadProductImage(
@@ -145,7 +200,8 @@ async function uploadProductImage(
 
   const timestamp =
     Math.floor(
-      Date.now() / 1000
+      Date.now() /
+        1000
     );
 
   const signature =
@@ -170,7 +226,9 @@ async function uploadProductImage(
 
   uploadForm.append(
     "timestamp",
-    String(timestamp)
+    String(
+      timestamp
+    )
   );
 
   uploadForm.append(
@@ -187,8 +245,11 @@ async function uploadProductImage(
     await fetch(
       `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
       {
-        method: "POST",
-        body: uploadForm,
+        method:
+          "POST",
+
+        body:
+          uploadForm,
       }
     );
 
@@ -206,7 +267,8 @@ async function uploadProductImage(
     !result.secure_url
   ) {
     throw new Error(
-      result.error?.message ||
+      result.error
+        ?.message ||
         "Image upload failed."
     );
   }
@@ -214,53 +276,113 @@ async function uploadProductImage(
   return result.secure_url;
 }
 
+function parsePrice(
+  formData: FormData
+) {
+  const raw =
+    String(
+      formData.get(
+        "price"
+      ) ?? ""
+    ).trim();
+
+  return raw ===
+    ""
+    ? null
+    : Number(
+        raw
+      );
+}
+
+function parseSpecs(
+  formData: FormData
+) {
+  return String(
+    formData.get(
+      "specs"
+    ) ?? ""
+  )
+    .split(
+      "\n"
+    )
+    .map(
+      (
+        spec
+      ) =>
+        spec.trim()
+    )
+    .filter(
+      Boolean
+    );
+}
+
+function parseSortOrder(
+  formData: FormData
+) {
+  return Number.parseInt(
+    String(
+      formData.get(
+        "sortOrder"
+      ) ?? "0"
+    ).trim(),
+    10
+  );
+}
+
 export async function createProduct(
   formData: FormData
 ) {
   await requireAdmin();
 
-  const name = String(
-    formData.get("name") ?? ""
-  ).trim();
+  const name =
+    String(
+      formData.get(
+        "name"
+      ) ?? ""
+    ).trim();
 
-  const category = String(
-    formData.get("category") ?? ""
-  ).trim();
+  const category =
+    String(
+      formData.get(
+        "category"
+      ) ?? ""
+    ).trim();
 
-  const tag = String(
-    formData.get("tag") ?? ""
-  ).trim();
-
-  const priceRaw = String(
-    formData.get("price") ?? ""
-  ).trim();
+  const tag =
+    String(
+      formData.get(
+        "tag"
+      ) ?? ""
+    ).trim();
 
   const price =
-    priceRaw === ""
-      ? null
-      : Number(priceRaw);
+    parsePrice(
+      formData
+    );
 
-  const description = String(
-    formData.get(
-      "description"
-    ) ?? ""
-  ).trim();
+  const description =
+    String(
+      formData.get(
+        "description"
+      ) ?? ""
+    ).trim();
 
-  const specsText = String(
-    formData.get("specs") ?? ""
-  ).trim();
+  const specs =
+    parseSpecs(
+      formData
+    );
 
-  const sortOrderRaw = String(
-    formData.get(
-      "sortOrder"
-    ) ?? "0"
-  ).trim();
+  const sortOrder =
+    parseSortOrder(
+      formData
+    );
 
-  const imageUrl = String(
-    formData.get(
-      "imageUrl"
-    ) ?? ""
-  ).trim();
+  const imageUrl =
+    String(
+      formData.get(
+        "imageUrl"
+      ) ?? ""
+    ).trim();
 
   const possibleImageFile =
     formData.get(
@@ -274,11 +396,14 @@ export async function createProduct(
       : null;
 
   const hasImageFile =
-    imageFile !== null &&
-    imageFile.size > 0;
+    imageFile !==
+      null &&
+    imageFile.size >
+      0;
 
   const hasImageUrl =
-    imageUrl.length > 0;
+    imageUrl.length >
+    0;
 
   const isVisible =
     formData.get(
@@ -291,20 +416,25 @@ export async function createProduct(
     );
   }
 
-  if (!category) {
+  if (
+    !category
+  ) {
     redirectNewProductError(
       "Category is required."
     );
   }
 
-  if (!description) {
+  if (
+    !description
+  ) {
     redirectNewProductError(
       "Description is required."
     );
   }
 
   if (
-    name.length > 255
+    name.length >
+    255
   ) {
     redirectNewProductError(
       "Product name is too long."
@@ -312,7 +442,8 @@ export async function createProduct(
   }
 
   if (
-    category.length > 100
+    category.length >
+    100
   ) {
     redirectNewProductError(
       "Category is too long."
@@ -320,20 +451,37 @@ export async function createProduct(
   }
 
   if (
-    tag.length > 120
+    tag.length >
+    120
   ) {
     redirectNewProductError(
       "Product tag is too long."
     );
   }
 
+  const selectedCategory =
+    await getProductCategory(
+      category
+    );
+
   if (
-    price !== null &&
+    !selectedCategory ||
+    !selectedCategory.isVisible
+  ) {
+    redirectNewProductError(
+      "Selected category is not available for products."
+    );
+  }
+
+  if (
+    price !==
+      null &&
     (
       !Number.isSafeInteger(
         price
       ) ||
-      price < 0
+      price <
+        0
     )
   ) {
     redirectNewProductError(
@@ -342,7 +490,8 @@ export async function createProduct(
   }
 
   if (
-    imageUrl.length > 1000
+    imageUrl.length >
+    1000
   ) {
     redirectNewProductError(
       "Image URL is too long."
@@ -370,33 +519,21 @@ export async function createProduct(
     );
   }
 
-  const specs =
-    specsText
-      .split("\n")
-      .map((spec) =>
-        spec.trim()
-      )
-      .filter(Boolean);
-
   if (
-    specs.length === 0
+    specs.length ===
+    0
   ) {
     redirectNewProductError(
       "Add at least one specification."
     );
   }
 
-  const sortOrder =
-    Number.parseInt(
-      sortOrderRaw,
-      10
-    );
-
   if (
     !Number.isFinite(
       sortOrder
     ) ||
-    sortOrder < 0
+    sortOrder <
+      0
   ) {
     redirectNewProductError(
       "Display order must be 0 or greater."
@@ -415,32 +552,38 @@ export async function createProduct(
         await uploadProductImage(
           imageFile
         );
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Image upload failed.";
-
+    } catch (
+      error
+    ) {
       redirectNewProductError(
-        message
+        error instanceof
+          Error
+          ? error.message
+          : "Image upload failed."
       );
     }
   }
 
-  if (!finalImageUrl) {
+  if (
+    !finalImageUrl
+  ) {
     redirectNewProductError(
       "Product image could not be processed."
     );
   }
 
-  const id =
-    makeProductId(name);
-
   await db
-    .insert(products)
+    .insert(
+      products
+    )
     .values({
-      id,
+      id:
+        makeProductId(
+          name
+        ),
+
       name,
+
       category,
 
       tag:
@@ -450,12 +593,14 @@ export async function createProduct(
       price,
 
       description,
+
       specs,
 
       image:
         finalImageUrl,
 
       isVisible,
+
       sortOrder,
     });
 
@@ -463,7 +608,9 @@ export async function createProduct(
     "/admin/products"
   );
 
-  revalidatePath("/");
+  revalidatePath(
+    "/"
+  );
 
   redirect(
     "/admin/products"
@@ -475,13 +622,16 @@ export async function updateProduct(
 ) {
   await requireAdmin();
 
-  const productId = String(
-    formData.get(
-      "productId"
-    ) ?? ""
-  ).trim();
+  const productId =
+    String(
+      formData.get(
+        "productId"
+      ) ?? ""
+    ).trim();
 
-  if (!productId) {
+  if (
+    !productId
+  ) {
     redirect(
       "/admin/products"
     );
@@ -490,7 +640,9 @@ export async function updateProduct(
   const existingRows =
     await db
       .select()
-      .from(products)
+      .from(
+        products
+      )
       .where(
         eq(
           products.id,
@@ -502,56 +654,63 @@ export async function updateProduct(
   const existingProduct =
     existingRows[0];
 
-  if (!existingProduct) {
+  if (
+    !existingProduct
+  ) {
     redirect(
       "/admin/products"
     );
   }
 
-  const name = String(
-    formData.get("name") ?? ""
-  ).trim();
+  const name =
+    String(
+      formData.get(
+        "name"
+      ) ?? ""
+    ).trim();
 
-  const category = String(
-    formData.get(
-      "category"
-    ) ?? ""
-  ).trim();
+  const category =
+    String(
+      formData.get(
+        "category"
+      ) ?? ""
+    ).trim();
 
-  const tag = String(
-    formData.get("tag") ?? ""
-  ).trim();
-
-  const priceRaw = String(
-    formData.get("price") ?? ""
-  ).trim();
+  const tag =
+    String(
+      formData.get(
+        "tag"
+      ) ?? ""
+    ).trim();
 
   const price =
-    priceRaw === ""
-      ? null
-      : Number(priceRaw);
+    parsePrice(
+      formData
+    );
 
-  const description = String(
-    formData.get(
-      "description"
-    ) ?? ""
-  ).trim();
+  const description =
+    String(
+      formData.get(
+        "description"
+      ) ?? ""
+    ).trim();
 
-  const specsText = String(
-    formData.get("specs") ?? ""
-  ).trim();
+  const specs =
+    parseSpecs(
+      formData
+    );
 
-  const sortOrderRaw = String(
-    formData.get(
-      "sortOrder"
-    ) ?? "0"
-  ).trim();
+  const sortOrder =
+    parseSortOrder(
+      formData
+    );
 
-  const imageUrl = String(
-    formData.get(
-      "imageUrl"
-    ) ?? ""
-  ).trim();
+  const imageUrl =
+    String(
+      formData.get(
+        "imageUrl"
+      ) ?? ""
+    ).trim();
 
   const possibleImageFile =
     formData.get(
@@ -565,11 +724,14 @@ export async function updateProduct(
       : null;
 
   const hasImageFile =
-    imageFile !== null &&
-    imageFile.size > 0;
+    imageFile !==
+      null &&
+    imageFile.size >
+      0;
 
   const hasImageUrl =
-    imageUrl.length > 0;
+    imageUrl.length >
+    0;
 
   const isVisible =
     formData.get(
@@ -583,14 +745,18 @@ export async function updateProduct(
     );
   }
 
-  if (!category) {
+  if (
+    !category
+  ) {
     redirectEditProductError(
       productId,
       "Category is required."
     );
   }
 
-  if (!description) {
+  if (
+    !description
+  ) {
     redirectEditProductError(
       productId,
       "Description is required."
@@ -598,7 +764,8 @@ export async function updateProduct(
   }
 
   if (
-    name.length > 255
+    name.length >
+    255
   ) {
     redirectEditProductError(
       productId,
@@ -607,7 +774,8 @@ export async function updateProduct(
   }
 
   if (
-    category.length > 100
+    category.length >
+    100
   ) {
     redirectEditProductError(
       productId,
@@ -616,7 +784,8 @@ export async function updateProduct(
   }
 
   if (
-    tag.length > 120
+    tag.length >
+    120
   ) {
     redirectEditProductError(
       productId,
@@ -624,13 +793,34 @@ export async function updateProduct(
     );
   }
 
+  const selectedCategory =
+    await getProductCategory(
+      category
+    );
+
   if (
-    price !== null &&
+    !selectedCategory ||
+    (
+      !selectedCategory.isVisible &&
+      category !==
+        existingProduct.category
+    )
+  ) {
+    redirectEditProductError(
+      productId,
+      "Selected category is not available for products."
+    );
+  }
+
+  if (
+    price !==
+      null &&
     (
       !Number.isSafeInteger(
         price
       ) ||
-      price < 0
+      price <
+        0
     )
   ) {
     redirectEditProductError(
@@ -640,7 +830,8 @@ export async function updateProduct(
   }
 
   if (
-    imageUrl.length > 1000
+    imageUrl.length >
+    1000
   ) {
     redirectEditProductError(
       productId,
@@ -660,16 +851,9 @@ export async function updateProduct(
     );
   }
 
-  const specs =
-    specsText
-      .split("\n")
-      .map((spec) =>
-        spec.trim()
-      )
-      .filter(Boolean);
-
   if (
-    specs.length === 0
+    specs.length ===
+    0
   ) {
     redirectEditProductError(
       productId,
@@ -677,17 +861,12 @@ export async function updateProduct(
     );
   }
 
-  const sortOrder =
-    Number.parseInt(
-      sortOrderRaw,
-      10
-    );
-
   if (
     !Number.isFinite(
       sortOrder
     ) ||
-    sortOrder < 0
+    sortOrder <
+      0
   ) {
     redirectEditProductError(
       productId,
@@ -698,7 +877,9 @@ export async function updateProduct(
   let finalImageUrl =
     existingProduct.image;
 
-  if (hasImageUrl) {
+  if (
+    hasImageUrl
+  ) {
     finalImageUrl =
       imageUrl;
   }
@@ -712,23 +893,26 @@ export async function updateProduct(
         await uploadProductImage(
           imageFile
         );
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Image upload failed.";
-
+    } catch (
+      error
+    ) {
       redirectEditProductError(
         productId,
-        message
+        error instanceof
+          Error
+          ? error.message
+          : "Image upload failed."
       );
     }
   }
 
   await db
-    .update(products)
+    .update(
+      products
+    )
     .set({
       name,
+
       category,
 
       tag:
@@ -738,12 +922,14 @@ export async function updateProduct(
       price,
 
       description,
+
       specs,
 
       image:
         finalImageUrl,
 
       isVisible,
+
       sortOrder,
 
       updatedAt:
@@ -764,7 +950,9 @@ export async function updateProduct(
     `/admin/products/${productId}/edit`
   );
 
-  revalidatePath("/");
+  revalidatePath(
+    "/"
+  );
 
   redirect(
     "/admin/products"
@@ -776,11 +964,12 @@ export async function toggleProductVisibility(
 ) {
   await requireAdmin();
 
-  const productId = String(
-    formData.get(
-      "productId"
-    ) ?? ""
-  ).trim();
+  const productId =
+    String(
+      formData.get(
+        "productId"
+      ) ?? ""
+    ).trim();
 
   const nextVisibility =
     String(
@@ -789,12 +978,16 @@ export async function toggleProductVisibility(
       ) ?? ""
     ) === "true";
 
-  if (!productId) {
+  if (
+    !productId
+  ) {
     return;
   }
 
   await db
-    .update(products)
+    .update(
+      products
+    )
     .set({
       isVisible:
         nextVisibility,
@@ -813,7 +1006,9 @@ export async function toggleProductVisibility(
     "/admin/products"
   );
 
-  revalidatePath("/");
+  revalidatePath(
+    "/"
+  );
 }
 
 export async function deleteProduct(
@@ -821,18 +1016,23 @@ export async function deleteProduct(
 ) {
   await requireAdmin();
 
-  const productId = String(
-    formData.get(
-      "productId"
-    ) ?? ""
-  ).trim();
+  const productId =
+    String(
+      formData.get(
+        "productId"
+      ) ?? ""
+    ).trim();
 
-  if (!productId) {
+  if (
+    !productId
+  ) {
     return;
   }
 
   await db
-    .delete(products)
+    .delete(
+      products
+    )
     .where(
       eq(
         products.id,
@@ -844,5 +1044,7 @@ export async function deleteProduct(
     "/admin/products"
   );
 
-  revalidatePath("/");
+  revalidatePath(
+    "/"
+  );
 }
