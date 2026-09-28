@@ -1,5 +1,7 @@
 import Link from "next/link";
-
+import type {
+  ReactNode,
+} from "react";
 import {
   ArrowLeft,
   Boxes,
@@ -1801,7 +1803,7 @@ function UsageBadge({
   icon,
   text,
 }: {
-  icon: React.ReactNode;
+  icon: ReactNode;
 
   text: string;
 }) {
