@@ -26,11 +26,6 @@ import {
 } from "@/lib/price";
 
 import {
-  categories,
-  type CategoryId,
-} from "@/lib/data";
-
-import {
   SectionHeading,
   SpotlightCard,
 } from "@/components/ui";
@@ -38,6 +33,11 @@ import {
 /* =========================================================
    TYPES
    ========================================================= */
+
+export type PublicCategory = {
+  id: string;
+  label: string;
+};
 
 export type PublicProduct = {
   id: string;
@@ -113,14 +113,16 @@ function getProductLimit() {
 
 export default function Products({
   products,
+  categories,
 }: {
   products: PublicProduct[];
+  categories: PublicCategory[];
 }) {
   const [
     active,
     setActive,
   ] =
-    useState<CategoryId>(
+    useState<string>(
       "all"
     );
 
@@ -172,14 +174,54 @@ export default function Products({
   }, []);
 
   /* =======================================================
+     RESET FILTER IF CATEGORY DISAPPEARS
+     ======================================================= */
+
+  useEffect(() => {
+    if (
+      active ===
+      "all"
+    ) {
+      return;
+    }
+
+    const exists =
+      categories.some(
+        (
+          category
+        ) =>
+          category.id ===
+          active
+      );
+
+    if (
+      !exists
+    ) {
+      setActive(
+        "all"
+      );
+
+      setShowAll(
+        false
+      );
+    }
+  }, [
+    active,
+    categories,
+  ]);
+
+  /* =======================================================
      FILTER
      ======================================================= */
 
   const filteredProducts =
-    active === "all"
+    active ===
+    "all"
       ? products
       : products.filter(
-          (product) =>
+          (
+            product
+          ) =>
             product.category ===
             active
         );
@@ -201,7 +243,7 @@ export default function Products({
      ======================================================= */
 
   function changeCategory(
-    categoryId: CategoryId
+    categoryId: string
   ) {
     setActive(
       categoryId
@@ -217,7 +259,9 @@ export default function Products({
      ======================================================= */
 
   function toggleProducts() {
-    if (showAll) {
+    if (
+      showAll
+    ) {
       setShowAll(
         false
       );
@@ -257,13 +301,9 @@ export default function Products({
         id="products"
         className="
           relative
-
           overflow-hidden
-
           bg-white
-
           py-14
-
           md:py-20
         "
       >
@@ -275,10 +315,8 @@ export default function Products({
           aria-hidden="true"
           className="
             pointer-events-none
-
             absolute
             inset-0
-
             bg-[radial-gradient(circle_at_12%_18%,rgba(230,0,0,0.06),transparent_29%),radial-gradient(circle_at_88%_80%,rgba(255,42,42,0.045),transparent_31%)]
           "
         />
@@ -287,14 +325,10 @@ export default function Products({
           aria-hidden="true"
           className="
             bg-grid
-
             pointer-events-none
-
             absolute
             inset-0
-
             opacity-20
-
             [mask-image:radial-gradient(ellipse_80%_70%_at_50%_50%,black,transparent)]
           "
         />
@@ -306,13 +340,9 @@ export default function Products({
         <div
           className="
             relative
-
             mx-auto
-
             max-w-7xl
-
             px-5
-
             md:px-8
           "
         >
@@ -333,15 +363,10 @@ export default function Products({
           <div
             className="
               mt-8
-
               flex
-
               flex-wrap
-
               items-center
-
               justify-center
-
               gap-2
             "
           >
@@ -366,46 +391,30 @@ export default function Products({
                     }
                     className={`
                       rounded-full
-
                       border
-
                       px-4
                       py-2.5
-
                       text-xs
-
                       font-bold
-
                       uppercase
-
                       tracking-wider
-
                       transition-all
-
                       duration-300
 
                       ${
                         isActive
                           ? `
                             border-brand
-
                             bg-brand
-
                             text-white
-
                             shadow-[0_10px_28px_-14px_rgba(230,0,0,0.65)]
                           `
                           : `
                             border-black/10
-
                             bg-white
-
                             text-slate-600
-
                             hover:border-brand/40
-
                             hover:bg-brand/[0.04]
-
                             hover:text-brand
                           `
                       }
@@ -428,15 +437,10 @@ export default function Products({
             layout
             className="
               mt-9
-
               grid
-
               gap-5
-
               sm:grid-cols-2
-
               lg:grid-cols-3
-
               xl:grid-cols-4
             "
           >
@@ -514,70 +518,42 @@ export default function Products({
                       }}
                       className="
                         cursor-pointer
-
                         rounded-2xl
-
                         focus:outline-none
-
                         focus-visible:ring-4
-
                         focus-visible:ring-brand/15
                       "
                     >
                       <SpotlightCard
                         className="
                           group
-
                           flex
                           h-full
-
                           flex-col
-
                           overflow-hidden
-
                           rounded-2xl
-
                           border
                           border-black/[0.07]
-
                           bg-white
-
                           shadow-[0_18px_50px_-38px_rgba(0,0,0,0.28)]
-
                           transition-all
-
                           duration-300
-
                           hover:-translate-y-1
-
                           hover:border-brand/25
-
                           hover:shadow-[0_25px_60px_-38px_rgba(230,0,0,0.34)]
                         "
                       >
                         {/* ===================================
                             IMAGE
-
-                            Fill complete card image area.
-
-                            This intentionally uses object-cover
-                            on the small catalogue thumbnail.
-
-                            Full image remains available in the
-                            DetailsModal.
                             =================================== */}
 
                         <div
                           className="
                             relative
-
                             aspect-[16/10]
-
                             overflow-hidden
-
                             border-b
                             border-black/[0.05]
-
                             bg-[#f4f4f4]
                           "
                         >
@@ -594,19 +570,13 @@ export default function Products({
                             className="
                               absolute
                               inset-0
-
                               h-full
                               w-full
-
                               object-cover
                               object-center
-
                               transition-transform
-
                               duration-500
-
                               ease-out
-
                               group-hover:scale-[1.045]
                             "
                           />
@@ -617,34 +587,25 @@ export default function Products({
                             aria-hidden="true"
                             className="
                               pointer-events-none
-
                               absolute
                               inset-0
-
                               bg-gradient-to-t
-
                               from-brand/[0.055]
-
                               via-transparent
-
                               to-transparent
                             "
                           />
 
-                          {/* TOP INNER BORDER */}
+                          {/* INNER BORDER */}
 
                           <div
                             aria-hidden="true"
                             className="
                               pointer-events-none
-
                               absolute
                               inset-0
-
                               ring-1
-
                               ring-inset
-
                               ring-black/[0.025]
                             "
                           />
@@ -654,39 +615,26 @@ export default function Products({
                           <div
                             className="
                               absolute
-
                               left-3
                               top-3
-
                               z-20
                             "
                           >
                             <span
                               className="
                                 inline-flex
-
                                 rounded-full
-
                                 border
                                 border-brand/20
-
                                 bg-white/95
-
                                 px-3
                                 py-1.5
-
                                 text-[10px]
-
                                 font-bold
-
                                 uppercase
-
                                 tracking-wider
-
                                 text-brand
-
                                 shadow-[0_8px_22px_-16px_rgba(230,0,0,0.5)]
-
                                 backdrop-blur-md
                               "
                             >
@@ -705,11 +653,8 @@ export default function Products({
                           className="
                             flex
                             flex-1
-
                             flex-col
-
                             p-4
-
                             sm:p-5
                           "
                         >
@@ -718,13 +663,9 @@ export default function Products({
                           <p
                             className="
                               text-[10px]
-
                               font-extrabold
-
                               uppercase
-
                               tracking-[0.18em]
-
                               text-brand
                             "
                           >
@@ -738,19 +679,12 @@ export default function Products({
                           <h3
                             className="
                               mt-1.5
-
                               font-display
-
                               text-lg
-
                               font-extrabold
-
                               leading-tight
-
                               text-brand-deep
-
                               transition-colors
-
                               group-hover:text-brand
                             "
                           >
@@ -766,18 +700,12 @@ export default function Products({
                           <div
                             className="
                               relative
-
                               mt-3
-
                               overflow-hidden
-
                               rounded-xl
-
                               bg-brand
-
                               px-4
                               py-3
-
                               shadow-[0_12px_30px_-18px_rgba(230,0,0,0.7)]
                             "
                           >
@@ -785,15 +713,11 @@ export default function Products({
                               aria-hidden="true"
                               className="
                                 absolute
-
                                 -right-7
                                 -top-7
-
                                 h-20
                                 w-20
-
                                 rotate-45
-
                                 border
                                 border-white/15
                               "
@@ -803,17 +727,12 @@ export default function Products({
                               aria-hidden="true"
                               className="
                                 absolute
-
                                 right-4
                                 top-1/2
-
                                 h-8
                                 w-1
-
                                 -translate-y-1/2
-
                                 rounded-full
-
                                 bg-white/15
                               "
                             />
@@ -821,15 +740,10 @@ export default function Products({
                             <p
                               className="
                                 relative
-
                                 text-[9px]
-
                                 font-extrabold
-
                                 uppercase
-
                                 tracking-[0.22em]
-
                                 text-white/65
                               "
                             >
@@ -839,17 +753,11 @@ export default function Products({
                             <p
                               className="
                                 relative
-
                                 mt-0.5
-
                                 font-display
-
                                 text-xl
-
                                 font-extrabold
-
                                 leading-tight
-
                                 text-white
                               "
                             >
@@ -861,19 +769,14 @@ export default function Products({
 
                           {/* =================================
                               DESCRIPTION
-                              3 LINES ONLY
                               ================================= */}
 
                           <p
                             className="
                               mt-3
-
                               line-clamp-3
-
                               text-sm
-
                               leading-relaxed
-
                               text-slate-600
                             "
                           >
@@ -889,12 +792,9 @@ export default function Products({
                           <div
                             className="
                               mt-4
-
                               space-y-2
-
                               border-t
                               border-black/[0.06]
-
                               pt-3
                             "
                           >
@@ -912,33 +812,22 @@ export default function Products({
                                     key={`${product.id}-${index}`}
                                     className="
                                       flex
-
                                       items-start
-
                                       gap-2.5
-
                                       text-xs
-
                                       text-slate-600
                                     "
                                   >
                                     <span
                                       className="
                                         mt-0.5
-
                                         grid
-
                                         h-4
                                         w-4
-
                                         shrink-0
-
                                         place-items-center
-
                                         rounded-full
-
                                         bg-brand/[0.08]
-
                                         text-brand
                                       "
                                     >
@@ -962,15 +851,10 @@ export default function Products({
                             <p
                               className="
                                 mt-2.5
-
                                 text-[10px]
-
                                 font-bold
-
                                 uppercase
-
                                 tracking-wider
-
                                 text-brand/70
                               "
                             >
@@ -988,46 +872,29 @@ export default function Products({
                           <span
                             className="
                               mt-auto
-
                               pt-4
                             "
                           >
                             <span
                               className="
                                 flex
-
                                 items-center
-
                                 justify-between
-
                                 rounded-xl
-
                                 border
                                 border-black/[0.08]
-
                                 bg-[#fff8f8]
-
                                 px-4
                                 py-3
-
                                 text-xs
-
                                 font-bold
-
                                 uppercase
-
                                 tracking-wider
-
                                 text-brand-deep
-
                                 transition-all
-
                                 duration-300
-
                                 group-hover:border-brand
-
                                 group-hover:bg-brand
-
                                 group-hover:text-white
                               "
                             >
@@ -1053,9 +920,7 @@ export default function Products({
             <div
               className="
                 mt-8
-
                 flex
-
                 justify-center
               "
             >
@@ -1066,53 +931,30 @@ export default function Products({
                 }
                 className="
                   group
-
                   inline-flex
-
                   min-w-[175px]
-
                   items-center
-
                   justify-center
-
                   gap-2.5
-
                   rounded-xl
-
                   border
                   border-brand/20
-
                   bg-white
-
                   px-6
                   py-3.5
-
                   font-display
-
                   text-xs
-
                   font-bold
-
                   uppercase
-
                   tracking-[0.14em]
-
                   text-brand
-
                   shadow-[0_12px_32px_-22px_rgba(230,0,0,0.5)]
-
                   transition-all
-
                   duration-300
-
                   hover:-translate-y-0.5
-
                   hover:border-brand
-
                   hover:bg-brand
-
                   hover:text-white
-
                   hover:shadow-[0_15px_34px_-20px_rgba(230,0,0,0.65)]
                 "
               >
@@ -1124,9 +966,7 @@ export default function Products({
                       className="
                         h-4
                         w-4
-
                         transition-transform
-
                         group-hover:-translate-y-0.5
                       "
                     />
@@ -1139,9 +979,7 @@ export default function Products({
                       className="
                         h-4
                         w-4
-
                         transition-transform
-
                         group-hover:translate-y-0.5
                       "
                     />
@@ -1160,30 +998,22 @@ export default function Products({
             <div
               className="
                 mt-10
-
                 rounded-2xl
-
                 border
                 border-dashed
                 border-brand/20
-
                 bg-[#fff8f8]
-
                 px-6
                 py-10
-
                 text-center
               "
             >
               <div
                 className="
                   mx-auto
-
                   h-1
                   w-14
-
                   rounded-full
-
                   bg-brand
                 "
               />
@@ -1191,15 +1021,10 @@ export default function Products({
               <h3
                 className="
                   mt-4
-
                   font-display
-
                   text-xl
-
                   font-bold
-
                   uppercase
-
                   text-brand-deep
                 "
               >
@@ -1212,9 +1037,6 @@ export default function Products({
 
       {/* =====================================================
           DETAILS MODAL
-
-          Popup still uses object-contain,
-          so full uncropped image is visible there.
           ===================================================== */}
 
       <DetailsModal

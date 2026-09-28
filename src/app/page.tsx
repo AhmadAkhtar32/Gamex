@@ -1,11 +1,16 @@
 import {
+  and,
   asc,
   eq,
+  or,
 } from "drizzle-orm";
 
-import { db } from "@/db";
+import {
+  db,
+} from "@/db";
 
 import {
+  catalogCategories as categoriesTable,
   contactSettings as contactSettingsTable,
   contactSocialLinks as contactSocialLinksTable,
   customBuilds as buildsTable,
@@ -153,7 +158,9 @@ export default async function HomePage() {
           "main"
         )
       )
-      .limit(1);
+      .limit(
+        1
+      );
 
   /* =======================================================
      NAVBAR LINKS
@@ -201,7 +208,8 @@ export default async function HomePage() {
   const publicNavbarLinks =
     navbarHasDatabaseSettings
       ? databaseNavbarLinks
-      : databaseNavbarLinks.length > 0
+      : databaseNavbarLinks.length >
+          0
         ? databaseNavbarLinks
         : DEFAULT_NAVBAR_LINKS;
 
@@ -221,62 +229,64 @@ export default async function HomePage() {
           "main"
         )
       )
-      .limit(1);
+      .limit(
+        1
+      );
 
   const heroContent =
     heroRows[0] ??
     DEFAULT_HERO_CONTENT;
-    const databaseHeroMedia =
-  await db
-    .select({
-      id:
-        heroMediaTable.id,
 
-      mediaType:
-        heroMediaTable.mediaType,
+  const databaseHeroMedia =
+    await db
+      .select({
+        id:
+          heroMediaTable.id,
 
-      url:
-        heroMediaTable.url,
+        mediaType:
+          heroMediaTable.mediaType,
 
-      alt:
-        heroMediaTable.alt,
+        url:
+          heroMediaTable.url,
 
-      sortOrder:
-        heroMediaTable.sortOrder,
-    })
-    .from(
-      heroMediaTable
-    )
-    .where(
-      eq(
-        heroMediaTable.isVisible,
-        true
+        alt:
+          heroMediaTable.alt,
+
+        sortOrder:
+          heroMediaTable.sortOrder,
+      })
+      .from(
+        heroMediaTable
       )
-    )
-    .orderBy(
-      asc(
-        heroMediaTable.sortOrder
-      ),
-
-      asc(
-        heroMediaTable.id
+      .where(
+        eq(
+          heroMediaTable.isVisible,
+          true
+        )
       )
+      .orderBy(
+        asc(
+          heroMediaTable.sortOrder
+        ),
+        asc(
+          heroMediaTable.id
+        )
+      );
+
+  const publicHeroMedia =
+    databaseHeroMedia.map(
+      (
+        media
+      ) => ({
+        ...media,
+
+        mediaType:
+          media.mediaType ===
+          "video"
+            ? ("video" as const)
+            : ("image" as const),
+      })
     );
-
-const publicHeroMedia =
-  databaseHeroMedia.map(
-    (
-      media
-    ) => ({
-      ...media,
-
-      mediaType:
-        media.mediaType ===
-        "video"
-          ? ("video" as const)
-          : ("image" as const),
-    })
-  );
 
   /* =======================================================
      STATS
@@ -338,6 +348,61 @@ const publicHeroMedia =
       );
 
   /* =======================================================
+     PRODUCT CATEGORIES
+     ======================================================= */
+
+  const databaseProductCategories =
+    await db
+      .select({
+        id:
+          categoriesTable.slug,
+
+        label:
+          categoriesTable.name,
+      })
+      .from(
+        categoriesTable
+      )
+      .where(
+        and(
+          eq(
+            categoriesTable.isVisible,
+            true
+          ),
+          or(
+            eq(
+              categoriesTable.appliesTo,
+              "product"
+            ),
+            eq(
+              categoriesTable.appliesTo,
+              "both"
+            )
+          )
+        )
+      )
+      .orderBy(
+        asc(
+          categoriesTable.sortOrder
+        ),
+        asc(
+          categoriesTable.id
+        )
+      );
+
+  const publicProductCategories = [
+    {
+      id:
+        "all",
+
+      label:
+        "All",
+    },
+
+    ...databaseProductCategories,
+  ];
+
+  /* =======================================================
      CUSTOM BUILDS
      ======================================================= */
 
@@ -390,7 +455,9 @@ const publicHeroMedia =
           "main"
         )
       )
-      .limit(1);
+      .limit(
+        1
+      );
 
   const featuresContent =
     featuresSettingsRows[0] ??
@@ -438,8 +505,11 @@ const publicHeroMedia =
      ======================================================= */
 
   const {
-    content: blogContent,
-    posts: blogPosts,
+    content:
+      blogContent,
+
+    posts:
+      blogPosts,
   } =
     await getBlogHomepageData();
 
@@ -525,7 +595,9 @@ const publicHeroMedia =
           "main"
         )
       )
-      .limit(1);
+      .limit(
+        1
+      );
 
   const contactContent =
     contactRows[0] ??
@@ -632,7 +704,9 @@ const publicHeroMedia =
           "main"
         )
       )
-      .limit(1);
+      .limit(
+        1
+      );
 
   const footerHasDatabaseSettings =
     Boolean(
@@ -680,7 +754,8 @@ const publicHeroMedia =
   const publicFooterLinks =
     footerHasDatabaseSettings
       ? databaseFooterLinks
-      : databaseFooterLinks.length > 0
+      : databaseFooterLinks.length >
+          0
         ? databaseFooterLinks
         : DEFAULT_FOOTER_LINKS;
 
@@ -721,7 +796,8 @@ const publicHeroMedia =
   const publicFooterSocialLinks =
     footerHasDatabaseSettings
       ? databaseFooterSocialLinks
-      : databaseFooterSocialLinks.length > 0
+      : databaseFooterSocialLinks.length >
+          0
         ? databaseFooterSocialLinks
         : DEFAULT_FOOTER_SOCIAL_LINKS;
 
@@ -749,13 +825,13 @@ const publicHeroMedia =
         "
       >
         <Hero
-  content={
-    heroContent
-  }
-  media={
-    publicHeroMedia
-  }
-/>
+          content={
+            heroContent
+          }
+          media={
+            publicHeroMedia
+          }
+        />
 
         <Marquee />
 
@@ -768,6 +844,9 @@ const publicHeroMedia =
         <Products
           products={
             databaseProducts
+          }
+          categories={
+            publicProductCategories
           }
         />
 
