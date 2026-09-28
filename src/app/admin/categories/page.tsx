@@ -1,7 +1,9 @@
 import Link from "next/link";
+
 import type {
   ReactNode,
 } from "react";
+
 import {
   ArrowLeft,
   Boxes,
@@ -11,7 +13,6 @@ import {
   Package,
   Plus,
   Save,
-  ShieldCheck,
   Tag,
   Wrench,
 } from "lucide-react";
@@ -68,29 +69,18 @@ type CategoryPageProps = {
 
 const inputClass = `
   w-full
-
   rounded-xl
-
   border
   border-brand/15
-
   bg-white
-
   px-4
   py-3
-
   text-sm
-
   text-brand-deep
-
   outline-none
-
   transition-all
-
   placeholder:text-slate-400
-
   focus:border-brand/50
-
   focus:shadow-[0_0_0_4px_rgba(230,0,0,0.08)]
 `;
 
@@ -173,10 +163,12 @@ export default async function CategoriesPage({
     productCounts.set(
       product.category,
 
-      (productCounts.get(
-        product.category
-      ) ?? 0) +
-        1
+      (
+        productCounts.get(
+          product.category
+        ) ??
+        0
+      ) + 1
     );
   }
 
@@ -187,10 +179,12 @@ export default async function CategoriesPage({
     buildCounts.set(
       build.category,
 
-      (buildCounts.get(
-        build.category
-      ) ?? 0) +
-        1
+      (
+        buildCounts.get(
+          build.category
+        ) ??
+        0
+      ) + 1
     );
   }
 
@@ -231,7 +225,6 @@ export default async function CategoriesPage({
     <main
       className="
         min-h-screen
-
         bg-[#fff8f8]
       "
     >
@@ -243,52 +236,37 @@ export default async function CategoriesPage({
         className="
           border-b
           border-brand/10
-
           bg-white
         "
       >
         <div
           className="
             mx-auto
-
             flex
-
             max-w-7xl
-
             items-center
-
             justify-between
-
             gap-4
-
             px-5
             py-4
-
             md:px-8
           "
         >
           <div
             className="
               flex
-
               items-center
-
               gap-3
             "
           >
             <div
               className="
                 grid
-
                 h-10
                 w-10
-
                 place-items-center
-
                 rounded-xl
-
                 bg-brand
-
                 text-white
               "
             >
@@ -299,27 +277,20 @@ export default async function CategoriesPage({
               <p
                 className="
                   font-display
-
                   text-lg
-
                   font-extrabold
-
                   uppercase
-
                   tracking-widest
-
                   text-brand-deep
                 "
               >
-                Product Categories
+                Categories
               </p>
 
               <p
                 className="
                   mt-0.5
-
                   text-xs
-
                   text-slate-500
                 "
               >
@@ -332,37 +303,22 @@ export default async function CategoriesPage({
             href="/admin"
             className="
               inline-flex
-
               items-center
-
               gap-2
-
               rounded-lg
-
               border
               border-brand/15
-
               bg-white
-
               px-4
               py-2.5
-
               text-xs
-
               font-bold
-
               uppercase
-
               tracking-wider
-
               text-brand
-
               transition-all
-
               hover:border-brand
-
               hover:bg-brand
-
               hover:text-white
             "
           >
@@ -380,12 +336,9 @@ export default async function CategoriesPage({
       <div
         className="
           mx-auto
-
           max-w-7xl
-
           px-5
           py-10
-
           md:px-8
           md:py-14
         "
@@ -396,13 +349,9 @@ export default async function CategoriesPage({
           <p
             className="
               text-xs
-
               font-bold
-
               uppercase
-
               tracking-[0.24em]
-
               text-brand
             "
           >
@@ -412,17 +361,11 @@ export default async function CategoriesPage({
           <h1
             className="
               mt-2
-
               font-display
-
               text-3xl
-
               font-extrabold
-
               uppercase
-
               text-brand-deep
-
               md:text-4xl
             "
           >
@@ -432,19 +375,16 @@ export default async function CategoriesPage({
           <p
             className="
               mt-3
-
               max-w-3xl
-
               text-sm
-
               leading-relaxed
-
               text-slate-500
             "
           >
             Add, edit, hide and delete categories used by
-            Products and Custom Builds. The special Other
-            category always stays available.
+            Products and Custom Builds. Categories currently
+            assigned to a Product or Build cannot be deleted
+            until those items are moved to another category.
           </p>
         </div>
 
@@ -456,21 +396,14 @@ export default async function CategoriesPage({
           <div
             className="
               mt-7
-
               rounded-xl
-
               border
               border-red-200
-
               bg-red-50
-
               px-5
               py-4
-
               text-sm
-
               font-semibold
-
               text-red-700
             "
           >
@@ -484,21 +417,14 @@ export default async function CategoriesPage({
           <div
             className="
               mt-7
-
               rounded-xl
-
               border
               border-emerald-200
-
               bg-emerald-50
-
               px-5
               py-4
-
               text-sm
-
               font-semibold
-
               text-emerald-700
             "
           >
@@ -515,50 +441,34 @@ export default async function CategoriesPage({
         <section
           className="
             mt-8
-
             rounded-3xl
-
             border
             border-brand/10
-
             bg-white
-
             p-5
-
             shadow-[0_30px_80px_-50px_rgba(230,0,0,0.3)]
-
             sm:p-7
           "
         >
           <div
             className="
               flex
-
               items-start
-
               gap-3
-
               border-b
               border-brand/10
-
               pb-5
             "
           >
             <div
               className="
                 grid
-
                 h-10
                 w-10
-
                 shrink-0
-
                 place-items-center
-
                 rounded-xl
-
                 bg-brand/[0.08]
-
                 text-brand
               "
             >
@@ -569,13 +479,9 @@ export default async function CategoriesPage({
               <h2
                 className="
                   font-display
-
                   text-lg
-
                   font-extrabold
-
                   uppercase
-
                   text-brand-deep
                 "
               >
@@ -585,11 +491,8 @@ export default async function CategoriesPage({
               <p
                 className="
                   mt-1
-
                   text-xs
-
                   leading-relaxed
-
                   text-slate-500
                 "
               >
@@ -605,40 +508,18 @@ export default async function CategoriesPage({
             }
             className="
               mt-6
-
               grid
-
               gap-5
-
               md:grid-cols-2
-
               xl:grid-cols-4
             "
           >
             {/* NAME */}
 
-            <div>
-              <label
-                htmlFor="name"
-                className="
-                  mb-2
-
-                  block
-
-                  text-[10px]
-
-                  font-extrabold
-
-                  uppercase
-
-                  tracking-[0.15em]
-
-                  text-brand-deep
-                "
-              >
-                Category Name
-              </label>
-
+            <FormField
+              label="Category Name"
+              htmlFor="name"
+            >
               <input
                 id="name"
                 name="name"
@@ -652,32 +533,14 @@ export default async function CategoriesPage({
                   inputClass
                 }
               />
-            </div>
+            </FormField>
 
             {/* SLUG */}
 
-            <div>
-              <label
-                htmlFor="slug"
-                className="
-                  mb-2
-
-                  block
-
-                  text-[10px]
-
-                  font-extrabold
-
-                  uppercase
-
-                  tracking-[0.15em]
-
-                  text-brand-deep
-                "
-              >
-                Slug
-              </label>
-
+            <FormField
+              label="Slug"
+              htmlFor="slug"
+            >
               <input
                 id="slug"
                 name="slug"
@@ -694,40 +557,20 @@ export default async function CategoriesPage({
               <p
                 className="
                   mt-2
-
                   text-xs
-
                   text-slate-400
                 "
               >
                 Leave blank to generate it automatically.
               </p>
-            </div>
+            </FormField>
 
             {/* TARGET */}
 
-            <div>
-              <label
-                htmlFor="appliesTo"
-                className="
-                  mb-2
-
-                  block
-
-                  text-[10px]
-
-                  font-extrabold
-
-                  uppercase
-
-                  tracking-[0.15em]
-
-                  text-brand-deep
-                "
-              >
-                Available For
-              </label>
-
+            <FormField
+              label="Available For"
+              htmlFor="appliesTo"
+            >
               <select
                 id="appliesTo"
                 name="appliesTo"
@@ -748,32 +591,14 @@ export default async function CategoriesPage({
                   Products + Builds
                 </option>
               </select>
-            </div>
+            </FormField>
 
             {/* ORDER */}
 
-            <div>
-              <label
-                htmlFor="sortOrder"
-                className="
-                  mb-2
-
-                  block
-
-                  text-[10px]
-
-                  font-extrabold
-
-                  uppercase
-
-                  tracking-[0.15em]
-
-                  text-brand-deep
-                "
-              >
-                Display Order
-              </label>
-
+            <FormField
+              label="Display Order"
+              htmlFor="sortOrder"
+            >
               <input
                 id="sortOrder"
                 name="sortOrder"
@@ -794,25 +619,21 @@ export default async function CategoriesPage({
                   inputClass
                 }
               />
-            </div>
+            </FormField>
 
             {/* VISIBLE */}
 
             <div
               className="
                 md:col-span-2
-
                 xl:col-span-3
               "
             >
               <label
                 className="
                   inline-flex
-
                   cursor-pointer
-
                   items-center
-
                   gap-3
                 "
               >
@@ -823,7 +644,6 @@ export default async function CategoriesPage({
                   className="
                     h-4
                     w-4
-
                     accent-[#e60000]
                   "
                 />
@@ -831,9 +651,7 @@ export default async function CategoriesPage({
                 <span
                   className="
                     text-sm
-
                     font-semibold
-
                     text-brand-deep
                   "
                 >
@@ -847,9 +665,7 @@ export default async function CategoriesPage({
             <div
               className="
                 flex
-
                 items-end
-
                 xl:justify-end
               "
             >
@@ -857,40 +673,23 @@ export default async function CategoriesPage({
                 type="submit"
                 className="
                   inline-flex
-
                   w-full
-
                   items-center
-
                   justify-center
-
                   gap-2
-
                   rounded-xl
-
                   bg-brand
-
                   px-5
                   py-3
-
                   font-display
-
                   text-xs
-
                   font-bold
-
                   uppercase
-
                   tracking-wider
-
                   text-white
-
                   transition-all
-
                   hover:-translate-y-0.5
-
                   hover:bg-[#c90000]
-
                   xl:w-auto
                 "
               >
@@ -906,19 +705,12 @@ export default async function CategoriesPage({
             CATEGORY LIST
             =================================================== */}
 
-        <section
-          className="
-            mt-8
-          "
-        >
+        <section className="mt-8">
           <div
             className="
               flex
-
               items-end
-
               justify-between
-
               gap-4
             "
           >
@@ -926,13 +718,9 @@ export default async function CategoriesPage({
               <p
                 className="
                   text-xs
-
                   font-bold
-
                   uppercase
-
                   tracking-[0.22em]
-
                   text-brand
                 "
               >
@@ -942,15 +730,10 @@ export default async function CategoriesPage({
               <h2
                 className="
                   mt-2
-
                   font-display
-
                   text-2xl
-
                   font-extrabold
-
                   uppercase
-
                   text-brand-deep
                 "
               >
@@ -966,7 +749,6 @@ export default async function CategoriesPage({
           <div
             className="
               mt-5
-
               space-y-4
             "
           >
@@ -984,6 +766,12 @@ export default async function CategoriesPage({
                     category.slug
                   ) ?? 0;
 
+                const isUsed =
+                  productCount >
+                    0 ||
+                  buildCount >
+                    0;
+
                 return (
                   <div
                     key={
@@ -991,16 +779,11 @@ export default async function CategoriesPage({
                     }
                     className="
                       rounded-2xl
-
                       border
                       border-black/[0.07]
-
                       bg-white
-
                       p-5
-
                       shadow-[0_18px_50px_-42px_rgba(0,0,0,0.25)]
-
                       sm:p-6
                     "
                   >
@@ -1009,11 +792,8 @@ export default async function CategoriesPage({
                     <div
                       className="
                         flex
-
                         flex-col
-
                         gap-4
-
                         lg:flex-row
                         lg:items-start
                         lg:justify-between
@@ -1024,27 +804,19 @@ export default async function CategoriesPage({
                       <div
                         className="
                           flex
-
                           items-start
-
                           gap-3
                         "
                       >
                         <div
                           className="
                             grid
-
                             h-11
                             w-11
-
                             shrink-0
-
                             place-items-center
-
                             rounded-xl
-
                             bg-brand/[0.08]
-
                             text-brand
                           "
                         >
@@ -1063,22 +835,16 @@ export default async function CategoriesPage({
                           <div
                             className="
                               flex
-
                               flex-wrap
-
                               items-center
-
                               gap-2
                             "
                           >
                             <h3
                               className="
                                 font-display
-
                                 text-lg
-
                                 font-extrabold
-
                                 text-brand-deep
                               "
                             >
@@ -1087,57 +853,17 @@ export default async function CategoriesPage({
                               }
                             </h3>
 
-                            {category.isSystem ? (
-                              <span
-                                className="
-                                  inline-flex
-
-                                  items-center
-
-                                  gap-1
-
-                                  rounded-full
-
-                                  bg-brand
-
-                                  px-2.5
-                                  py-1
-
-                                  text-[9px]
-
-                                  font-bold
-
-                                  uppercase
-
-                                  tracking-wider
-
-                                  text-white
-                                "
-                              >
-                                <ShieldCheck className="h-3 w-3" />
-
-                                System
-                              </span>
-                            ) : null}
-
                             {!category.isVisible ? (
                               <span
                                 className="
                                   rounded-full
-
                                   bg-slate-100
-
                                   px-2.5
                                   py-1
-
                                   text-[9px]
-
                                   font-bold
-
                                   uppercase
-
                                   tracking-wider
-
                                   text-slate-500
                                 "
                               >
@@ -1149,17 +875,15 @@ export default async function CategoriesPage({
                           <p
                             className="
                               mt-1
-
                               text-xs
-
                               text-slate-400
                             "
                           >
                             Slug:{" "}
+
                             <span
                               className="
                                 font-semibold
-
                                 text-slate-600
                               "
                             >
@@ -1176,9 +900,7 @@ export default async function CategoriesPage({
                       <div
                         className="
                           flex
-
                           flex-wrap
-
                           gap-2
                         "
                       >
@@ -1206,18 +928,12 @@ export default async function CategoriesPage({
                       }
                       className="
                         mt-5
-
                         grid
-
                         gap-4
-
                         border-t
                         border-black/[0.06]
-
                         pt-5
-
                         md:grid-cols-2
-
                         xl:grid-cols-[1.2fr_1.2fr_1fr_130px]
                       "
                     >
@@ -1231,221 +947,77 @@ export default async function CategoriesPage({
 
                       {/* NAME */}
 
-                      <div>
-                        <label
-                          className="
-                            mb-2
-
-                            block
-
-                            text-[9px]
-
-                            font-extrabold
-
-                            uppercase
-
-                            tracking-wider
-
-                            text-slate-500
-                          "
-                        >
-                          Name
-                        </label>
-
-                        {category.isSystem ? (
-                          <>
-                            <input
-                              type="hidden"
-                              name="name"
-                              value="Other"
-                            />
-
-                            <input
-                              value="Other"
-                              readOnly
-                              className={`
-                                ${inputClass}
-
-                                cursor-not-allowed
-
-                                bg-slate-50
-
-                                text-slate-400
-                              `}
-                            />
-                          </>
-                        ) : (
-                          <input
-                            name="name"
-                            defaultValue={
-                              category.name
-                            }
-                            required
-                            maxLength={
-                              120
-                            }
-                            className={
-                              inputClass
-                            }
-                          />
-                        )}
-                      </div>
+                      <FormField
+                        label="Name"
+                      >
+                        <input
+                          name="name"
+                          defaultValue={
+                            category.name
+                          }
+                          required
+                          maxLength={
+                            120
+                          }
+                          className={
+                            inputClass
+                          }
+                        />
+                      </FormField>
 
                       {/* SLUG */}
 
-                      <div>
-                        <label
-                          className="
-                            mb-2
-
-                            block
-
-                            text-[9px]
-
-                            font-extrabold
-
-                            uppercase
-
-                            tracking-wider
-
-                            text-slate-500
-                          "
-                        >
-                          Slug
-                        </label>
-
-                        {category.isSystem ? (
-                          <>
-                            <input
-                              type="hidden"
-                              name="slug"
-                              value="other"
-                            />
-
-                            <input
-                              value="other"
-                              readOnly
-                              className={`
-                                ${inputClass}
-
-                                cursor-not-allowed
-
-                                bg-slate-50
-
-                                text-slate-400
-                              `}
-                            />
-                          </>
-                        ) : (
-                          <input
-                            name="slug"
-                            defaultValue={
-                              category.slug
-                            }
-                            required
-                            maxLength={
-                              120
-                            }
-                            className={
-                              inputClass
-                            }
-                          />
-                        )}
-                      </div>
+                      <FormField
+                        label="Slug"
+                      >
+                        <input
+                          name="slug"
+                          defaultValue={
+                            category.slug
+                          }
+                          required
+                          maxLength={
+                            120
+                          }
+                          className={
+                            inputClass
+                          }
+                        />
+                      </FormField>
 
                       {/* TARGET */}
 
-                      <div>
-                        <label
-                          className="
-                            mb-2
-
-                            block
-
-                            text-[9px]
-
-                            font-extrabold
-
-                            uppercase
-
-                            tracking-wider
-
-                            text-slate-500
-                          "
+                      <FormField
+                        label="Available For"
+                      >
+                        <select
+                          name="appliesTo"
+                          defaultValue={
+                            category.appliesTo
+                          }
+                          className={
+                            inputClass
+                          }
                         >
-                          Available For
-                        </label>
+                          <option value="product">
+                            Products
+                          </option>
 
-                        {category.isSystem ? (
-                          <>
-                            <input
-                              type="hidden"
-                              name="appliesTo"
-                              value="both"
-                            />
+                          <option value="build">
+                            Custom Builds
+                          </option>
 
-                            <input
-                              value="Products + Builds"
-                              readOnly
-                              className={`
-                                ${inputClass}
-
-                                cursor-not-allowed
-
-                                bg-slate-50
-
-                                text-slate-400
-                              `}
-                            />
-                          </>
-                        ) : (
-                          <select
-                            name="appliesTo"
-                            defaultValue={
-                              category.appliesTo
-                            }
-                            className={
-                              inputClass
-                            }
-                          >
-                            <option value="product">
-                              Products
-                            </option>
-
-                            <option value="build">
-                              Custom Builds
-                            </option>
-
-                            <option value="both">
-                              Products + Builds
-                            </option>
-                          </select>
-                        )}
-                      </div>
+                          <option value="both">
+                            Products + Builds
+                          </option>
+                        </select>
+                      </FormField>
 
                       {/* ORDER */}
 
-                      <div>
-                        <label
-                          className="
-                            mb-2
-
-                            block
-
-                            text-[9px]
-
-                            font-extrabold
-
-                            uppercase
-
-                            tracking-wider
-
-                            text-slate-500
-                          "
-                        >
-                          Order
-                        </label>
-
+                      <FormField
+                        label="Order"
+                      >
                         <input
                           name="sortOrder"
                           type="number"
@@ -1455,6 +1027,9 @@ export default async function CategoriesPage({
                           max={
                             9999
                           }
+                          step={
+                            1
+                          }
                           defaultValue={
                             category.sortOrder
                           }
@@ -1462,88 +1037,49 @@ export default async function CategoriesPage({
                             inputClass
                           }
                         />
-                      </div>
+                      </FormField>
 
                       {/* VISIBILITY */}
 
                       <div
                         className="
                           flex
-
                           items-center
-
                           md:col-span-2
-
                           xl:col-span-3
                         "
                       >
-                        {category.isSystem ? (
-                          <>
-                            <input
-                              type="hidden"
-                              name="isVisible"
-                              value="on"
-                            />
-
-                            <span
-                              className="
-                                inline-flex
-
-                                items-center
-
-                                gap-2
-
-                                text-xs
-
-                                font-semibold
-
-                                text-emerald-600
-                              "
-                            >
-                              <Eye className="h-4 w-4" />
-
-                              Other is always visible.
-                            </span>
-                          </>
-                        ) : (
-                          <label
+                        <label
+                          className="
+                            inline-flex
+                            cursor-pointer
+                            items-center
+                            gap-3
+                          "
+                        >
+                          <input
+                            type="checkbox"
+                            name="isVisible"
+                            defaultChecked={
+                              category.isVisible
+                            }
                             className="
-                              inline-flex
+                              h-4
+                              w-4
+                              accent-[#e60000]
+                            "
+                          />
 
-                              cursor-pointer
-
-                              items-center
-
-                              gap-3
+                          <span
+                            className="
+                              text-xs
+                              font-semibold
+                              text-brand-deep
                             "
                           >
-                            <input
-                              type="checkbox"
-                              name="isVisible"
-                              defaultChecked={
-                                category.isVisible
-                              }
-                              className="
-                                h-4
-                                w-4
-
-                                accent-[#e60000]
-                              "
-                            />
-
-                            <span
-                              className="
-                                text-xs
-
-                                font-semibold
-
-                                text-brand-deep
-                              "
-                            >
-                              Visible
-                            </span>
-                          </label>
-                        )}
+                            Visible
+                          </span>
+                        </label>
                       </div>
 
                       {/* SAVE */}
@@ -1551,9 +1087,7 @@ export default async function CategoriesPage({
                       <div
                         className="
                           flex
-
                           items-center
-
                           xl:justify-end
                         "
                       >
@@ -1561,36 +1095,21 @@ export default async function CategoriesPage({
                           type="submit"
                           className="
                             inline-flex
-
                             w-full
-
                             items-center
-
                             justify-center
-
                             gap-2
-
                             rounded-lg
-
                             bg-brand
-
                             px-4
                             py-2.5
-
                             text-[10px]
-
                             font-bold
-
                             uppercase
-
                             tracking-wider
-
                             text-white
-
                             transition-all
-
                             hover:bg-[#c90000]
-
                             xl:w-auto
                           "
                         >
@@ -1606,76 +1125,57 @@ export default async function CategoriesPage({
                     <div
                       className="
                         mt-4
-
                         flex
-
                         flex-wrap
-
                         gap-2
                       "
                     >
-                      {!category.isSystem ? (
-                        <form
-                          action={
-                            toggleCategoryVisibility
+                      <form
+                        action={
+                          toggleCategoryVisibility
+                        }
+                      >
+                        <input
+                          type="hidden"
+                          name="categoryId"
+                          value={
+                            category.id
                           }
+                        />
+
+                        <button
+                          type="submit"
+                          className="
+                            inline-flex
+                            items-center
+                            gap-2
+                            rounded-lg
+                            border
+                            border-brand/15
+                            bg-white
+                            px-3
+                            py-2.5
+                            text-[10px]
+                            font-bold
+                            uppercase
+                            tracking-wider
+                            text-brand
+                            transition-all
+                            hover:border-brand
+                            hover:bg-brand/[0.04]
+                          "
                         >
-                          <input
-                            type="hidden"
-                            name="categoryId"
-                            value={
-                              category.id
-                            }
-                          />
+                          {category.isVisible ? (
+                            <EyeOff className="h-3.5 w-3.5" />
+                          ) : (
+                            <Eye className="h-3.5 w-3.5" />
+                          )}
 
-                          <button
-                            type="submit"
-                            className="
-                              inline-flex
-
-                              items-center
-
-                              gap-2
-
-                              rounded-lg
-
-                              border
-                              border-brand/15
-
-                              bg-white
-
-                              px-3
-                              py-2.5
-
-                              text-[10px]
-
-                              font-bold
-
-                              uppercase
-
-                              tracking-wider
-
-                              text-brand
-
-                              transition-all
-
-                              hover:border-brand
-
-                              hover:bg-brand/[0.04]
-                            "
-                          >
-                            {category.isVisible ? (
-                              <EyeOff className="h-3.5 w-3.5" />
-                            ) : (
-                              <Eye className="h-3.5 w-3.5" />
-                            )}
-
-                            {category.isVisible
-                              ? "Hide"
-                              : "Show"}
-                          </button>
-                        </form>
-                      ) : null}
+                          {category.isVisible
+                            ? "Hide"
+                            : "Show"}
+                        </button>
+                      </form>
 
                       <DeleteCategoryButton
                         categoryId={
@@ -1685,35 +1185,21 @@ export default async function CategoriesPage({
                           category.name
                         }
                         disabled={
-                          category.isSystem ||
-                          productCount >
-                            0 ||
-                          buildCount >
-                            0
+                          isUsed
                         }
                       />
 
-                      {productCount >
-                        0 ||
-                      buildCount >
-                        0 ? (
+                      {isUsed ? (
                         <span
                           className="
                             inline-flex
-
                             items-center
-
                             rounded-lg
-
                             bg-amber-50
-
                             px-3
                             py-2
-
                             text-[10px]
-
                             font-semibold
-
                             text-amber-700
                           "
                         >
@@ -1727,33 +1213,28 @@ export default async function CategoriesPage({
             )}
           </div>
 
+          {/* EMPTY */}
+
           {categories.length ===
           0 ? (
             <div
               className="
                 mt-5
-
                 rounded-2xl
-
                 border
                 border-dashed
                 border-brand/20
-
                 bg-white
-
                 px-6
                 py-12
-
                 text-center
               "
             >
               <Layers3
                 className="
                   mx-auto
-
                   h-8
                   w-8
-
                   text-brand/50
                 "
               />
@@ -1761,15 +1242,10 @@ export default async function CategoriesPage({
               <p
                 className="
                   mt-3
-
                   font-display
-
                   text-lg
-
                   font-bold
-
                   uppercase
-
                   text-brand-deep
                 "
               >
@@ -1779,9 +1255,7 @@ export default async function CategoriesPage({
               <p
                 className="
                   mt-2
-
                   text-sm
-
                   text-slate-500
                 "
               >
@@ -1792,6 +1266,47 @@ export default async function CategoriesPage({
         </section>
       </div>
     </main>
+  );
+}
+
+/* =========================================================
+   FORM FIELD
+   ========================================================= */
+
+function FormField({
+  label,
+  htmlFor,
+  children,
+}: {
+  label: string;
+  htmlFor?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div>
+      <label
+        htmlFor={
+          htmlFor
+        }
+        className="
+          mb-2
+          block
+          text-[10px]
+          font-extrabold
+          uppercase
+          tracking-[0.15em]
+          text-slate-500
+        "
+      >
+        {
+          label
+        }
+      </label>
+
+      {
+        children
+      }
+    </div>
   );
 }
 
@@ -1811,35 +1326,28 @@ function UsageBadge({
     <span
       className="
         inline-flex
-
         items-center
-
         gap-1.5
-
         rounded-full
-
         border
         border-brand/10
-
         bg-[#fff8f8]
-
         px-3
         py-1.5
-
         text-[10px]
-
         font-bold
-
         uppercase
-
         tracking-wider
-
         text-slate-600
       "
     >
-      {icon}
+      {
+        icon
+      }
 
-      {text}
+      {
+        text
+      }
     </span>
   );
 }

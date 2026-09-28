@@ -310,7 +310,9 @@ export async function createCategory(
      VALIDATION
      ======================================================= */
 
-  if (!name) {
+  if (
+    !name
+  ) {
     redirectCategoryError(
       "Category name is required."
     );
@@ -325,7 +327,9 @@ export async function createCategory(
     );
   }
 
-  if (!slug) {
+  if (
+    !slug
+  ) {
     redirectCategoryError(
       "Category slug is required."
     );
@@ -449,61 +453,11 @@ export async function updateCategory(
   const current =
     currentRows[0];
 
-  if (!current) {
+  if (
+    !current
+  ) {
     redirectCategoryError(
       "Category could not be found."
-    );
-  }
-
-  /* =======================================================
-     SYSTEM CATEGORY: OTHER
-     ======================================================= */
-
-  if (
-    current.isSystem
-  ) {
-    const sortOrder =
-      parseSortOrder(
-        formData
-      );
-
-    await db
-      .update(
-        catalogCategories
-      )
-      .set({
-        sortOrder,
-
-        /*
-         * Other must always stay available
-         * to both Products and Builds.
-         */
-        name:
-          "Other",
-
-        slug:
-          "other",
-
-        appliesTo:
-          "both",
-
-        isVisible:
-          true,
-
-        updatedAt:
-          new Date(),
-      })
-      .where(
-        eq(
-          catalogCategories.id,
-          categoryId
-        )
-      );
-
-    refreshCategories();
-
-    redirect(
-      "/admin/categories?updated=1"
     );
   }
 
@@ -549,7 +503,9 @@ export async function updateCategory(
      VALIDATION
      ======================================================= */
 
-  if (!name) {
+  if (
+    !name
+  ) {
     redirectCategoryError(
       "Category name is required."
     );
@@ -622,9 +578,6 @@ export async function updateCategory(
 
   /* =======================================================
      CHECK CURRENT USAGE
-
-     We prevent changing Product category → Build only
-     while Products still use it, and vice versa.
      ======================================================= */
 
   const usage =
@@ -657,8 +610,7 @@ export async function updateCategory(
   /* =======================================================
      UPDATE
 
-     If the slug changes, update existing Products/Builds
-     too, so nothing becomes disconnected.
+     If slug changes, update Products and Builds too.
      ======================================================= */
 
   await db.transaction(
@@ -773,20 +725,11 @@ export async function toggleCategoryVisibility(
   const category =
     rows[0];
 
-  if (!category) {
-    redirectCategoryError(
-      "Category could not be found."
-    );
-  }
-
-  /*
-   * Other must always remain visible.
-   */
   if (
-    category.isSystem
+    !category
   ) {
     redirectCategoryError(
-      "The Other category must remain visible."
+      "Category could not be found."
     );
   }
 
@@ -848,21 +791,11 @@ export async function deleteCategory(
   const category =
     rows[0];
 
-  if (!category) {
-    redirectCategoryError(
-      "Category could not be found."
-    );
-  }
-
-  /* =======================================================
-     PROTECT OTHER
-     ======================================================= */
-
   if (
-    category.isSystem
+    !category
   ) {
     redirectCategoryError(
-      "The Other category is a system category and cannot be deleted."
+      "Category could not be found."
     );
   }
 
