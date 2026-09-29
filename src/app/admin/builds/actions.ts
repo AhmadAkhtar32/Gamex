@@ -6,9 +6,7 @@ import {
 } from "node:crypto";
 
 import {
-  and,
   eq,
-  or,
 } from "drizzle-orm";
 
 import {
@@ -24,13 +22,16 @@ import {
 } from "@/db";
 
 import {
-  catalogCategories,
   customBuilds,
 } from "@/db/schema";
 
 import {
   requireAdmin,
 } from "@/lib/admin-auth";
+
+/* =========================================================
+   CONSTANTS
+   ========================================================= */
 
 const MAX_IMAGE_SIZE =
   5 * 1024 * 1024;
@@ -40,6 +41,10 @@ const ALLOWED_IMAGE_TYPES = [
   "image/png",
   "image/webp",
 ];
+
+/* =========================================================
+   ERROR REDIRECTS
+   ========================================================= */
 
 function redirectNewBuildError(
   message: string
@@ -64,43 +69,9 @@ function redirectEditBuildError(
   );
 }
 
-async function getBuildCategory(
-  category: string
-) {
-  const rows =
-    await db
-      .select({
-        id:
-          catalogCategories.id,
-
-        isVisible:
-          catalogCategories.isVisible,
-      })
-      .from(
-        catalogCategories
-      )
-      .where(
-        and(
-          eq(
-            catalogCategories.slug,
-            category
-          ),
-          or(
-            eq(
-              catalogCategories.appliesTo,
-              "build"
-            ),
-            eq(
-              catalogCategories.appliesTo,
-              "both"
-            )
-          )
-        )
-      )
-      .limit(1);
-
-  return rows[0];
-}
+/* =========================================================
+   BUILD ID
+   ========================================================= */
 
 function makeBuildId(
   name: string
@@ -122,14 +93,21 @@ function makeBuildId(
         60
       );
 
+  const suffix =
+    randomUUID().slice(
+      0,
+      8
+    );
+
   return `${
     slug ||
     "build"
-  }-${randomUUID().slice(
-    0,
-    8
-  )}`;
+  }-${suffix}`;
 }
+
+/* =========================================================
+   IMAGE URL VALIDATION
+   ========================================================= */
 
 function isValidImageUrl(
   value: string
@@ -151,6 +129,10 @@ function isValidImageUrl(
   }
 }
 
+/* =========================================================
+   CLOUDINARY SIGNATURE
+   ========================================================= */
+
 function createCloudinarySignature({
   timestamp,
   folder,
@@ -160,16 +142,23 @@ function createCloudinarySignature({
   folder: string;
   apiSecret: string;
 }) {
+  const stringToSign =
+    `folder=${folder}&timestamp=${timestamp}${apiSecret}`;
+
   return createHash(
     "sha1"
   )
     .update(
-      `folder=${folder}&timestamp=${timestamp}${apiSecret}`
+      stringToSign
     )
     .digest(
       "hex"
     );
 }
+
+/* =========================================================
+   UPLOAD BUILD IMAGE
+   ========================================================= */
 
 async function uploadBuildImage(
   imageFile: File
@@ -296,58 +285,23 @@ async function uploadBuildImage(
   return result.secure_url;
 }
 
-function parsePrice(
-  formData: FormData
-) {
-  const raw =
-    String(
-      formData.get(
-        "price"
-      ) ?? ""
-    ).trim();
+/* =========================================================
+   REVALIDATE PUBLIC BUILD DATA
+   ========================================================= */
 
-  return raw ===
-    ""
-    ? null
-    : Number(
-        raw
-      );
-}
+function revalidateBuildPublicPages() {
+  revalidatePath(
+    "/"
+  );
 
-function parseSpecs(
-  formData: FormData
-) {
-  return String(
-    formData.get(
-      "specs"
-    ) ?? ""
-  )
-    .split(
-      "\n"
-    )
-    .map(
-      (
-        spec
-      ) =>
-        spec.trim()
-    )
-    .filter(
-      Boolean
-    );
-}
-
-function parseSortOrder(
-  formData: FormData
-) {
-  return Number.parseInt(
-    String(
-      formData.get(
-        "sortOrder"
-      ) ?? "0"
-    ).trim(),
-    10
+  revalidatePath(
+    "/sitemap.xml"
   );
 }
+
+/* =========================================================
+   CREATE BUILD
+   ========================================================= */
 
 export async function createBuild(
   formData: FormData
@@ -358,13 +312,6 @@ export async function createBuild(
     String(
       formData.get(
         "name"
-      ) ?? ""
-    ).trim();
-
-  const category =
-    String(
-      formData.get(
-        "category"
       ) ?? ""
     ).trim();
 
@@ -382,10 +329,20 @@ export async function createBuild(
       ) ?? ""
     ).trim();
 
+  const priceRaw =
+    String(
+      formData.get(
+        "price"
+      ) ?? ""
+    ).trim();
+
   const price =
-    parsePrice(
-      formData
-    );
+    priceRaw ===
+    ""
+      ? null
+      : Number(
+          priceRaw
+        );
 
   const description =
     String(
@@ -394,15 +351,19 @@ export async function createBuild(
       ) ?? ""
     ).trim();
 
-  const specs =
-    parseSpecs(
-      formData
-    );
+  const specsText =
+    String(
+      formData.get(
+        "specs"
+      ) ?? ""
+    ).trim();
 
-  const sortOrder =
-    parseSortOrder(
-      formData
-    );
+  const sortOrderRaw =
+    String(
+      formData.get(
+        "sortOrder"
+      ) ?? "0"
+    ).trim();
 
   const imageUrl =
     String(
@@ -437,17 +398,15 @@ export async function createBuild(
       "isVisible"
     ) === "on";
 
-  if (!name) {
-    redirectNewBuildError(
-      "Build name is required."
-    );
-  }
+  /* =======================================================
+     VALIDATION
+     ======================================================= */
 
   if (
-    !category
+    !name
   ) {
     redirectNewBuildError(
-      "Category is required."
+      "Build name is required."
     );
   }
 
@@ -477,15 +436,6 @@ export async function createBuild(
   }
 
   if (
-    category.length >
-    120
-  ) {
-    redirectNewBuildError(
-      "Category is too long."
-    );
-  }
-
-  if (
     role.length >
     255
   ) {
@@ -500,20 +450,6 @@ export async function createBuild(
   ) {
     redirectNewBuildError(
       "Badge is too long."
-    );
-  }
-
-  const selectedCategory =
-    await getBuildCategory(
-      category
-    );
-
-  if (
-    !selectedCategory ||
-    !selectedCategory.isVisible
-  ) {
-    redirectNewBuildError(
-      "Selected category is not available for custom builds."
     );
   }
 
@@ -542,6 +478,21 @@ export async function createBuild(
     );
   }
 
+  const specs =
+    specsText
+      .split(
+        "\n"
+      )
+      .map(
+        (
+          spec
+        ) =>
+          spec.trim()
+      )
+      .filter(
+        Boolean
+      );
+
   if (
     specs.length ===
     0
@@ -550,6 +501,12 @@ export async function createBuild(
       "Add at least one specification."
     );
   }
+
+  const sortOrder =
+    Number.parseInt(
+      sortOrderRaw,
+      10
+    );
 
   if (
     !Number.isFinite(
@@ -584,6 +541,10 @@ export async function createBuild(
     );
   }
 
+  /* =======================================================
+     IMAGE
+     ======================================================= */
+
   let finalImageUrl =
     imageUrl;
 
@@ -616,19 +577,23 @@ export async function createBuild(
     );
   }
 
+  /* =======================================================
+     CREATE
+     ======================================================= */
+
+  const id =
+    makeBuildId(
+      name
+    );
+
   await db
     .insert(
       customBuilds
     )
     .values({
-      id:
-        makeBuildId(
-          name
-        ),
+      id,
 
       name,
-
-      category,
 
       role,
 
@@ -650,18 +615,24 @@ export async function createBuild(
       sortOrder,
     });
 
+  /* =======================================================
+     REVALIDATE
+     ======================================================= */
+
   revalidatePath(
     "/admin/builds"
   );
 
-  revalidatePath(
-    "/"
-  );
+  revalidateBuildPublicPages();
 
   redirect(
     "/admin/builds"
   );
 }
+
+/* =========================================================
+   UPDATE BUILD
+   ========================================================= */
 
 export async function updateBuild(
   formData: FormData
@@ -695,7 +666,9 @@ export async function updateBuild(
           buildId
         )
       )
-      .limit(1);
+      .limit(
+        1
+      );
 
   const existingBuild =
     existingRows[0];
@@ -715,13 +688,6 @@ export async function updateBuild(
       ) ?? ""
     ).trim();
 
-  const category =
-    String(
-      formData.get(
-        "category"
-      ) ?? ""
-    ).trim();
-
   const role =
     String(
       formData.get(
@@ -736,10 +702,20 @@ export async function updateBuild(
       ) ?? ""
     ).trim();
 
+  const priceRaw =
+    String(
+      formData.get(
+        "price"
+      ) ?? ""
+    ).trim();
+
   const price =
-    parsePrice(
-      formData
-    );
+    priceRaw ===
+    ""
+      ? null
+      : Number(
+          priceRaw
+        );
 
   const description =
     String(
@@ -748,15 +724,19 @@ export async function updateBuild(
       ) ?? ""
     ).trim();
 
-  const specs =
-    parseSpecs(
-      formData
-    );
+  const specsText =
+    String(
+      formData.get(
+        "specs"
+      ) ?? ""
+    ).trim();
 
-  const sortOrder =
-    parseSortOrder(
-      formData
-    );
+  const sortOrderRaw =
+    String(
+      formData.get(
+        "sortOrder"
+      ) ?? "0"
+    ).trim();
 
   const imageUrl =
     String(
@@ -791,7 +771,13 @@ export async function updateBuild(
       "isVisible"
     ) === "on";
 
-  if (!name) {
+  /* =======================================================
+     VALIDATION
+     ======================================================= */
+
+  if (
+    !name
+  ) {
     redirectEditBuildError(
       buildId,
       "Build name is required."
@@ -799,15 +785,8 @@ export async function updateBuild(
   }
 
   if (
-    !category
+    !role
   ) {
-    redirectEditBuildError(
-      buildId,
-      "Category is required."
-    );
-  }
-
-  if (!role) {
     redirectEditBuildError(
       buildId,
       "Build role is required."
@@ -834,16 +813,6 @@ export async function updateBuild(
   }
 
   if (
-    category.length >
-    120
-  ) {
-    redirectEditBuildError(
-      buildId,
-      "Category is too long."
-    );
-  }
-
-  if (
     role.length >
     255
   ) {
@@ -860,25 +829,6 @@ export async function updateBuild(
     redirectEditBuildError(
       buildId,
       "Badge is too long."
-    );
-  }
-
-  const selectedCategory =
-    await getBuildCategory(
-      category
-    );
-
-  if (
-    !selectedCategory ||
-    (
-      !selectedCategory.isVisible &&
-      category !==
-        existingBuild.category
-    )
-  ) {
-    redirectEditBuildError(
-      buildId,
-      "Selected category is not available for custom builds."
     );
   }
 
@@ -921,6 +871,21 @@ export async function updateBuild(
     );
   }
 
+  const specs =
+    specsText
+      .split(
+        "\n"
+      )
+      .map(
+        (
+          spec
+        ) =>
+          spec.trim()
+      )
+      .filter(
+        Boolean
+      );
+
   if (
     specs.length ===
     0
@@ -930,6 +895,12 @@ export async function updateBuild(
       "Add at least one specification."
     );
   }
+
+  const sortOrder =
+    Number.parseInt(
+      sortOrderRaw,
+      10
+    );
 
   if (
     !Number.isFinite(
@@ -943,6 +914,10 @@ export async function updateBuild(
       "Display order must be 0 or greater."
     );
   }
+
+  /* =======================================================
+     IMAGE
+     ======================================================= */
 
   let finalImageUrl =
     existingBuild.image;
@@ -976,14 +951,16 @@ export async function updateBuild(
     }
   }
 
+  /* =======================================================
+     UPDATE
+     ======================================================= */
+
   await db
     .update(
       customBuilds
     )
     .set({
       name,
-
-      category,
 
       role,
 
@@ -1014,6 +991,10 @@ export async function updateBuild(
       )
     );
 
+  /* =======================================================
+     REVALIDATE
+     ======================================================= */
+
   revalidatePath(
     "/admin/builds"
   );
@@ -1022,14 +1003,16 @@ export async function updateBuild(
     `/admin/builds/${buildId}/edit`
   );
 
-  revalidatePath(
-    "/"
-  );
+  revalidateBuildPublicPages();
 
   redirect(
     "/admin/builds"
   );
 }
+
+/* =========================================================
+   TOGGLE BUILD VISIBILITY
+   ========================================================= */
 
 export async function toggleBuildVisibility(
   formData: FormData
@@ -1078,10 +1061,12 @@ export async function toggleBuildVisibility(
     "/admin/builds"
   );
 
-  revalidatePath(
-    "/"
-  );
+  revalidateBuildPublicPages();
 }
+
+/* =========================================================
+   DELETE BUILD
+   ========================================================= */
 
 export async function deleteBuild(
   formData: FormData
@@ -1116,7 +1101,5 @@ export async function deleteBuild(
     "/admin/builds"
   );
 
-  revalidatePath(
-    "/"
-  );
+  revalidateBuildPublicPages();
 }

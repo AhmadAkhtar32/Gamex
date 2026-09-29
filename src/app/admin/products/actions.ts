@@ -1,16 +1,40 @@
 "use server";
 
-import { createHash, randomUUID } from "node:crypto";
-import { and, eq, or } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import {
+  createHash,
+  randomUUID,
+} from "node:crypto";
 
-import { db } from "@/db";
+import {
+  and,
+  eq,
+  or,
+} from "drizzle-orm";
+
+import {
+  revalidatePath,
+} from "next/cache";
+
+import {
+  redirect,
+} from "next/navigation";
+
+import {
+  db,
+} from "@/db";
+
 import {
   catalogCategories,
   products,
 } from "@/db/schema";
-import { requireAdmin } from "@/lib/admin-auth";
+
+import {
+  requireAdmin,
+} from "@/lib/admin-auth";
+
+/* =========================================================
+   CONSTANTS
+   ========================================================= */
 
 const MAX_IMAGE_SIZE =
   5 * 1024 * 1024;
@@ -20,6 +44,10 @@ const ALLOWED_IMAGE_TYPES = [
   "image/png",
   "image/webp",
 ];
+
+/* =========================================================
+   ERROR REDIRECTS
+   ========================================================= */
 
 function redirectNewProductError(
   message: string
@@ -44,6 +72,10 @@ function redirectEditProductError(
   );
 }
 
+/* =========================================================
+   PRODUCT CATEGORY VALIDATION
+   ========================================================= */
+
 async function getProductCategory(
   category: string
 ) {
@@ -65,11 +97,13 @@ async function getProductCategory(
             catalogCategories.slug,
             category
           ),
+
           or(
             eq(
               catalogCategories.appliesTo,
               "product"
             ),
+
             eq(
               catalogCategories.appliesTo,
               "both"
@@ -77,10 +111,16 @@ async function getProductCategory(
           )
         )
       )
-      .limit(1);
+      .limit(
+        1
+      );
 
   return rows[0];
 }
+
+/* =========================================================
+   PRODUCT ID
+   ========================================================= */
 
 function makeProductId(
   name: string
@@ -111,6 +151,10 @@ function makeProductId(
   )}`;
 }
 
+/* =========================================================
+   IMAGE URL VALIDATION
+   ========================================================= */
+
 function isValidImageUrl(
   value: string
 ) {
@@ -131,6 +175,10 @@ function isValidImageUrl(
   }
 }
 
+/* =========================================================
+   CLOUDINARY SIGNATURE
+   ========================================================= */
+
 function createCloudinarySignature({
   timestamp,
   folder,
@@ -150,6 +198,10 @@ function createCloudinarySignature({
       "hex"
     );
 }
+
+/* =========================================================
+   UPLOAD PRODUCT IMAGE
+   ========================================================= */
 
 async function uploadProductImage(
   imageFile: File
@@ -276,6 +328,10 @@ async function uploadProductImage(
   return result.secure_url;
 }
 
+/* =========================================================
+   PARSE PRICE
+   ========================================================= */
+
 function parsePrice(
   formData: FormData
 ) {
@@ -293,6 +349,10 @@ function parsePrice(
         raw
       );
 }
+
+/* =========================================================
+   PARSE SPECS
+   ========================================================= */
 
 function parseSpecs(
   formData: FormData
@@ -316,6 +376,10 @@ function parseSpecs(
     );
 }
 
+/* =========================================================
+   PARSE SORT ORDER
+   ========================================================= */
+
 function parseSortOrder(
   formData: FormData
 ) {
@@ -325,9 +389,28 @@ function parseSortOrder(
         "sortOrder"
       ) ?? "0"
     ).trim(),
+
     10
   );
 }
+
+/* =========================================================
+   REVALIDATE PUBLIC PRODUCT DATA
+   ========================================================= */
+
+function revalidateProductPublicPages() {
+  revalidatePath(
+    "/"
+  );
+
+  revalidatePath(
+    "/sitemap.xml"
+  );
+}
+
+/* =========================================================
+   CREATE PRODUCT
+   ========================================================= */
 
 export async function createProduct(
   formData: FormData
@@ -410,7 +493,13 @@ export async function createProduct(
       "isVisible"
     ) === "on";
 
-  if (!name) {
+  /* =======================================================
+     VALIDATION
+     ======================================================= */
+
+  if (
+    !name
+  ) {
     redirectNewProductError(
       "Product name is required."
     );
@@ -540,6 +629,10 @@ export async function createProduct(
     );
   }
 
+  /* =======================================================
+     IMAGE
+     ======================================================= */
+
   let finalImageUrl =
     imageUrl;
 
@@ -571,6 +664,10 @@ export async function createProduct(
       "Product image could not be processed."
     );
   }
+
+  /* =======================================================
+     CREATE
+     ======================================================= */
 
   await db
     .insert(
@@ -604,18 +701,24 @@ export async function createProduct(
       sortOrder,
     });
 
+  /* =======================================================
+     REVALIDATE
+     ======================================================= */
+
   revalidatePath(
     "/admin/products"
   );
 
-  revalidatePath(
-    "/"
-  );
+  revalidateProductPublicPages();
 
   redirect(
     "/admin/products"
   );
 }
+
+/* =========================================================
+   UPDATE PRODUCT
+   ========================================================= */
 
 export async function updateProduct(
   formData: FormData
@@ -649,7 +752,9 @@ export async function updateProduct(
           productId
         )
       )
-      .limit(1);
+      .limit(
+        1
+      );
 
   const existingProduct =
     existingRows[0];
@@ -738,7 +843,13 @@ export async function updateProduct(
       "isVisible"
     ) === "on";
 
-  if (!name) {
+  /* =======================================================
+     VALIDATION
+     ======================================================= */
+
+  if (
+    !name
+  ) {
     redirectEditProductError(
       productId,
       "Product name is required."
@@ -874,6 +985,10 @@ export async function updateProduct(
     );
   }
 
+  /* =======================================================
+     IMAGE
+     ======================================================= */
+
   let finalImageUrl =
     existingProduct.image;
 
@@ -905,6 +1020,10 @@ export async function updateProduct(
       );
     }
   }
+
+  /* =======================================================
+     UPDATE
+     ======================================================= */
 
   await db
     .update(
@@ -942,6 +1061,10 @@ export async function updateProduct(
       )
     );
 
+  /* =======================================================
+     REVALIDATE
+     ======================================================= */
+
   revalidatePath(
     "/admin/products"
   );
@@ -950,14 +1073,16 @@ export async function updateProduct(
     `/admin/products/${productId}/edit`
   );
 
-  revalidatePath(
-    "/"
-  );
+  revalidateProductPublicPages();
 
   redirect(
     "/admin/products"
   );
 }
+
+/* =========================================================
+   TOGGLE PRODUCT VISIBILITY
+   ========================================================= */
 
 export async function toggleProductVisibility(
   formData: FormData
@@ -1006,10 +1131,12 @@ export async function toggleProductVisibility(
     "/admin/products"
   );
 
-  revalidatePath(
-    "/"
-  );
+  revalidateProductPublicPages();
 }
+
+/* =========================================================
+   DELETE PRODUCT
+   ========================================================= */
 
 export async function deleteProduct(
   formData: FormData
@@ -1044,7 +1171,5 @@ export async function deleteProduct(
     "/admin/products"
   );
 
-  revalidatePath(
-    "/"
-  );
+  revalidateProductPublicPages();
 }
