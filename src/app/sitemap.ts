@@ -4,6 +4,7 @@ import type {
 
 import {
   asc,
+  desc,
   eq,
 } from "drizzle-orm";
 
@@ -12,6 +13,7 @@ import {
 } from "@/db";
 
 import {
+  blogPosts,
   catalogCategories,
   customBuilds,
   products,
@@ -100,7 +102,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       );
 
   /* =======================================================
-     CUSTOM BUILDS
+     BUILDS
      ======================================================= */
 
   const visibleBuilds =
@@ -132,7 +134,38 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       );
 
   /* =======================================================
-     CATEGORIES WITH PRODUCTS
+     BLOG POSTS
+     ======================================================= */
+
+  const visibleBlogPosts =
+    await db
+      .select({
+        slug:
+          blogPosts.slug,
+
+        publishedAt:
+          blogPosts.publishedAt,
+
+        updatedAt:
+          blogPosts.updatedAt,
+      })
+      .from(
+        blogPosts
+      )
+      .where(
+        eq(
+          blogPosts.isVisible,
+          true
+        )
+      )
+      .orderBy(
+        desc(
+          blogPosts.publishedAt
+        )
+      );
+
+  /* =======================================================
+     CATEGORY USAGE
      ======================================================= */
 
   const categoriesWithProducts =
@@ -233,6 +266,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     );
 
   /* =======================================================
+     BLOG URLS
+     ======================================================= */
+
+  const blogUrls:
+    MetadataRoute.Sitemap =
+    visibleBlogPosts.map(
+      (
+        post
+      ) => ({
+        url:
+          `${SITE_URL}/blog/${post.slug}`,
+
+        lastModified:
+          post.updatedAt,
+
+        changeFrequency:
+          "monthly" as const,
+
+        priority:
+          0.7,
+      })
+    );
+
+  /* =======================================================
      FINAL
      ======================================================= */
 
@@ -253,5 +310,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...productUrls,
 
     ...buildUrls,
+
+    ...blogUrls,
   ];
 }
