@@ -1,3 +1,6 @@
+import type {
+  Metadata,
+} from "next";
 import {
   and,
   asc,
@@ -92,8 +95,94 @@ import {
    ALWAYS LOAD CURRENT DATABASE CONTENT
    ========================================================= */
 
+/* =========================================================
+   HOMEPAGE SEO
+   ========================================================= */
+
+const SITE_URL =
+  "https://gamex.pk";
+
+const HOME_TITLE =
+  "GameX Pakistan | Gaming PCs, Custom Builds & PC Accessories";
+
+const HOME_DESCRIPTION =
+  "Shop gaming PCs, custom PC builds, graphics cards, processors, RAM, SSDs, gaming keyboards, mice, headsets and PC accessories in Pakistan from GameX.";
+
+export const metadata: Metadata = {
+  title: {
+    absolute:
+      HOME_TITLE,
+  },
+
+  description:
+    HOME_DESCRIPTION,
+
+  alternates: {
+    canonical:
+      "/",
+  },
+
+  openGraph: {
+    type:
+      "website",
+
+    locale:
+      "en_PK",
+
+    url:
+      SITE_URL,
+
+    siteName:
+      "GameX Pakistan",
+
+    title:
+      HOME_TITLE,
+
+    description:
+      HOME_DESCRIPTION,
+  },
+
+  twitter: {
+    card:
+      "summary",
+
+    title:
+      HOME_TITLE,
+
+    description:
+      HOME_DESCRIPTION,
+  },
+
+  robots: {
+    index:
+      true,
+
+    follow:
+      true,
+
+    googleBot: {
+      index:
+        true,
+
+      follow:
+        true,
+
+      "max-image-preview":
+        "large",
+
+      "max-snippet":
+        -1,
+    },
+  },
+};
+
+/* =========================================================
+   ALWAYS LOAD CURRENT DATABASE CONTENT
+   ========================================================= */
+
 export const dynamic =
   "force-dynamic";
+
 
 /* =========================================================
    DEFAULT FEATURES SETTINGS

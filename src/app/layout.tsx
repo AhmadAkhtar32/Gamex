@@ -27,11 +27,11 @@ const SITE_URL =
 const SITE_NAME =
   "GameX";
 
-const SITE_TITLE =
-  "GameX Pakistan | Gaming PCs, Custom Builds & PC Accessories";
+const DEFAULT_SITE_TITLE =
+  "GameX Pakistan";
 
-const SITE_DESCRIPTION =
-  "Shop gaming PCs, custom PC builds, graphics cards, processors, RAM, SSDs, gaming keyboards, mice, headsets and PC accessories in Pakistan from GameX.";
+const DEFAULT_SITE_DESCRIPTION =
+  "GameX Pakistan provides gaming PCs, custom gaming builds, PC components and gaming accessories in Pakistan.";
 
 /* =========================================================
    FONTS
@@ -42,8 +42,10 @@ const orbitron =
     subsets: [
       "latin",
     ],
+
     variable:
       "--font-orbitron",
+
     display:
       "swap",
   });
@@ -53,16 +55,23 @@ const googleSans =
     subsets: [
       "latin",
     ],
+
     weight:
       "500",
+
     variable:
       "--font-google-sans",
+
     display:
       "swap",
   });
 
 /* =========================================================
-   GLOBAL SEO METADATA
+   GLOBAL METADATA
+
+   IMPORTANT:
+   Do not put a homepage canonical or homepage URL here.
+   Individual pages control their own canonical URLs.
    ========================================================= */
 
 export const metadata: Metadata = {
@@ -71,45 +80,25 @@ export const metadata: Metadata = {
       SITE_URL
     ),
 
-  /* =======================================================
-     TITLE
-     ======================================================= */
-
   title: {
     default:
-      SITE_TITLE,
+      DEFAULT_SITE_TITLE,
 
     template:
       "%s | GameX Pakistan",
   },
 
-  /* =======================================================
-     DESCRIPTION
-     ======================================================= */
-
   description:
-    SITE_DESCRIPTION,
+    DEFAULT_SITE_DESCRIPTION,
 
   applicationName:
     SITE_NAME,
-
-  /* =======================================================
-     CANONICAL
-     ======================================================= */
-
-  alternates: {
-    canonical:
-      "/",
-  },
-
-  /* =======================================================
-     BRAND
-     ======================================================= */
 
   authors: [
     {
       name:
         "GameX",
+
       url:
         SITE_URL,
     },
@@ -122,7 +111,10 @@ export const metadata: Metadata = {
     "GameX",
 
   /* =======================================================
-     SEARCH ENGINE ROBOTS
+     DEFAULT ROBOTS
+
+     Individual layouts/pages can override this.
+     Admin will override it with noindex.
      ======================================================= */
 
   robots: {
@@ -151,8 +143,9 @@ export const metadata: Metadata = {
   },
 
   /* =======================================================
-     OPEN GRAPH
-     Facebook / WhatsApp / LinkedIn previews
+     SITE-WIDE OPEN GRAPH BASICS
+
+     Page-specific URL/title/description belong on each page.
      ======================================================= */
 
   openGraph: {
@@ -162,52 +155,8 @@ export const metadata: Metadata = {
     locale:
       "en_PK",
 
-    url:
-      SITE_URL,
-
     siteName:
       "GameX Pakistan",
-
-    title:
-      SITE_TITLE,
-
-    description:
-      SITE_DESCRIPTION,
-
-    images: [
-      {
-        url:
-          "/icon.png",
-
-        width:
-          512,
-
-        height:
-          512,
-
-        alt:
-          "GameX Pakistan - Gaming PCs, Custom Builds and PC Accessories",
-      },
-    ],
-  },
-
-  /* =======================================================
-     TWITTER / X
-     ======================================================= */
-
-  twitter: {
-    card:
-      "summary_large_image",
-
-    title:
-      SITE_TITLE,
-
-    description:
-      SITE_DESCRIPTION,
-
-    images: [
-      "/icon.png",
-    ],
   },
 
   /* =======================================================
@@ -217,9 +166,6 @@ export const metadata: Metadata = {
   icons: {
     icon:
       "/icon.png",
-
-    apple:
-      "/apple-icon.png",
   },
 };
 
@@ -242,7 +188,7 @@ export const viewport = {
 };
 
 /* =========================================================
-   STRUCTURED DATA
+   GLOBAL STRUCTURED DATA
    ========================================================= */
 
 const structuredData = {
@@ -275,7 +221,7 @@ const structuredData = {
       },
 
       description:
-        "GameX Pakistan provides gaming PCs, custom PC builds, computer components and gaming accessories in Pakistan.",
+        DEFAULT_SITE_DESCRIPTION,
     },
 
     {
@@ -295,7 +241,7 @@ const structuredData = {
         "GameX",
 
       description:
-        SITE_DESCRIPTION,
+        DEFAULT_SITE_DESCRIPTION,
 
       publisher: {
         "@id":
@@ -335,10 +281,6 @@ export default function RootLayout({
           antialiased
         "
       >
-        {/* =================================================
-            ORGANIZATION + WEBSITE STRUCTURED DATA
-            ================================================= */}
-
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -350,13 +292,7 @@ export default function RootLayout({
         />
 
         <Chrome>
-          {
-            children
-          }
-
-          {/* ===============================================
-              GLOBAL WHATSAPP BUTTON
-              =============================================== */}
+          {children}
 
           <WhatsAppFloat />
         </Chrome>
