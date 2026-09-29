@@ -18,75 +18,141 @@ import {
 } from "@/components/WhatsAppFloat";
 
 /* =========================================================
+   SITE
+   ========================================================= */
+
+const SITE_URL =
+  "https://gamex.pk";
+
+const SITE_NAME =
+  "GameX";
+
+const SITE_TITLE =
+  "GameX Pakistan | Gaming PCs, Custom Builds & PC Accessories";
+
+const SITE_DESCRIPTION =
+  "Shop gaming PCs, custom PC builds, graphics cards, processors, RAM, SSDs, gaming keyboards, mice, headsets and PC accessories in Pakistan from GameX.";
+
+/* =========================================================
    FONTS
    ========================================================= */
 
 const orbitron =
   Orbitron({
-    subsets: ["latin"],
-    variable: "--font-orbitron",
-    display: "swap",
+    subsets: [
+      "latin",
+    ],
+    variable:
+      "--font-orbitron",
+    display:
+      "swap",
   });
 
 const googleSans =
   Google_Sans_Flex({
-    subsets: ["latin"],
-    weight: "500",           // medium — avoids the "too slim" look
-    variable: "--font-google-sans",
-    display: "swap",
+    subsets: [
+      "latin",
+    ],
+    weight:
+      "500",
+    variable:
+      "--font-google-sans",
+    display:
+      "swap",
   });
 
 /* =========================================================
-   SITE METADATA
+   GLOBAL SEO METADATA
    ========================================================= */
 
 export const metadata: Metadata = {
   metadataBase:
     new URL(
-      "https://gamex.pk"
+      SITE_URL
     ),
+
+  /* =======================================================
+     TITLE
+     ======================================================= */
 
   title: {
     default:
-      "Gamex Custom Gaming",
+      SITE_TITLE,
 
     template:
-      "%s | Gamex",
+      "%s | GameX Pakistan",
   },
 
+  /* =======================================================
+     DESCRIPTION
+     ======================================================= */
+
   description:
-    "Gamex offers high-performance gaming hardware, custom gaming PCs, GPUs, processors, memory, accessories and expert gaming support.",
+    SITE_DESCRIPTION,
 
   applicationName:
-    "Gamex",
+    SITE_NAME,
 
-  keywords: [
-    "Gamex",
-    "Gaming PC Pakistan",
-    "Custom Gaming PC",
-    "Gaming Hardware",
-    "Graphics Cards",
-    "GPU Pakistan",
-    "Gaming Accessories",
-    "PC Components",
-    "Custom PC Lahore",
-  ],
+  /* =======================================================
+     CANONICAL
+     ======================================================= */
+
+  alternates: {
+    canonical:
+      "/",
+  },
+
+  /* =======================================================
+     BRAND
+     ======================================================= */
 
   authors: [
     {
       name:
-        "Gamex",
+        "GameX",
+      url:
+        SITE_URL,
     },
   ],
 
   creator:
-    "Gamex",
+    "GameX",
 
   publisher:
-    "Gamex",
+    "GameX",
+
+  /* =======================================================
+     SEARCH ENGINE ROBOTS
+     ======================================================= */
+
+  robots: {
+    index:
+      true,
+
+    follow:
+      true,
+
+    googleBot: {
+      index:
+        true,
+
+      follow:
+        true,
+
+      "max-image-preview":
+        "large",
+
+      "max-snippet":
+        -1,
+
+      "max-video-preview":
+        -1,
+    },
+  },
 
   /* =======================================================
      OPEN GRAPH
+     Facebook / WhatsApp / LinkedIn previews
      ======================================================= */
 
   openGraph: {
@@ -97,16 +163,32 @@ export const metadata: Metadata = {
       "en_PK",
 
     url:
-      "https://gamex.pk",
+      SITE_URL,
 
     siteName:
-      "Gamex",
+      "GameX Pakistan",
 
     title:
-      "Gamex Custom Gaming",
+      SITE_TITLE,
 
     description:
-      "High-performance gaming hardware and custom gaming PCs built for gamers who demand more.",
+      SITE_DESCRIPTION,
+
+    images: [
+      {
+        url:
+          "/icon.png",
+
+        width:
+          512,
+
+        height:
+          512,
+
+        alt:
+          "GameX Pakistan - Gaming PCs, Custom Builds and PC Accessories",
+      },
+    ],
   },
 
   /* =======================================================
@@ -118,18 +200,18 @@ export const metadata: Metadata = {
       "summary_large_image",
 
     title:
-      "Gamex Custom Gaming",
+      SITE_TITLE,
 
     description:
-      "High-performance gaming hardware and custom gaming PCs.",
+      SITE_DESCRIPTION,
+
+    images: [
+      "/icon.png",
+    ],
   },
 
   /* =======================================================
      FAVICON
-
-     Next.js will also automatically detect:
-     src/app/icon.png
-     src/app/apple-icon.png
      ======================================================= */
 
   icons: {
@@ -160,6 +242,73 @@ export const viewport = {
 };
 
 /* =========================================================
+   STRUCTURED DATA
+   ========================================================= */
+
+const structuredData = {
+  "@context":
+    "https://schema.org",
+
+  "@graph": [
+    {
+      "@type":
+        "Organization",
+
+      "@id":
+        `${SITE_URL}/#organization`,
+
+      name:
+        "GameX",
+
+      alternateName:
+        "GameX Pakistan",
+
+      url:
+        SITE_URL,
+
+      logo: {
+        "@type":
+          "ImageObject",
+
+        url:
+          `${SITE_URL}/icon.png`,
+      },
+
+      description:
+        "GameX Pakistan provides gaming PCs, custom PC builds, computer components and gaming accessories in Pakistan.",
+    },
+
+    {
+      "@type":
+        "WebSite",
+
+      "@id":
+        `${SITE_URL}/#website`,
+
+      url:
+        SITE_URL,
+
+      name:
+        "GameX Pakistan",
+
+      alternateName:
+        "GameX",
+
+      description:
+        SITE_DESCRIPTION,
+
+      publisher: {
+        "@id":
+          `${SITE_URL}/#organization`,
+      },
+
+      inLanguage:
+        "en-PK",
+    },
+  ],
+};
+
+/* =========================================================
    ROOT LAYOUT
    ========================================================= */
 
@@ -171,11 +320,11 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="en-PK"
       className={`
-  ${orbitron.variable}
-  ${googleSans.variable}
-`}
+        ${orbitron.variable}
+        ${googleSans.variable}
+      `}
       suppressHydrationWarning
     >
       <body
@@ -186,18 +335,27 @@ export default function RootLayout({
           antialiased
         "
       >
+        {/* =================================================
+            ORGANIZATION + WEBSITE STRUCTURED DATA
+            ================================================= */}
+
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html:
+              JSON.stringify(
+                structuredData
+              ),
+          }}
+        />
+
         <Chrome>
-          {children}
+          {
+            children
+          }
 
           {/* ===============================================
               GLOBAL WHATSAPP BUTTON
-
-              This renders on every page:
-              /
-              /blog
-              /blog/...
-              /admin
-              etc.
               =============================================== */}
 
           <WhatsAppFloat />
