@@ -66,8 +66,11 @@ export const DEFAULT_BLOG_CONTENT: BlogSectionContent = {
 /* =========================================================
    DEFAULT BLOG POSTS
 
-   These preserve the original Gamex homepage before the
-   Blog section has been configured in Admin.
+   Kept for backwards compatibility with the Blog component.
+
+   Public homepage data now uses Neon as the authoritative
+   source so every displayed article has a real /blog/[slug]
+   route.
    ========================================================= */
 
 export const DEFAULT_BLOG_POSTS: PublicBlogPost[] =
@@ -122,7 +125,9 @@ function formatBlogDate(
       year:
         "numeric",
     }
-  ).format(date);
+  ).format(
+    date
+  );
 }
 
 /* =========================================================
@@ -167,19 +172,16 @@ export async function getBlogHomepageData(): Promise<{
           "main"
         )
       )
-      .limit(1);
-
-  const hasSettings =
-    Boolean(
-      settingsRows[0]
-    );
+      .limit(
+        1
+      );
 
   const content =
     settingsRows[0] ??
     DEFAULT_BLOG_CONTENT;
 
   /* =======================================================
-     VISIBLE POSTS
+     VISIBLE DATABASE POSTS
      ======================================================= */
 
   const databasePosts =
@@ -222,9 +224,11 @@ export async function getBlogHomepageData(): Promise<{
         asc(
           blogPosts.sortOrder
         ),
+
         desc(
           blogPosts.publishedAt
         ),
+
         asc(
           blogPosts.id
         )
@@ -232,7 +236,9 @@ export async function getBlogHomepageData(): Promise<{
 
   const formattedPosts: PublicBlogPost[] =
     databasePosts.map(
-      (post) => ({
+      (
+        post
+      ) => ({
         id:
           post.id,
 
@@ -262,39 +268,27 @@ export async function getBlogHomepageData(): Promise<{
     );
 
   /* =======================================================
-     IMPORTANT FALLBACK RULE
+     DATABASE IS AUTHORITATIVE
 
-     Before Admin Blog settings exist:
-       - database posts are used if available
-       - otherwise original Gamex posts are shown
+     This is important now that /blog/[slug] exists.
 
-     After Admin Blog settings exist:
-       - Neon becomes authoritative
-       - zero visible posts means zero Blog cards
+     If a post is deleted or hidden in Admin, it must also
+     disappear from the homepage instead of returning from
+     seed data.
 
-     This prevents deleted/hidden posts from magically
-     returning from seed data.
+     It also prevents homepage links to seed articles that
+     do not exist as public database article pages.
      ======================================================= */
-
-  const posts =
-    hasSettings
-      ? formattedPosts
-      : formattedPosts.length >
-          0
-        ? formattedPosts
-        : DEFAULT_BLOG_POSTS;
 
   return {
     content,
-    posts,
+    posts:
+      formattedPosts,
   };
 }
 
 /* =========================================================
    BACKWARD-COMPATIBLE HELPER
-
-   Keep this temporarily because src/app/page.tsx currently
-   calls getBlogPosts().
    ========================================================= */
 
 export async function getBlogPosts(): Promise<
