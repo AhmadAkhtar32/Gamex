@@ -5,6 +5,8 @@ import {
   useState,
 } from "react";
 
+import Link from "next/link";
+
 import {
   AnimatePresence,
   motion,
@@ -41,21 +43,12 @@ export type PublicCategory = {
 
 export type PublicProduct = {
   id: string;
-
   name: string;
-
   category: string;
-
   tag: string;
-
-  price:
-    | number
-    | null;
-
+  price: number | null;
   description: string;
-
   specs: string[];
-
   image: string;
 };
 
@@ -563,9 +556,7 @@ export default function Products({
                             src={
                               product.image
                             }
-                            alt={
-                              product.name
-                            }
+                            alt={`${product.name} - ${categoryLabel} at GameX Pakistan`}
                             loading="lazy"
                             className="
                               absolute
@@ -866,18 +857,31 @@ export default function Products({
                           ) : null}
 
                           {/* =================================
-                              VIEW DETAILS
+                              ACTIONS
                               ================================= */}
 
-                          <span
+                          <div
                             className="
                               mt-auto
+                              grid
+                              gap-2
                               pt-4
                             "
                           >
-                            <span
+                            <button
+                              type="button"
+                              onClick={(
+                                event
+                              ) => {
+                                event.stopPropagation();
+
+                                setSelectedProduct(
+                                  product
+                                );
+                              }}
                               className="
                                 flex
+                                w-full
                                 items-center
                                 justify-between
                                 rounded-xl
@@ -893,16 +897,56 @@ export default function Products({
                                 text-brand-deep
                                 transition-all
                                 duration-300
-                                group-hover:border-brand
-                                group-hover:bg-brand
-                                group-hover:text-white
+                                hover:border-brand
+                                hover:bg-brand
+                                hover:text-white
                               "
                             >
                               View Details
 
                               <ArrowUpRight className="h-4 w-4" />
-                            </span>
-                          </span>
+                            </button>
+
+                            <Link
+                              href={`/product/${product.id}`}
+                              onClick={(
+                                event
+                              ) => {
+                                event.stopPropagation();
+                              }}
+                              onKeyDown={(
+                                event
+                              ) => {
+                                event.stopPropagation();
+                              }}
+                              aria-label={`Open product page for ${product.name}`}
+                              className="
+                                flex
+                                w-full
+                                items-center
+                                justify-between
+                                rounded-xl
+                                border
+                                border-brand/20
+                                bg-white
+                                px-4
+                                py-3
+                                text-xs
+                                font-bold
+                                uppercase
+                                tracking-wider
+                                text-brand
+                                transition-all
+                                duration-300
+                                hover:border-brand
+                                hover:bg-brand/[0.04]
+                              "
+                            >
+                              Product Page
+
+                              <ArrowUpRight className="h-4 w-4" />
+                            </Link>
+                          </div>
                         </div>
                       </SpotlightCard>
                     </motion.div>

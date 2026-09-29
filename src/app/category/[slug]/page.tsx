@@ -301,6 +301,34 @@ export default async function CategoryPage({
     description:
       `Browse ${category.name} from GameX Pakistan.`,
 
+    mainEntity: {
+      "@type":
+        "ItemList",
+
+      numberOfItems:
+        categoryProducts.length,
+
+      itemListElement:
+        categoryProducts.map(
+          (
+            product,
+            index
+          ) => ({
+            "@type":
+              "ListItem",
+
+            position:
+              index + 1,
+
+            name:
+              product.name,
+
+            url:
+              `${SITE_URL}/product/${product.id}`,
+          })
+        ),
+    },
+
     isPartOf: {
       "@type":
         "WebSite",
@@ -565,12 +593,11 @@ export default async function CategoryPage({
                 {
                   categoryProducts.length
                 }{" "}
-                {
-                  categoryProducts.length ===
-                  1
-                    ? "Product"
-                    : "Products"
-                }
+
+                {categoryProducts.length ===
+                1
+                  ? "Product"
+                  : "Products"}
               </span>
             </div>
           </div>
@@ -834,14 +861,38 @@ export default async function CategoryPage({
                           )}
                       </div>
 
-                      <Link
-                        href="/#contact"
+                      <div
                         className="
                           mt-auto
+                          grid
+                          gap-2
                           pt-5
                         "
                       >
-                        <span
+                        <Link
+                          href={`/product/${product.id}`}
+                          className="
+                            flex
+                            items-center
+                            justify-center
+                            rounded-xl
+                            bg-brand
+                            px-4
+                            py-3
+                            text-xs
+                            font-bold
+                            uppercase
+                            tracking-wider
+                            text-white
+                            transition-all
+                            hover:bg-brand-soft
+                          "
+                        >
+                          View Product
+                        </Link>
+
+                        <Link
+                          href="/#contact"
                           className="
                             flex
                             items-center
@@ -859,13 +910,12 @@ export default async function CategoryPage({
                             text-brand
                             transition-all
                             hover:border-brand
-                            hover:bg-brand
-                            hover:text-white
+                            hover:bg-brand/[0.04]
                           "
                         >
                           Contact GameX
-                        </span>
-                      </Link>
+                        </Link>
+                      </div>
                     </div>
                   </article>
                 )
