@@ -13,6 +13,7 @@ import {
 
 import {
   catalogCategories,
+  customBuilds,
   products,
 } from "@/db/schema";
 
@@ -99,7 +100,39 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       );
 
   /* =======================================================
-     FIND CATEGORIES WITH PRODUCTS
+     CUSTOM BUILDS
+     ======================================================= */
+
+  const visibleBuilds =
+    await db
+      .select({
+        id:
+          customBuilds.id,
+
+        updatedAt:
+          customBuilds.updatedAt,
+      })
+      .from(
+        customBuilds
+      )
+      .where(
+        eq(
+          customBuilds.isVisible,
+          true
+        )
+      )
+      .orderBy(
+        asc(
+          customBuilds.sortOrder
+        ),
+
+        asc(
+          customBuilds.name
+        )
+      );
+
+  /* =======================================================
+     CATEGORIES WITH PRODUCTS
      ======================================================= */
 
   const categoriesWithProducts =
@@ -176,7 +209,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     );
 
   /* =======================================================
-     FINAL SITEMAP
+     BUILD URLS
+     ======================================================= */
+
+  const buildUrls:
+    MetadataRoute.Sitemap =
+    visibleBuilds.map(
+      (
+        build
+      ) => ({
+        url:
+          `${SITE_URL}/build/${build.id}`,
+
+        lastModified:
+          build.updatedAt,
+
+        changeFrequency:
+          "weekly" as const,
+
+        priority:
+          0.9,
+      })
+    );
+
+  /* =======================================================
+     FINAL
      ======================================================= */
 
   return [
@@ -194,5 +251,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...categoryUrls,
 
     ...productUrls,
+
+    ...buildUrls,
   ];
 }
