@@ -16,12 +16,20 @@ import {
   products,
 } from "@/db/schema";
 
+/* =========================================================
+   SITE
+   ========================================================= */
+
 const SITE_URL =
   "https://gamex.pk";
 
+/* =========================================================
+   SITEMAP
+   ========================================================= */
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   /* =======================================================
-     VISIBLE PRODUCT CATEGORIES
+     CATEGORIES
      ======================================================= */
 
   const categories =
@@ -56,12 +64,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       );
 
   /* =======================================================
-     VISIBLE PRODUCTS
+     PRODUCTS
      ======================================================= */
 
   const visibleProducts =
     await db
       .select({
+        id:
+          products.id,
+
         category:
           products.category,
 
@@ -76,7 +87,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           products.isVisible,
           true
         )
+      )
+      .orderBy(
+        asc(
+          products.sortOrder
+        ),
+
+        asc(
+          products.name
+        )
       );
+
+  /* =======================================================
+     FIND CATEGORIES WITH PRODUCTS
+     ======================================================= */
 
   const categoriesWithProducts =
     new Set(
@@ -128,6 +152,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       );
 
   /* =======================================================
+     PRODUCT URLS
+     ======================================================= */
+
+  const productUrls:
+    MetadataRoute.Sitemap =
+    visibleProducts.map(
+      (
+        product
+      ) => ({
+        url:
+          `${SITE_URL}/product/${product.id}`,
+
+        lastModified:
+          product.updatedAt,
+
+        changeFrequency:
+          "weekly" as const,
+
+        priority:
+          0.9,
+      })
+    );
+
+  /* =======================================================
      FINAL SITEMAP
      ======================================================= */
 
@@ -144,5 +192,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
 
     ...categoryUrls,
+
+    ...productUrls,
   ];
 }
