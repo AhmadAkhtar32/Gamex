@@ -25,6 +25,8 @@ import {
 
 const SITE_URL =
   "https://gamex.pk";
+  export const dynamic =
+  "force-dynamic";
 
 /* =========================================================
    SITEMAP
@@ -266,10 +268,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     );
 
   /* =======================================================
-     BLOG URLS
+     BLOG POST URLS
      ======================================================= */
 
-  const blogUrls:
+  const blogPostUrls:
     MetadataRoute.Sitemap =
     visibleBlogPosts.map(
       (
@@ -305,12 +307,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         1,
     },
 
+    {
+      url:
+        `${SITE_URL}/blog`,
+
+      changeFrequency:
+        "weekly",
+
+      priority:
+        0.8,
+    },
+
     ...categoryUrls,
 
     ...productUrls,
 
     ...buildUrls,
 
-    ...blogUrls,
+    ...blogPostUrls,
   ];
 }
