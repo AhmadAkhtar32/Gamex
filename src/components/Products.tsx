@@ -1,40 +1,19 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
-
+import { useEffect, useState } from "react";
 import Link from "next/link";
-
-import {
-  AnimatePresence,
-  motion,
-} from "framer-motion";
-
+import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowUpRight,
   Check,
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
+import { FaWhatsapp } from "react-icons/fa";
 
-import {
-  DetailsModal,
-} from "@/components/DetailsModal";
-
-import {
-  formatPrice,
-} from "@/lib/price";
-
-import {
-  SectionHeading,
-  SpotlightCard,
-} from "@/components/ui";
-
-/* =========================================================
-   TYPES
-   ========================================================= */
+import { DetailsModal } from "@/components/DetailsModal";
+import { SectionHeading, SpotlightCard } from "@/components/ui";
+import { formatPrice } from "@/lib/price";
 
 export type PublicCategory = {
   id: string;
@@ -52,57 +31,17 @@ export type PublicProduct = {
   image: string;
 };
 
-/* =========================================================
-   TWO ROW RESPONSIVE LIMIT
-
-   Mobile:
-   1 column × 2 rows = 2
-
-   Tablet:
-   2 columns × 2 rows = 4
-
-   Desktop:
-   3 columns × 2 rows = 6
-
-   XL:
-   4 columns × 2 rows = 8
-   ========================================================= */
-
 function getProductLimit() {
-  if (
-    typeof window ===
-    "undefined"
-  ) {
-    return 8;
-  }
+  if (typeof window === "undefined") return 8;
 
-  if (
-    window.innerWidth >=
-    1280
-  ) {
-    return 8;
-  }
+  if (window.innerWidth >= 1280) return 8;
 
-  if (
-    window.innerWidth >=
-    1024
-  ) {
-    return 6;
-  }
+  if (window.innerWidth >= 1024) return 6;
 
-  if (
-    window.innerWidth >=
-    640
-  ) {
-    return 4;
-  }
+  if (window.innerWidth >= 640) return 4;
 
   return 2;
 }
-
-/* =========================================================
-   PRODUCTS
-   ========================================================= */
 
 export default function Products({
   products,
@@ -111,13 +50,8 @@ export default function Products({
   products: PublicProduct[];
   categories: PublicCategory[];
 }) {
-  const [
-    active,
-    setActive,
-  ] =
-    useState<string>(
-      "all"
-    );
+  const [active, setActive] =
+    useState<string>("all");
 
   const [
     selectedProduct,
@@ -127,10 +61,7 @@ export default function Products({
       null
     );
 
-  const [
-    showAll,
-    setShowAll,
-  ] =
+  const [showAll, setShowAll] =
     useState(false);
 
   const [
@@ -139,17 +70,12 @@ export default function Products({
   ] =
     useState(8);
 
-  /* =======================================================
-     RESPONSIVE 2-ROW LIMIT
-     ======================================================= */
-
   useEffect(() => {
-    const updateLimit =
-      () => {
-        setInitialLimit(
-          getProductLimit()
-        );
-      };
+    const updateLimit = () => {
+      setInitialLimit(
+        getProductLimit()
+      );
+    };
 
     updateLimit();
 
@@ -166,10 +92,6 @@ export default function Products({
     };
   }, []);
 
-  /* =======================================================
-     RESET FILTER IF CATEGORY DISAPPEARS
-     ======================================================= */
-
   useEffect(() => {
     if (
       active ===
@@ -180,16 +102,12 @@ export default function Products({
 
     const exists =
       categories.some(
-        (
-          category
-        ) =>
+        (category) =>
           category.id ===
           active
       );
 
-    if (
-      !exists
-    ) {
+    if (!exists) {
       setActive(
         "all"
       );
@@ -203,18 +121,11 @@ export default function Products({
     categories,
   ]);
 
-  /* =======================================================
-     FILTER
-     ======================================================= */
-
   const filteredProducts =
-    active ===
-    "all"
+    active === "all"
       ? products
       : products.filter(
-          (
-            product
-          ) =>
+          (product) =>
             product.category ===
             active
         );
@@ -231,10 +142,6 @@ export default function Products({
     filteredProducts.length >
     initialLimit;
 
-  /* =======================================================
-     CATEGORY CHANGE
-     ======================================================= */
-
   function changeCategory(
     categoryId: string
   ) {
@@ -247,14 +154,8 @@ export default function Products({
     );
   }
 
-  /* =======================================================
-     VIEW MORE / LESS
-     ======================================================= */
-
   function toggleProducts() {
-    if (
-      showAll
-    ) {
+    if (showAll) {
       setShowAll(
         false
       );
@@ -284,10 +185,6 @@ export default function Products({
     );
   }
 
-  /* =======================================================
-     RENDER
-     ======================================================= */
-
   return (
     <>
       <section
@@ -300,10 +197,6 @@ export default function Products({
           md:py-20
         "
       >
-        {/* ===================================================
-            BACKGROUND
-            =================================================== */}
-
         <div
           aria-hidden="true"
           className="
@@ -326,10 +219,6 @@ export default function Products({
           "
         />
 
-        {/* ===================================================
-            CONTENT
-            =================================================== */}
-
         <div
           className="
             relative
@@ -339,19 +228,11 @@ export default function Products({
             md:px-8
           "
         >
-          {/* =================================================
-              HEADING
-              ================================================= */}
-
           <SectionHeading
             eyebrow="Catalogue"
             title="Products"
             subtitle="Premium gaming hardware selected for performance, reliability, and serious gaming setups."
           />
-
-          {/* =================================================
-              FILTERS
-              ================================================= */}
 
           <div
             className="
@@ -422,10 +303,6 @@ export default function Products({
             )}
           </div>
 
-          {/* =================================================
-              PRODUCT GRID
-              ================================================= */}
-
           <motion.div
             layout
             className="
@@ -451,6 +328,11 @@ export default function Products({
                         product.category
                     )?.label ??
                     product.category;
+
+                  const whatsappUrl =
+                    `https://wa.me/923036009123?text=${encodeURIComponent(
+                      `Hi GameX, I want to order ${product.name}. Product link: https://gamex.pk/product/${product.id}`
+                    )}`;
 
                   return (
                     <motion.div
@@ -521,7 +403,6 @@ export default function Products({
                         className="
                           group
                           flex
-                          h-full
                           flex-col
                           overflow-hidden
                           rounded-2xl
@@ -536,10 +417,6 @@ export default function Products({
                           hover:shadow-[0_25px_60px_-38px_rgba(230,0,0,0.34)]
                         "
                       >
-                        {/* ===================================
-                            IMAGE
-                            =================================== */}
-
                         <div
                           className="
                             relative
@@ -551,7 +428,6 @@ export default function Products({
                           "
                         >
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-
                           <img
                             src={
                               product.image
@@ -572,8 +448,6 @@ export default function Products({
                             "
                           />
 
-                          {/* RED SHADE */}
-
                           <div
                             aria-hidden="true"
                             className="
@@ -587,8 +461,6 @@ export default function Products({
                             "
                           />
 
-                          {/* INNER BORDER */}
-
                           <div
                             aria-hidden="true"
                             className="
@@ -600,8 +472,6 @@ export default function Products({
                               ring-black/[0.025]
                             "
                           />
-
-                          {/* TAG */}
 
                           <div
                             className="
@@ -636,21 +506,13 @@ export default function Products({
                           </div>
                         </div>
 
-                        {/* ===================================
-                            CONTENT
-                            =================================== */}
-
                         <div
                           className="
                             flex
-                            flex-1
                             flex-col
                             p-4
-                            sm:p-5
                           "
                         >
-                          {/* CATEGORY */}
-
                           <p
                             className="
                               text-[10px]
@@ -664,8 +526,6 @@ export default function Products({
                               categoryLabel
                             }
                           </p>
-
-                          {/* NAME */}
 
                           <h3
                             className="
@@ -684,10 +544,6 @@ export default function Products({
                             }
                           </h3>
 
-                          {/* =================================
-                              PRICE
-                              ================================= */}
-
                           <div
                             className="
                               relative
@@ -696,7 +552,7 @@ export default function Products({
                               rounded-xl
                               bg-brand
                               px-4
-                              py-3
+                              py-2.5
                               shadow-[0_12px_30px_-18px_rgba(230,0,0,0.7)]
                             "
                           >
@@ -758,31 +614,9 @@ export default function Products({
                             </p>
                           </div>
 
-                          {/* =================================
-                              DESCRIPTION
-                              ================================= */}
-
-                          <p
-                            className="
-                              mt-3
-                              line-clamp-3
-                              text-sm
-                              leading-relaxed
-                              text-slate-600
-                            "
-                          >
-                            {
-                              product.description
-                            }
-                          </p>
-
-                          {/* =================================
-                              SPECS
-                              ================================= */}
-
                           <div
                             className="
-                              mt-4
+                              mt-3
                               space-y-2
                               border-t
                               border-black/[0.06]
@@ -835,13 +669,11 @@ export default function Products({
                               )}
                           </div>
 
-                          {/* MORE SPECS */}
-
                           {product.specs.length >
                           4 ? (
                             <p
                               className="
-                                mt-2.5
+                                mt-2
                                 text-[10px]
                                 font-bold
                                 uppercase
@@ -856,16 +688,11 @@ export default function Products({
                             </p>
                           ) : null}
 
-                          {/* =================================
-                              ACTIONS
-                              ================================= */}
-
                           <div
                             className="
-                              mt-auto
+                              mt-3
                               grid
                               gap-2
-                              pt-4
                             "
                           >
                             <button
@@ -889,7 +716,7 @@ export default function Products({
                                 border-black/[0.08]
                                 bg-[#fff8f8]
                                 px-4
-                                py-3
+                                py-2.5
                                 text-xs
                                 font-bold
                                 uppercase
@@ -906,6 +733,59 @@ export default function Products({
 
                               <ArrowUpRight className="h-4 w-4" />
                             </button>
+
+                            <a
+                              href={
+                                whatsappUrl
+                              }
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(
+                                event
+                              ) => {
+                                event.stopPropagation();
+                              }}
+                              onKeyDown={(
+                                event
+                              ) => {
+                                event.stopPropagation();
+                              }}
+                              aria-label={`Order ${product.name} on WhatsApp`}
+                              className="
+                                flex
+                                w-full
+                                items-center
+                                justify-between
+                                rounded-xl
+                                bg-[#25D366]
+                                px-4
+                                py-2.5
+                                text-xs
+                                font-bold
+                                uppercase
+                                tracking-wider
+                                text-white
+                                transition-all
+                                duration-300
+                                hover:-translate-y-0.5
+                                hover:bg-[#1ebe5d]
+                                hover:shadow-[0_12px_28px_-16px_rgba(37,211,102,0.75)]
+                              "
+                            >
+                              <span
+                                className="
+                                  inline-flex
+                                  items-center
+                                  gap-2
+                                "
+                              >
+                                <FaWhatsapp className="h-4 w-4" />
+
+                                Order Now
+                              </span>
+
+                              <ArrowUpRight className="h-4 w-4" />
+                            </a>
 
                             <Link
                               href={`/product/${product.id}`}
@@ -930,7 +810,7 @@ export default function Products({
                                 border-brand/20
                                 bg-white
                                 px-4
-                                py-3
+                                py-2.5
                                 text-xs
                                 font-bold
                                 uppercase
@@ -955,10 +835,6 @@ export default function Products({
               )}
             </AnimatePresence>
           </motion.div>
-
-          {/* =================================================
-              VIEW MORE / SHOW LESS
-              ================================================= */}
 
           {canToggle ? (
             <div
@@ -1033,10 +909,6 @@ export default function Products({
             </div>
           ) : null}
 
-          {/* =================================================
-              EMPTY
-              ================================================= */}
-
           {filteredProducts.length ===
           0 ? (
             <div
@@ -1078,10 +950,6 @@ export default function Products({
           ) : null}
         </div>
       </section>
-
-      {/* =====================================================
-          DETAILS MODAL
-          ===================================================== */}
 
       <DetailsModal
         item={

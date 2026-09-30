@@ -14,8 +14,11 @@ import {
 import {
   ArrowLeft,
   Check,
-  MessageCircle,
 } from "lucide-react";
+
+import {
+  FaWhatsapp,
+} from "react-icons/fa";
 
 import {
   notFound,
@@ -34,26 +37,14 @@ import {
   formatPrice,
 } from "@/lib/price";
 
-/* =========================================================
-   CONSTANTS
-   ========================================================= */
-
 const SITE_URL =
   "https://gamex.pk";
-
-/* =========================================================
-   TYPES
-   ========================================================= */
 
 type ProductPageProps = {
   params: Promise<{
     productId: string;
   }>;
 };
-
-/* =========================================================
-   GET PRODUCT
-   ========================================================= */
 
 async function getProduct(
   productId: string
@@ -110,6 +101,7 @@ async function getProduct(
             products.id,
             productId
           ),
+
           eq(
             products.isVisible,
             true
@@ -123,10 +115,6 @@ async function getProduct(
   return rows[0] ??
     null;
 }
-
-/* =========================================================
-   METADATA
-   ========================================================= */
 
 export async function generateMetadata({
   params,
@@ -244,10 +232,6 @@ export async function generateMetadata({
   };
 }
 
-/* =========================================================
-   PRODUCT PAGE
-   ========================================================= */
-
 export default async function ProductPage({
   params,
 }: ProductPageProps) {
@@ -279,9 +263,10 @@ export default async function ProductPage({
   const productUrl =
     `${SITE_URL}/product/${product.id}`;
 
-  /* =======================================================
-     PRODUCT STRUCTURED DATA
-     ======================================================= */
+  const whatsappUrl =
+    `https://wa.me/923036009123?text=${encodeURIComponent(
+      `Hi GameX, I want to order ${product.name}. Product link: ${productUrl}`
+    )}`;
 
   const productStructuredData: Record<
     string,
@@ -316,10 +301,6 @@ export default async function ProductPage({
       categoryName,
   };
 
-  /* =======================================================
-     ADD OFFER ONLY WHEN PRICE EXISTS
-     ======================================================= */
-
   if (
     product.price !==
     null
@@ -351,10 +332,6 @@ export default async function ProductPage({
       },
     };
   }
-
-  /* =======================================================
-     BREADCRUMB STRUCTURED DATA
-     ======================================================= */
 
   const breadcrumbStructuredData = {
     "@context":
@@ -412,10 +389,6 @@ export default async function ProductPage({
 
   return (
     <>
-      {/* =====================================================
-          STRUCTURED DATA
-          ===================================================== */}
-
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -436,20 +409,12 @@ export default async function ProductPage({
         }}
       />
 
-      {/* =====================================================
-          PAGE
-          ===================================================== */}
-
       <main
         className="
           min-h-screen
           bg-[#fff8f8]
         "
       >
-        {/* ===================================================
-            BREADCRUMB / HEADER
-            =================================================== */}
-
         <section
           className="
             border-b
@@ -523,10 +488,6 @@ export default async function ProductPage({
           </div>
         </section>
 
-        {/* ===================================================
-            MAIN PRODUCT
-            =================================================== */}
-
         <section
           className="
             mx-auto
@@ -545,10 +506,6 @@ export default async function ProductPage({
               lg:gap-12
             "
           >
-            {/* =================================================
-                IMAGE
-                ================================================= */}
-
             <div>
               <div
                 className="
@@ -612,10 +569,6 @@ export default async function ProductPage({
               </div>
             </div>
 
-            {/* =================================================
-                PRODUCT INFORMATION
-                ================================================= */}
-
             <div
               className="
                 flex
@@ -666,8 +619,6 @@ export default async function ProductPage({
                 Price in Pakistan
               </p>
 
-              {/* PRICE */}
-
               <div
                 className="
                   relative
@@ -707,8 +658,6 @@ export default async function ProductPage({
                 </p>
               </div>
 
-              {/* DESCRIPTION */}
-
               <div
                 className="
                   mt-6
@@ -743,8 +692,6 @@ export default async function ProductPage({
                 </p>
               </div>
 
-              {/* BUTTONS */}
-
               <div
                 className="
                   mt-7
@@ -754,15 +701,19 @@ export default async function ProductPage({
                   sm:flex-row
                 "
               >
-                <Link
-                  href="/#contact"
+                <a
+                  href={
+                    whatsappUrl
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="
                     inline-flex
                     items-center
                     justify-center
                     gap-2
                     rounded-xl
-                    bg-brand
+                    bg-[#25D366]
                     px-6
                     py-3.5
                     font-display
@@ -773,13 +724,14 @@ export default async function ProductPage({
                     text-white
                     transition-all
                     hover:-translate-y-0.5
-                    hover:bg-brand-soft
+                    hover:bg-[#1ebe5d]
+                    hover:shadow-[0_14px_32px_-18px_rgba(37,211,102,0.8)]
                   "
                 >
-                  <MessageCircle className="h-4 w-4" />
+                  <FaWhatsapp className="h-4 w-4" />
 
-                  Contact GameX
-                </Link>
+                  Order Now
+                </a>
 
                 <Link
                   href={
@@ -816,10 +768,6 @@ export default async function ProductPage({
               </div>
             </div>
           </div>
-
-          {/* =================================================
-              SPECIFICATIONS
-              ================================================= */}
 
           <section
             className="
@@ -920,10 +868,6 @@ export default async function ProductPage({
             </div>
           </section>
 
-          {/* =================================================
-              SEO SUPPORTING CONTENT
-              ================================================= */}
-
           <section
             className="
               mt-8
@@ -966,10 +910,11 @@ export default async function ProductPage({
                 product.name
               }{" "}
               in Pakistan? GameX provides gaming PC hardware,
-              custom gaming builds and PC accessories for
-              gaming setups. Review the specifications and
-              price above, then contact GameX for current
-              availability and purchase information.
+              custom gaming builds and PC accessories for gaming
+              setups. Review the specifications and price above,
+              then use the Order Now button to contact GameX on
+              WhatsApp for current availability and purchase
+              information.
             </p>
 
             <p
