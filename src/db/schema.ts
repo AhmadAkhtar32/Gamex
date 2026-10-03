@@ -3992,3 +3992,271 @@ export const blogSettings = pgTable(
   }
 
 );
+/* =========================================================
+   PC BUILDER SETTINGS
+   ========================================================= */
+
+export const pcBuilderSettings = pgTable(
+  "pc_builder_settings",
+  {
+    id: varchar("id", {
+      length: 50,
+    }).primaryKey(),
+
+    title: varchar("title", {
+      length: 255,
+    })
+      .default("Build Your Gaming PC")
+      .notNull(),
+
+    subtitle: text("subtitle")
+      .default(
+        "Choose your components, calculate your total, and send your complete build to GameX on WhatsApp."
+      )
+      .notNull(),
+
+    readyBuildsLabel: varchar(
+      "ready_builds_label",
+      {
+        length: 120,
+      }
+    )
+      .default("Ready Builds")
+      .notNull(),
+
+    scratchBuilderLabel: varchar(
+      "scratch_builder_label",
+      {
+        length: 120,
+      }
+    )
+      .default("Build From Scratch")
+      .notNull(),
+
+    quoteButtonText: varchar(
+      "quote_button_text",
+      {
+        length: 120,
+      }
+    )
+      .default("Get Quote on WhatsApp")
+      .notNull(),
+
+    whatsappNumber: varchar(
+      "whatsapp_number",
+      {
+        length: 50,
+      }
+    )
+      .default("923036009123")
+      .notNull(),
+
+    showReadyBuilds: boolean(
+      "show_ready_builds"
+    )
+      .default(true)
+      .notNull(),
+
+    showScratchBuilder: boolean(
+      "show_scratch_builder"
+    )
+      .default(true)
+      .notNull(),
+
+    isVisible: boolean(
+      "is_visible"
+    )
+      .default(true)
+      .notNull(),
+
+    createdAt: timestamp(
+      "created_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+
+    updatedAt: timestamp(
+      "updated_at",
+      {
+        withTimezone: true,
+      }
+    )
+      .defaultNow()
+      .notNull(),
+  }
+);
+
+/* =========================================================
+   PC BUILDER CATEGORIES
+   ========================================================= */
+
+export const pcBuilderCategories =
+  pgTable(
+    "pc_builder_categories",
+    {
+      id: serial(
+        "id"
+      ).primaryKey(),
+
+      name: varchar("name", {
+        length: 120,
+      }).notNull(),
+
+      slug: varchar("slug", {
+        length: 120,
+      })
+        .notNull()
+        .unique(),
+
+      description: text(
+        "description"
+      )
+        .default("")
+        .notNull(),
+
+      helpText: varchar(
+        "help_text",
+        {
+          length: 500,
+        }
+      )
+        .default("")
+        .notNull(),
+
+      isRequired: boolean(
+        "is_required"
+      )
+        .default(false)
+        .notNull(),
+
+      isVisible: boolean(
+        "is_visible"
+      )
+        .default(true)
+        .notNull(),
+
+      sortOrder: integer(
+        "sort_order"
+      )
+        .default(0)
+        .notNull(),
+
+      createdAt: timestamp(
+        "created_at",
+        {
+          withTimezone: true,
+        }
+      )
+        .defaultNow()
+        .notNull(),
+
+      updatedAt: timestamp(
+        "updated_at",
+        {
+          withTimezone: true,
+        }
+      )
+        .defaultNow()
+        .notNull(),
+    }
+  );
+
+/* =========================================================
+   PC BUILDER ITEMS
+   ========================================================= */
+
+export const pcBuilderItems =
+  pgTable(
+    "pc_builder_items",
+    {
+      id: serial(
+        "id"
+      ).primaryKey(),
+
+      categoryId: integer(
+        "category_id"
+      )
+        .notNull()
+        .references(
+          () =>
+            pcBuilderCategories.id,
+          {
+            onDelete:
+              "cascade",
+          }
+        ),
+
+      name: varchar("name", {
+        length: 255,
+      }).notNull(),
+
+      price: integer(
+        "price"
+      )
+        .default(0)
+        .notNull(),
+
+      description: text(
+        "description"
+      )
+        .default("")
+        .notNull(),
+
+      specs: text(
+        "specs"
+      )
+        .array()
+        .notNull(),
+
+      image: varchar(
+        "image",
+        {
+          length: 1000,
+        }
+      )
+        .default("")
+        .notNull(),
+
+      productUrl: varchar(
+        "product_url",
+        {
+          length: 1000,
+        }
+      )
+        .default("")
+        .notNull(),
+
+      isVisible: boolean(
+        "is_visible"
+      )
+        .default(true)
+        .notNull(),
+
+      sortOrder: integer(
+        "sort_order"
+      )
+        .default(0)
+        .notNull(),
+
+      createdAt: timestamp(
+        "created_at",
+        {
+          withTimezone: true,
+        }
+      )
+        .defaultNow()
+        .notNull(),
+
+      updatedAt: timestamp(
+        "updated_at",
+        {
+          withTimezone: true,
+        }
+      )
+        .defaultNow()
+        .notNull(),
+    }
+  );
