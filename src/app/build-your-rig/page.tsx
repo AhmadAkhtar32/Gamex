@@ -1,6 +1,4 @@
-import type {
-  Metadata,
-} from "next";
+import type { Metadata } from "next";
 
 import {
   asc,
@@ -22,6 +20,7 @@ import {
   pcBuilderCategories,
   pcBuilderItems,
   pcBuilderSettings,
+  products,
 } from "@/db/schema";
 
 import {
@@ -46,7 +45,7 @@ const SITE_URL =
   "https://gamex.pk";
 
 /* =========================================================
-   DYNAMIC PAGE
+   DYNAMIC
    ========================================================= */
 
 export const dynamic =
@@ -66,34 +65,6 @@ export const metadata: Metadata = {
   alternates: {
     canonical:
       "/build-your-rig",
-  },
-
-  openGraph: {
-    type:
-      "website",
-
-    locale:
-      "en_PK",
-
-    url:
-      `${SITE_URL}/build-your-rig`,
-
-    siteName:
-      "GameX Pakistan",
-
-    title:
-      "Build Your Gaming PC in Pakistan | GameX",
-
-    description:
-      "Choose your gaming PC components, calculate your build total and send the complete configuration to GameX.",
-  },
-
-  robots: {
-    index:
-      true,
-
-    follow:
-      true,
   },
 };
 
@@ -131,7 +102,7 @@ const DEFAULT_SETTINGS = {
 };
 
 /* =========================================================
-   HOMEPAGE LINK HELPER
+   HOMEPAGE LINK
    ========================================================= */
 
 function homepageHref(
@@ -158,13 +129,12 @@ export default async function BuildYourRigPage() {
     databaseNavbarLinks,
     settingsRows,
     categories,
-    items,
+    builderItems,
+    catalogProducts,
     builds,
   ] =
     await Promise.all([
-      /* ===============================================
-         NAVBAR SETTINGS
-         =============================================== */
+      /* NAVBAR SETTINGS */
 
       db
         .select({
@@ -205,9 +175,7 @@ export default async function BuildYourRigPage() {
           1
         ),
 
-      /* ===============================================
-         NAVBAR LINKS
-         =============================================== */
+      /* NAVBAR LINKS */
 
       db
         .select({
@@ -238,9 +206,7 @@ export default async function BuildYourRigPage() {
           )
         ),
 
-      /* ===============================================
-         BUILDER SETTINGS
-         =============================================== */
+      /* BUILDER SETTINGS */
 
       db
         .select()
@@ -257,9 +223,7 @@ export default async function BuildYourRigPage() {
           1
         ),
 
-      /* ===============================================
-         BUILDER CATEGORIES
-         =============================================== */
+      /* BUILDER CATEGORIES */
 
       db
         .select()
@@ -281,9 +245,7 @@ export default async function BuildYourRigPage() {
           )
         ),
 
-      /* ===============================================
-         BUILDER ITEMS
-         =============================================== */
+      /* MANUALLY ADDED BUILDER ITEMS */
 
       db
         .select()
@@ -308,9 +270,53 @@ export default async function BuildYourRigPage() {
           )
         ),
 
-      /* ===============================================
-         READY BUILDS
-         =============================================== */
+      /* NORMAL WEBSITE PRODUCTS */
+
+      db
+        .select({
+          id:
+            products.id,
+
+          name:
+            products.name,
+
+          category:
+            products.category,
+
+          tag:
+            products.tag,
+
+          price:
+            products.price,
+
+          description:
+            products.description,
+
+          specs:
+            products.specs,
+
+          image:
+            products.image,
+        })
+        .from(
+          products
+        )
+        .where(
+          eq(
+            products.isVisible,
+            true
+          )
+        )
+        .orderBy(
+          asc(
+            products.sortOrder
+          ),
+          asc(
+            products.name
+          )
+        ),
+
+      /* READY BUILDS */
 
       db
         .select({
@@ -357,10 +363,6 @@ export default async function BuildYourRigPage() {
         ),
     ]);
 
-  /* =======================================================
-     BUILDER SETTINGS
-     ======================================================= */
-
   const settings =
     settingsRows[0] ??
     DEFAULT_SETTINGS;
@@ -392,10 +394,6 @@ export default async function BuildYourRigPage() {
         rawNavbarContent.brandHref
       ),
 
-    /*
-     * Important:
-     * Build Your Rig should always point to this page.
-     */
     ctaHref:
       rawNavbarContent.ctaHref ||
       "/build-your-rig",
@@ -409,14 +407,6 @@ export default async function BuildYourRigPage() {
         ? databaseNavbarLinks
         : DEFAULT_NAVBAR_LINKS;
 
-  /*
-   * Homepage anchors like #products do not work correctly
-   * from /build-your-rig.
-   *
-   * Convert:
-   * #products -> /#products
-   * #contact  -> /#contact
-   */
   const publicNavbarLinks =
     rawNavbarLinks.map(
       (
@@ -500,7 +490,7 @@ export default async function BuildYourRigPage() {
           )
         }
         items={
-          items.map(
+          builderItems.map(
             (
               item
             ) => ({
@@ -529,6 +519,9 @@ export default async function BuildYourRigPage() {
                 item.productUrl,
             })
           )
+        }
+        products={
+          catalogProducts
         }
         builds={
           builds
