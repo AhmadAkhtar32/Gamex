@@ -247,7 +247,7 @@ export default function Products({
   }
 
   /* =======================================================
-     SHOW MORE / LESS
+     VIEW MORE / LESS
      ======================================================= */
 
   function toggleProducts() {
@@ -299,7 +299,9 @@ export default function Products({
           md:py-20
         "
       >
-        {/* BACKGROUND */}
+        {/* ===================================================
+            BACKGROUND
+            =================================================== */}
 
         <div
           aria-hidden="true"
@@ -323,7 +325,9 @@ export default function Products({
           "
         />
 
-        {/* CONTENT */}
+        {/* ===================================================
+            CONTENT
+            =================================================== */}
 
         <div
           className="
@@ -340,7 +344,9 @@ export default function Products({
             subtitle="Premium gaming hardware selected for performance, reliability, and serious gaming setups."
           />
 
-          {/* FILTERS */}
+          {/* =================================================
+              FILTERS
+              ================================================= */}
 
           <div
             className="
@@ -411,7 +417,9 @@ export default function Products({
             )}
           </div>
 
-          {/* PRODUCT GRID */}
+          {/* =================================================
+              PRODUCT GRID
+              ================================================= */}
 
           <motion.div
             layout
@@ -543,7 +551,9 @@ export default function Products({
                           hover:shadow-[0_25px_60px_-38px_rgba(230,0,0,0.34)]
                         "
                       >
-                        {/* IMAGE */}
+                        {/* ===================================
+                            IMAGE
+                            =================================== */}
 
                         <div
                           className="
@@ -589,6 +599,8 @@ export default function Products({
                             "
                           />
 
+                          {/* TAG */}
+
                           <div
                             className="
                               absolute
@@ -622,7 +634,9 @@ export default function Products({
                           </div>
                         </div>
 
-                        {/* CARD CONTENT */}
+                        {/* ===================================
+                            CONTENT
+                            =================================== */}
 
                         <div
                           className="
@@ -648,7 +662,9 @@ export default function Products({
                             }
                           </p>
 
-                          {/* FIXED PRODUCT NAME AREA */}
+                          {/* =================================
+                              FIXED PRODUCT NAME HEIGHT
+                              ================================= */}
 
                           <div
                             className="
@@ -675,7 +691,9 @@ export default function Products({
                             </h3>
                           </div>
 
-                          {/* PRICE */}
+                          {/* =================================
+                              PRICE
+                              ================================= */}
 
                           <div
                             className="
@@ -747,7 +765,9 @@ export default function Products({
                             </p>
                           </div>
 
-                          {/* 3 SPECIFICATIONS */}
+                          {/* =================================
+                              3 SPECIFICATIONS
+                              ================================= */}
 
                           <div
                             className="
@@ -806,7 +826,9 @@ export default function Products({
                             )}
                           </div>
 
-                          {/* MORE SPECIFICATIONS — FIXED HEIGHT */}
+                          {/* =================================
+                              MORE SPECS
+                              ================================= */}
 
                           <div className="h-5">
                             {remainingSpecs >
@@ -829,14 +851,61 @@ export default function Products({
                             ) : null}
                           </div>
 
-                          {/* ORDER NOW ONLY */}
+                          {/* =================================
+                              ACTION BUTTONS
+                              ================================= */}
 
                           <div
                             className="
                               mt-auto
+                              grid
+                              gap-2
                               pt-3
                             "
                           >
+                            {/* VIEW DETAILS */}
+
+                            <button
+                              type="button"
+                              onClick={(
+                                event
+                              ) => {
+                                event.stopPropagation();
+
+                                setSelectedProduct(
+                                  product
+                                );
+                              }}
+                              className="
+                                flex
+                                w-full
+                                items-center
+                                justify-between
+                                rounded-xl
+                                border
+                                border-black/[0.08]
+                                bg-[#fff8f8]
+                                px-4
+                                py-2.5
+                                text-xs
+                                font-bold
+                                uppercase
+                                tracking-wider
+                                text-brand-deep
+                                transition-all
+                                duration-300
+                                hover:border-brand
+                                hover:bg-brand
+                                hover:text-white
+                              "
+                            >
+                              View Details
+
+                              <ArrowUpRight className="h-4 w-4" />
+                            </button>
+
+                            {/* ORDER NOW */}
+
                             <a
                               href={
                                 whatsappUrl
@@ -899,7 +968,9 @@ export default function Products({
             </AnimatePresence>
           </motion.div>
 
-          {/* VIEW MORE / LESS */}
+          {/* =================================================
+              VIEW MORE / LESS
+              ================================================= */}
 
           {canToggle ? (
             <div
@@ -959,7 +1030,9 @@ export default function Products({
             </div>
           ) : null}
 
-          {/* EMPTY */}
+          {/* =================================================
+              EMPTY
+              ================================================= */}
 
           {filteredProducts.length ===
           0 ? (
@@ -1003,7 +1076,9 @@ export default function Products({
         </div>
       </section>
 
-      {/* DETAILS POPUP */}
+      {/* =====================================================
+          DETAILS MODAL
+          ===================================================== */}
 
       <DetailsModal
         item={
