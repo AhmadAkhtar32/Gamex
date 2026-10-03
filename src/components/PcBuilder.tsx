@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  type FormEvent,
   useMemo,
   useState,
 } from "react";
@@ -8,13 +9,13 @@ import {
 import Link from "next/link";
 
 import {
-  ArrowRight,
   Check,
   CheckCircle2,
   ChevronRight,
   CircleDollarSign,
   Cpu,
   ExternalLink,
+  ImageIcon,
   Package,
   Plus,
   RotateCcw,
@@ -116,11 +117,143 @@ type BuilderMode =
   | "scratch"
   | "ready";
 
+type SelectedPart = {
+  key: string;
+
+  source:
+    | "catalog"
+    | "custom";
+
+  catalogId?:
+    number;
+
+  categoryId:
+    number;
+
+  name:
+    string;
+
+  price:
+    | number
+    | null;
+
+  description:
+    string;
+
+  specs:
+    string[];
+
+  image:
+    string;
+
+  productUrl:
+    string;
+
+  note:
+    string;
+};
+
+type CustomExtra = {
+  id: string;
+
+  name: string;
+
+  price:
+    | number
+    | null;
+
+  productUrl:
+    string;
+
+  note:
+    string;
+};
+
 type SelectionMap =
   Record<
     number,
-    BuilderItem | undefined
+    SelectedPart | undefined
   >;
+
+type CustomPartInput = {
+  name: string;
+
+  price:
+    | number
+    | null;
+
+  productUrl: string;
+
+  note: string;
+};
+
+/* =========================================================
+   HELPERS
+   ========================================================= */
+
+function createLocalId() {
+  if (
+    typeof crypto !==
+      "undefined" &&
+    "randomUUID" in crypto
+  ) {
+    return crypto.randomUUID();
+  }
+
+  return `${Date.now()}-${Math.random()
+    .toString(36)
+    .slice(2)}`;
+}
+
+function parseOptionalPrice(
+  value: FormDataEntryValue | null
+) {
+  const raw =
+    String(
+      value ?? ""
+    ).trim();
+
+  if (!raw) {
+    return null;
+  }
+
+  const parsed =
+    Number(raw);
+
+  if (
+    !Number.isFinite(
+      parsed
+    ) ||
+    parsed < 0
+  ) {
+    return null;
+  }
+
+  return Math.round(
+    parsed
+  );
+}
+
+function normalizeLink(
+  value: string
+) {
+  const link =
+    value.trim();
+
+  if (!link) {
+    return "";
+  }
+
+  if (
+    link.startsWith(
+      "/"
+    )
+  ) {
+    return `${SITE_URL}${link}`;
+  }
+
+  return link;
+}
 
 /* =========================================================
    MAIN COMPONENT
@@ -170,11 +303,25 @@ export function PcBuilder({
       null
     );
 
+  const [
+    extras,
+    setExtras,
+  ] =
+    useState<CustomExtra[]>(
+      []
+    );
+
+  const [
+    showExtraForm,
+    setShowExtraForm,
+  ] =
+    useState(false);
+
   /* =======================================================
      TOTAL
      ======================================================= */
 
-  const total =
+  const componentsTotal =
     useMemo(
       () =>
         Object.values(
@@ -195,6 +342,30 @@ export function PcBuilder({
         selections,
       ]
     );
+
+  const extrasTotal =
+    useMemo(
+      () =>
+        extras.reduce(
+          (
+            sum,
+            item
+          ) =>
+            sum +
+            (
+              item.price ??
+              0
+            ),
+          0
+        ),
+      [
+        extras,
+      ]
+    );
+
+  const total =
+    componentsTotal +
+    extrasTotal;
 
   /* =======================================================
      SELECTED COUNT
@@ -235,13 +406,48 @@ export function PcBuilder({
       : [];
 
   /* =======================================================
-     SELECT ITEM
+     SELECT CATALOG ITEM
      ======================================================= */
 
-  function selectItem(
+  function selectCatalogItem(
     categoryId: number,
     item: BuilderItem
   ) {
+    const selected:
+      SelectedPart = {
+      key:
+        `catalog-${item.id}`,
+
+      source:
+        "catalog",
+
+      catalogId:
+        item.id,
+
+      categoryId,
+
+      name:
+        item.name,
+
+      price:
+        item.price,
+
+      description:
+        item.description,
+
+      specs:
+        item.specs,
+
+      image:
+        item.image,
+
+      productUrl:
+        item.productUrl,
+
+      note:
+        "",
+    };
+
     setSelections(
       (
         current
@@ -249,7 +455,7 @@ export function PcBuilder({
         ...current,
 
         [categoryId]:
-          item,
+          selected,
       })
     );
 
@@ -259,7 +465,63 @@ export function PcBuilder({
   }
 
   /* =======================================================
-     REMOVE ITEM
+     SELECT CUSTOM PART
+     ======================================================= */
+
+  function selectCustomPart(
+    categoryId: number,
+    input: CustomPartInput
+  ) {
+    const selected:
+      SelectedPart = {
+      key:
+        `custom-${createLocalId()}`,
+
+      source:
+        "custom",
+
+      categoryId,
+
+      name:
+        input.name,
+
+      price:
+        input.price,
+
+      description:
+        input.note,
+
+      specs:
+        [],
+
+      image:
+        "",
+
+      productUrl:
+        input.productUrl,
+
+      note:
+        input.note,
+    };
+
+    setSelections(
+      (
+        current
+      ) => ({
+        ...current,
+
+        [categoryId]:
+          selected,
+      })
+    );
+
+    setActiveCategory(
+      null
+    );
+  }
+
+  /* =======================================================
+     REMOVE COMPONENT
      ======================================================= */
 
   function removeItem(
@@ -283,12 +545,73 @@ export function PcBuilder({
   }
 
   /* =======================================================
+     ADD EXTRA
+     ======================================================= */
+
+  function addExtra(
+    input: CustomPartInput
+  ) {
+    setExtras(
+      (
+        current
+      ) => [
+        ...current,
+        {
+          id:
+            createLocalId(),
+
+          name:
+            input.name,
+
+          price:
+            input.price,
+
+          productUrl:
+            input.productUrl,
+
+          note:
+            input.note,
+        },
+      ]
+    );
+
+    setShowExtraForm(
+      false
+    );
+  }
+
+  /* =======================================================
+     REMOVE EXTRA
+     ======================================================= */
+
+  function removeExtra(
+    extraId: string
+  ) {
+    setExtras(
+      (
+        current
+      ) =>
+        current.filter(
+          (
+            item
+          ) =>
+            item.id !==
+            extraId
+        )
+    );
+  }
+
+  /* =======================================================
      CLEAR BUILD
      ======================================================= */
 
   function clearBuild() {
     setSelections(
       {}
+    );
+
+    setExtras(
+      []
     );
   }
 
@@ -297,11 +620,11 @@ export function PcBuilder({
      ======================================================= */
 
   function createQuoteMessage() {
-    const lines: string[] =
-      [
-        "Hi GameX, I want a quotation for this custom PC build:",
-        "",
-      ];
+    const lines:
+      string[] = [
+      "Hi GameX, I want a quotation for this custom PC build:",
+      "",
+    ];
 
     for (
       const category of
@@ -324,23 +647,38 @@ export function PcBuilder({
         );
 
         lines.push(
-          formatPrice(
-            selected.price
-          )
+          selected.price ===
+            null
+            ? "Price on request"
+            : formatPrice(
+                selected.price
+              )
         );
+
+        if (
+          selected.source ===
+          "custom"
+        ) {
+          lines.push(
+            "Custom customer request"
+          );
+        }
+
+        if (
+          selected.note
+        ) {
+          lines.push(
+            `Note: ${selected.note}`
+          );
+        }
 
         if (
           selected.productUrl
         ) {
-          const link =
-            selected.productUrl.startsWith(
-              "/"
-            )
-              ? `${SITE_URL}${selected.productUrl}`
-              : selected.productUrl;
-
           lines.push(
-            link
+            normalizeLink(
+              selected.productUrl
+            )
           );
         }
       } else {
@@ -356,6 +694,73 @@ export function PcBuilder({
       );
     }
 
+    if (
+      extras.length >
+      0
+    ) {
+      lines.push(
+        "*CUSTOM / EXTRA ITEMS*"
+      );
+
+      lines.push(
+        ""
+      );
+
+      extras.forEach(
+        (
+          extra,
+          index
+        ) => {
+          lines.push(
+            `${index + 1}. ${extra.name}`
+          );
+
+          lines.push(
+            extra.price ===
+              null
+              ? "Price on request"
+              : formatPrice(
+                  extra.price
+                )
+          );
+
+          if (
+            extra.note
+          ) {
+            lines.push(
+              `Note: ${extra.note}`
+            );
+          }
+
+          if (
+            extra.productUrl
+          ) {
+            lines.push(
+              normalizeLink(
+                extra.productUrl
+              )
+            );
+          }
+
+          lines.push(
+            ""
+          );
+        }
+      );
+    } else {
+      lines.push(
+        "*CUSTOM / EXTRA ITEMS*"
+      );
+
+      lines.push(
+        "None"
+      );
+
+      lines.push(
+        ""
+      );
+    }
+
     lines.push(
       "--------------------"
     );
@@ -364,6 +769,14 @@ export function PcBuilder({
       `*TOTAL: ${formatPrice(
         total
       )}*`
+    );
+
+    lines.push(
+      ""
+    );
+
+    lines.push(
+      "Note: Items with no entered price are not included in the calculated total."
     );
 
     lines.push(
@@ -622,7 +1035,7 @@ export function PcBuilder({
             "
           >
             {/* ===============================================
-                LEFT
+                LEFT SIDE
                 =============================================== */}
 
             <div>
@@ -664,7 +1077,9 @@ export function PcBuilder({
                 </div>
 
                 {selectedCount >
-                0 ? (
+                  0 ||
+                extras.length >
+                  0 ? (
                   <button
                     type="button"
                     onClick={
@@ -687,6 +1102,7 @@ export function PcBuilder({
                       text-brand
                       transition-all
                       hover:border-brand
+                      hover:bg-brand/[0.04]
                     "
                   >
                     <RotateCcw className="h-4 w-4" />
@@ -697,7 +1113,7 @@ export function PcBuilder({
               </div>
 
               {/* =============================================
-                  CATEGORY ROWS
+                  COMPONENT ROWS
                   ============================================= */}
 
               <div
@@ -867,12 +1283,12 @@ export function PcBuilder({
                                         ? ""
                                         : "s"
                                     } available`
-                                  : "No options available"}
+                                  : "No listed options — custom selection available"}
                               </p>
                             ) : null}
                           </div>
 
-                          {/* SELECTED */}
+                          {/* SELECTED PART */}
 
                           {selected ? (
                             <div
@@ -951,10 +1367,29 @@ export function PcBuilder({
                                     text-brand
                                   "
                                 >
-                                  {formatPrice(
-                                    selected.price
-                                  )}
+                                  {selected.price ===
+                                  null
+                                    ? "Price on request"
+                                    : formatPrice(
+                                        selected.price
+                                      )}
                                 </p>
+
+                                {selected.source ===
+                                "custom" ? (
+                                  <p
+                                    className="
+                                      mt-1
+                                      text-[9px]
+                                      font-bold
+                                      uppercase
+                                      tracking-wider
+                                      text-slate-400
+                                    "
+                                  >
+                                    Custom Request
+                                  </p>
+                                ) : null}
                               </div>
                             </div>
                           ) : null}
@@ -995,12 +1430,11 @@ export function PcBuilder({
                               </button>
                             ) : null}
 
+                            {/* IMPORTANT:
+                                Never disabled now. */}
+
                             <button
                               type="button"
-                              disabled={
-                                availableCount ===
-                                0
-                              }
                               onClick={() =>
                                 setActiveCategory(
                                   category
@@ -1021,10 +1455,8 @@ export function PcBuilder({
                                 tracking-wider
                                 text-white
                                 transition-all
+                                hover:-translate-y-0.5
                                 hover:bg-brand-soft
-                                disabled:cursor-not-allowed
-                                disabled:bg-slate-200
-                                disabled:text-slate-400
                               "
                             >
                               {selected
@@ -1040,6 +1472,273 @@ export function PcBuilder({
                   }
                 )}
               </div>
+
+              {/* =============================================
+                  EXTRAS
+                  ============================================= */}
+
+              <div
+                className="
+                  mt-5
+                  overflow-hidden
+                  rounded-2xl
+                  border
+                  border-brand/10
+                  bg-white
+                  shadow-[0_15px_45px_-40px_rgba(0,0,0,0.3)]
+                "
+              >
+                <div
+                  className="
+                    flex
+                    flex-wrap
+                    items-center
+                    justify-between
+                    gap-4
+                    border-b
+                    border-brand/10
+                    px-5
+                    py-4
+                  "
+                >
+                  <div>
+                    <div
+                      className="
+                        flex
+                        items-center
+                        gap-2
+                      "
+                    >
+                      <h3
+                        className="
+                          font-display
+                          text-lg
+                          font-extrabold
+                          uppercase
+                          text-brand-deep
+                        "
+                      >
+                        Extras
+                      </h3>
+
+                      <span
+                        className="
+                          rounded-full
+                          bg-slate-100
+                          px-2.5
+                          py-1
+                          text-[9px]
+                          font-bold
+                          uppercase
+                          tracking-wider
+                          text-slate-500
+                        "
+                      >
+                        Optional
+                      </span>
+                    </div>
+
+                    <p
+                      className="
+                        mt-1
+                        text-xs
+                        text-slate-400
+                      "
+                    >
+                      Add anything else you want with your build.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setShowExtraForm(
+                        (
+                          current
+                        ) =>
+                          !current
+                      )
+                    }
+                    className="
+                      inline-flex
+                      items-center
+                      gap-2
+                      rounded-xl
+                      border
+                      border-brand/15
+                      bg-[#fff8f8]
+                      px-4
+                      py-2.5
+                      text-xs
+                      font-bold
+                      uppercase
+                      tracking-wider
+                      text-brand
+                      transition-all
+                      hover:border-brand
+                      hover:bg-brand
+                      hover:text-white
+                    "
+                  >
+                    {showExtraForm ? (
+                      <X className="h-4 w-4" />
+                    ) : (
+                      <Plus className="h-4 w-4" />
+                    )}
+
+                    {showExtraForm
+                      ? "Close"
+                      : "Add Extra"}
+                  </button>
+                </div>
+
+                {/* EXTRA ITEMS */}
+
+                {extras.length >
+                0 ? (
+                  <div
+                    className="
+                      space-y-2
+                      p-4
+                    "
+                  >
+                    {extras.map(
+                      (
+                        extra,
+                        index
+                      ) => (
+                        <div
+                          key={
+                            extra.id
+                          }
+                          className="
+                            flex
+                            items-center
+                            gap-3
+                            rounded-xl
+                            border
+                            border-black/[0.06]
+                            bg-[#fffafa]
+                            p-3
+                          "
+                        >
+                          <div
+                            className="
+                              grid
+                              h-9
+                              w-9
+                              shrink-0
+                              place-items-center
+                              rounded-lg
+                              bg-brand/[0.08]
+                              text-xs
+                              font-extrabold
+                              text-brand
+                            "
+                          >
+                            {index +
+                              1}
+                          </div>
+
+                          <div
+                            className="
+                              min-w-0
+                              flex-1
+                            "
+                          >
+                            <p
+                              className="
+                                text-sm
+                                font-bold
+                                text-brand-deep
+                              "
+                            >
+                              {
+                                extra.name
+                              }
+                            </p>
+
+                            <p
+                              className="
+                                mt-0.5
+                                text-xs
+                                font-bold
+                                text-brand
+                              "
+                            >
+                              {extra.price ===
+                              null
+                                ? "Price on request"
+                                : formatPrice(
+                                    extra.price
+                                  )}
+                            </p>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              removeExtra(
+                                extra.id
+                              )
+                            }
+                            className="
+                              grid
+                              h-9
+                              w-9
+                              place-items-center
+                              rounded-lg
+                              text-slate-400
+                              transition-colors
+                              hover:bg-red-50
+                              hover:text-red-500
+                            "
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      )
+                    )}
+                  </div>
+                ) : (
+                  <div
+                    className="
+                      px-5
+                      py-5
+                      text-sm
+                      italic
+                      text-slate-400
+                    "
+                  >
+                    No extras added.
+                  </div>
+                )}
+
+                {/* EXTRA FORM */}
+
+                {showExtraForm ? (
+                  <div
+                    className="
+                      border-t
+                      border-brand/10
+                      bg-[#fffafa]
+                      p-5
+                    "
+                  >
+                    <CustomRequestForm
+                      buttonText="Add Extra"
+                      onSubmit={
+                        addExtra
+                      }
+                      onCancel={() =>
+                        setShowExtraForm(
+                          false
+                        )
+                      }
+                    />
+                  </div>
+                ) : null}
+              </div>
             </div>
 
             {/* ===============================================
@@ -1052,6 +1751,7 @@ export function PcBuilder({
                 lg:sticky
                 lg:top-24
                 lg:block
+                lg:self-start
               "
             >
               <BuildSummary
@@ -1060,6 +1760,9 @@ export function PcBuilder({
                 }
                 selections={
                   selections
+                }
+                extras={
+                  extras
                 }
                 selectedCount={
                   selectedCount
@@ -1075,6 +1778,9 @@ export function PcBuilder({
                 }
                 onRemove={
                   removeItem
+                }
+                onRemoveExtra={
+                  removeExtra
                 }
               />
             </aside>
@@ -1193,8 +1899,11 @@ export function PcBuilder({
               activeCategory.id
             ]
           }
-          onSelect={
-            selectItem
+          onSelectCatalog={
+            selectCatalogItem
+          }
+          onSelectCustom={
+            selectCustomPart
           }
           onRemove={
             removeItem
@@ -1232,11 +1941,7 @@ function ReadyBuilds({
         md:px-8
       "
     >
-      <div
-        className="
-          mb-7
-        "
-      >
+      <div className="mb-7">
         <p
           className="
             text-xs
@@ -1593,15 +2298,19 @@ function ReadyBuilds({
 function BuildSummary({
   categories,
   selections,
+  extras,
   selectedCount,
   total,
   quoteUrl,
   quoteButtonText,
   onRemove,
+  onRemoveExtra,
 }: {
   categories: BuilderCategory[];
 
   selections: SelectionMap;
+
+  extras: CustomExtra[];
 
   selectedCount: number;
 
@@ -1614,10 +2323,18 @@ function BuildSummary({
   onRemove: (
     categoryId: number
   ) => void;
+
+  onRemoveExtra: (
+    extraId: string
+  ) => void;
 }) {
   return (
     <div
       className="
+        flex
+        max-h-[calc(100vh-7rem)]
+        min-h-0
+        flex-col
         overflow-hidden
         rounded-2xl
         border
@@ -1626,8 +2343,11 @@ function BuildSummary({
         shadow-[0_25px_70px_-50px_rgba(0,0,0,0.4)]
       "
     >
+      {/* FIXED HEADER */}
+
       <div
         className="
+          shrink-0
           bg-brand
           p-5
           text-white
@@ -1754,12 +2474,17 @@ function BuildSummary({
         </div>
       </div>
 
+      {/* SCROLLABLE CONTENT */}
+
       <div
         className="
-          max-h-[50vh]
+          min-h-0
+          flex-1
           space-y-2
           overflow-y-auto
+          overscroll-contain
           p-4
+          pr-3
         "
       >
         {categories.map(
@@ -1835,10 +2560,29 @@ function BuildSummary({
                             text-brand
                           "
                         >
-                          {formatPrice(
-                            selected.price
-                          )}
+                          {selected.price ===
+                          null
+                            ? "Price on request"
+                            : formatPrice(
+                                selected.price
+                              )}
                         </p>
+
+                        {selected.source ===
+                        "custom" ? (
+                          <p
+                            className="
+                              mt-1
+                              text-[8px]
+                              font-bold
+                              uppercase
+                              tracking-wider
+                              text-slate-400
+                            "
+                          >
+                            Custom Request
+                          </p>
+                        ) : null}
                       </>
                     ) : (
                       <p
@@ -1883,12 +2627,126 @@ function BuildSummary({
             );
           }
         )}
+
+        {/* EXTRAS SUMMARY */}
+
+        {extras.length >
+        0 ? (
+          <div
+            className="
+              mt-3
+              rounded-xl
+              border
+              border-brand/10
+              bg-brand/[0.025]
+              p-3
+            "
+          >
+            <p
+              className="
+                text-[9px]
+                font-bold
+                uppercase
+                tracking-wider
+                text-brand
+              "
+            >
+              Extras
+            </p>
+
+            <div
+              className="
+                mt-2
+                space-y-2
+              "
+            >
+              {extras.map(
+                (
+                  extra
+                ) => (
+                  <div
+                    key={
+                      extra.id
+                    }
+                    className="
+                      flex
+                      items-start
+                      justify-between
+                      gap-2
+                    "
+                  >
+                    <div
+                      className="
+                        min-w-0
+                        flex-1
+                      "
+                    >
+                      <p
+                        className="
+                          text-xs
+                          font-bold
+                          text-brand-deep
+                        "
+                      >
+                        {
+                          extra.name
+                        }
+                      </p>
+
+                      <p
+                        className="
+                          mt-0.5
+                          text-[10px]
+                          font-bold
+                          text-brand
+                        "
+                      >
+                        {extra.price ===
+                        null
+                          ? "Price on request"
+                          : formatPrice(
+                              extra.price
+                            )}
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        onRemoveExtra(
+                          extra.id
+                        )
+                      }
+                      className="
+                        grid
+                        h-7
+                        w-7
+                        shrink-0
+                        place-items-center
+                        rounded-lg
+                        text-slate-400
+                        hover:bg-red-50
+                        hover:text-red-500
+                      "
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )
+              )}
+            </div>
+          </div>
+        ) : null}
       </div>
+
+      {/* FIXED FOOTER */}
 
       <div
         className="
+          shrink-0
           border-t
           border-brand/10
+          bg-white
           p-4
         "
       >
@@ -1971,14 +2829,15 @@ function BuildSummary({
 }
 
 /* =========================================================
-   ITEM SELECTOR
+   ITEM SELECTOR MODAL
    ========================================================= */
 
 function ItemSelector({
   category,
   items,
   selectedItem,
-  onSelect,
+  onSelectCatalog,
+  onSelectCustom,
   onRemove,
   onClose,
 }: {
@@ -1987,12 +2846,17 @@ function ItemSelector({
   items: BuilderItem[];
 
   selectedItem:
-    | BuilderItem
+    | SelectedPart
     | undefined;
 
-  onSelect: (
+  onSelectCatalog: (
     categoryId: number,
     item: BuilderItem
+  ) => void;
+
+  onSelectCustom: (
+    categoryId: number,
+    input: CustomPartInput
   ) => void;
 
   onRemove: (
@@ -2001,6 +2865,15 @@ function ItemSelector({
 
   onClose: () => void;
 }) {
+  const [
+    showCustom,
+    setShowCustom,
+  ] =
+    useState(
+      items.length ===
+        0
+    );
+
   return (
     <div
       className="
@@ -2030,7 +2903,7 @@ function ItemSelector({
       <div
         className="
           flex
-          max-h-[90vh]
+          max-h-[92vh]
           w-full
           max-w-5xl
           flex-col
@@ -2045,6 +2918,7 @@ function ItemSelector({
 
         <div
           className="
+            shrink-0
             flex
             items-start
             justify-between
@@ -2149,12 +3023,14 @@ function ItemSelector({
           </button>
         </div>
 
-        {/* ITEMS */}
+        {/* SCROLLABLE BODY */}
 
         <div
           className="
+            min-h-0
             flex-1
             overflow-y-auto
+            overscroll-contain
             bg-[#fff8f8]
             p-4
             sm:p-6
@@ -2162,301 +3038,402 @@ function ItemSelector({
         >
           {items.length >
           0 ? (
-            <div
-              className="
-                grid
-                auto-rows-fr
-                gap-4
-                sm:grid-cols-2
-                lg:grid-cols-3
-              "
-            >
-              {items.map(
-                (
-                  item
-                ) => {
-                  const isSelected =
-                    selectedItem?.id ===
-                    item.id;
+            <>
+              <div
+                className="
+                  grid
+                  auto-rows-fr
+                  gap-4
+                  sm:grid-cols-2
+                  lg:grid-cols-3
+                "
+              >
+                {items.map(
+                  (
+                    item
+                  ) => {
+                    const isSelected =
+                      selectedItem
+                        ?.source ===
+                        "catalog" &&
+                      selectedItem
+                        .catalogId ===
+                        item.id;
 
-                  return (
-                    <article
-                      key={
-                        item.id
-                      }
-                      className={`
-                        flex
-                        h-full
-                        flex-col
-                        overflow-hidden
-                        rounded-2xl
-                        border
-                        bg-white
-                        transition-all
-
-                        ${
-                          isSelected
-                            ? `
-                              border-brand
-                              shadow-[0_18px_45px_-35px_rgba(230,0,0,0.65)]
-                            `
-                            : `
-                              border-brand/10
-                              hover:border-brand/35
-                            `
+                    return (
+                      <article
+                        key={
+                          item.id
                         }
-                      `}
-                    >
-                      {/* IMAGE */}
+                        className={`
+                          flex
+                          h-full
+                          flex-col
+                          overflow-hidden
+                          rounded-2xl
+                          border
+                          bg-white
+                          transition-all
 
-                      <div
-                        className="
-                          relative
-                          aspect-[16/10]
-                          bg-[#f5f5f5]
-                          p-2
-                        "
+                          ${
+                            isSelected
+                              ? `
+                                border-brand
+                                shadow-[0_18px_45px_-35px_rgba(230,0,0,0.65)]
+                              `
+                              : `
+                                border-brand/10
+                                hover:border-brand/35
+                              `
+                          }
+                        `}
                       >
-                        {item.image ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={
-                              item.image
-                            }
-                            alt={
+                        {/* IMAGE */}
+
+                        <div
+                          className="
+                            relative
+                            aspect-[16/10]
+                            bg-[#f5f5f5]
+                            p-2
+                          "
+                        >
+                          {item.image ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={
+                                item.image
+                              }
+                              alt={
+                                item.name
+                              }
+                              className="
+                                h-full
+                                w-full
+                                object-contain
+                              "
+                            />
+                          ) : (
+                            <div
+                              className="
+                                grid
+                                h-full
+                                place-items-center
+                              "
+                            >
+                              <ImageIcon className="h-10 w-10 text-slate-200" />
+                            </div>
+                          )}
+
+                          {isSelected ? (
+                            <span
+                              className="
+                                absolute
+                                right-3
+                                top-3
+                                grid
+                                h-8
+                                w-8
+                                place-items-center
+                                rounded-full
+                                bg-brand
+                                text-white
+                              "
+                            >
+                              <CheckCircle2 className="h-4 w-4" />
+                            </span>
+                          ) : null}
+                        </div>
+
+                        {/* INFO */}
+
+                        <div
+                          className="
+                            flex
+                            flex-1
+                            flex-col
+                            p-4
+                          "
+                        >
+                          <h3
+                            className="
+                              line-clamp-2
+                              min-h-[2.5rem]
+                              font-display
+                              text-base
+                              font-extrabold
+                              leading-tight
+                              text-brand-deep
+                            "
+                          >
+                            {
                               item.name
                             }
+                          </h3>
+
+                          <p
                             className="
-                              h-full
-                              w-full
-                              object-contain
-                            "
-                          />
-                        ) : (
-                          <div
-                            className="
-                              grid
-                              h-full
-                              place-items-center
+                              mt-2
+                              font-display
+                              text-xl
+                              font-extrabold
+                              text-brand
                             "
                           >
-                            <Package className="h-10 w-10 text-slate-200" />
-                          </div>
-                        )}
+                            {formatPrice(
+                              item.price
+                            )}
+                          </p>
 
-                        {isSelected ? (
-                          <span
-                            className="
-                              absolute
-                              right-3
-                              top-3
-                              grid
-                              h-8
-                              w-8
-                              place-items-center
-                              rounded-full
-                              bg-brand
-                              text-white
-                            "
-                          >
-                            <CheckCircle2 className="h-4 w-4" />
-                          </span>
-                        ) : null}
-                      </div>
-
-                      {/* INFO */}
-
-                      <div
-                        className="
-                          flex
-                          flex-1
-                          flex-col
-                          p-4
-                        "
-                      >
-                        <h3
-                          className="
-                            line-clamp-2
-                            min-h-[2.5rem]
-                            font-display
-                            text-base
-                            font-extrabold
-                            leading-tight
-                            text-brand-deep
-                          "
-                        >
-                          {
-                            item.name
-                          }
-                        </h3>
-
-                        <p
-                          className="
-                            mt-2
-                            font-display
-                            text-xl
-                            font-extrabold
-                            text-brand
-                          "
-                        >
-                          {formatPrice(
-                            item.price
-                          )}
-                        </p>
-
-                        {item.specs.length >
-                        0 ? (
-                          <div
-                            className="
-                              mt-3
-                              space-y-1.5
-                            "
-                          >
-                            {item.specs
-                              .slice(
-                                0,
-                                3
-                              )
-                              .map(
-                                (
-                                  spec,
-                                  index
-                                ) => (
-                                  <div
-                                    key={
-                                      index
-                                    }
-                                    className="
-                                      flex
-                                      items-start
-                                      gap-2
-                                      text-[11px]
-                                      text-slate-500
-                                    "
-                                  >
-                                    <Check className="mt-0.5 h-3 w-3 shrink-0 text-brand" />
-
-                                    <span
+                          {item.specs.length >
+                          0 ? (
+                            <div
+                              className="
+                                mt-3
+                                space-y-1.5
+                              "
+                            >
+                              {item.specs
+                                .slice(
+                                  0,
+                                  3
+                                )
+                                .map(
+                                  (
+                                    spec,
+                                    index
+                                  ) => (
+                                    <div
+                                      key={
+                                        index
+                                      }
                                       className="
-                                        line-clamp-1
+                                        flex
+                                        items-start
+                                        gap-2
+                                        text-[11px]
+                                        text-slate-500
                                       "
                                     >
-                                      {
-                                        spec
-                                      }
-                                    </span>
-                                  </div>
-                                )
-                              )}
-                          </div>
-                        ) : null}
+                                      <Check className="mt-0.5 h-3 w-3 shrink-0 text-brand" />
 
-                        {item.productUrl ? (
-                          <a
-                            href={
-                              item.productUrl
-                            }
-                            target={
-                              item.productUrl.startsWith(
-                                "http"
+                                      <span
+                                        className="
+                                          line-clamp-1
+                                        "
+                                      >
+                                        {
+                                          spec
+                                        }
+                                      </span>
+                                    </div>
+                                  )
+                                )}
+                            </div>
+                          ) : null}
+
+                          {item.productUrl ? (
+                            <a
+                              href={
+                                item.productUrl
+                              }
+                              target={
+                                item.productUrl.startsWith(
+                                  "http"
+                                )
+                                  ? "_blank"
+                                  : undefined
+                              }
+                              rel={
+                                item.productUrl.startsWith(
+                                  "http"
+                                )
+                                  ? "noopener noreferrer"
+                                  : undefined
+                              }
+                              className="
+                                mt-3
+                                inline-flex
+                                items-center
+                                gap-1.5
+                                text-[10px]
+                                font-bold
+                                uppercase
+                                tracking-wider
+                                text-brand
+                                hover:underline
+                              "
+                            >
+                              Product Details
+
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          ) : null}
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              onSelectCatalog(
+                                category.id,
+                                item
                               )
-                                ? "_blank"
-                                : undefined
                             }
-                            rel={
-                              item.productUrl.startsWith(
-                                "http"
-                              )
-                                ? "noopener noreferrer"
-                                : undefined
-                            }
-                            onClick={(
-                              event
-                            ) =>
-                              event.stopPropagation()
-                            }
-                            className="
-                              mt-3
-                              inline-flex
+                            className={`
+                              mt-auto
+                              flex
+                              w-full
                               items-center
-                              gap-1.5
-                              text-[10px]
+                              justify-center
+                              gap-2
+                              rounded-xl
+                              px-4
+                              py-3
+                              text-xs
                               font-bold
                               uppercase
                               tracking-wider
-                              text-brand
-                              hover:underline
-                            "
+                              transition-all
+
+                              ${
+                                isSelected
+                                  ? `
+                                    bg-brand
+                                    text-white
+                                  `
+                                  : `
+                                    border
+                                    border-brand/15
+                                    bg-[#fff8f8]
+                                    text-brand
+                                    hover:border-brand
+                                    hover:bg-brand
+                                    hover:text-white
+                                  `
+                              }
+                            `}
                           >
-                            Product Details
+                            {isSelected ? (
+                              <>
+                                <Check className="h-4 w-4" />
 
-                            <ExternalLink className="h-3 w-3" />
-                          </a>
-                        ) : null}
+                                Selected
+                              </>
+                            ) : (
+                              <>
+                                <Plus className="h-4 w-4" />
 
-                        <button
-                          type="button"
-                          onClick={() =>
-                            onSelect(
-                              category.id,
-                              item
-                            )
-                          }
-                          className={`
-                            mt-auto
-                            flex
-                            w-full
-                            items-center
-                            justify-center
-                            gap-2
-                            rounded-xl
-                            px-4
-                            py-3
-                            pt-3
-                            text-xs
-                            font-bold
-                            uppercase
-                            tracking-wider
-                            transition-all
+                                Select
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </article>
+                    );
+                  }
+                )}
+              </div>
 
-                            ${
-                              isSelected
-                                ? `
-                                  bg-brand
-                                  text-white
-                                `
-                                : `
-                                  border
-                                  border-brand/15
-                                  bg-[#fff8f8]
-                                  text-brand
-                                  hover:border-brand
-                                  hover:bg-brand
-                                  hover:text-white
-                                `
-                            }
-                          `}
-                        >
-                          {isSelected ? (
-                            <>
-                              <Check className="h-4 w-4" />
+              {/* CUSTOM REQUEST TOGGLE */}
 
-                              Selected
-                            </>
-                          ) : (
-                            <>
-                              <Plus className="h-4 w-4" />
+              <div
+                className="
+                  mt-5
+                  rounded-2xl
+                  border
+                  border-dashed
+                  border-brand/20
+                  bg-white
+                  p-5
+                "
+              >
+                <div
+                  className="
+                    flex
+                    flex-wrap
+                    items-center
+                    justify-between
+                    gap-4
+                  "
+                >
+                  <div>
+                    <p
+                      className="
+                        font-display
+                        text-base
+                        font-extrabold
+                        uppercase
+                        text-brand-deep
+                      "
+                    >
+                      Can&apos;t Find Your Part?
+                    </p>
 
-                              Select
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    </article>
-                  );
-                }
-              )}
-            </div>
+                    <p
+                      className="
+                        mt-1
+                        text-xs
+                        text-slate-400
+                      "
+                    >
+                      Add your own requested component and GameX will quote it.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setShowCustom(
+                        (
+                          current
+                        ) =>
+                          !current
+                      )
+                    }
+                    className="
+                      inline-flex
+                      items-center
+                      gap-2
+                      rounded-xl
+                      bg-brand
+                      px-4
+                      py-2.5
+                      text-xs
+                      font-bold
+                      uppercase
+                      tracking-wider
+                      text-white
+                    "
+                  >
+                    <Plus className="h-4 w-4" />
+
+                    Custom Part
+                  </button>
+                </div>
+
+                {showCustom ? (
+                  <div
+                    className="
+                      mt-5
+                      border-t
+                      border-brand/10
+                      pt-5
+                    "
+                  >
+                    <CustomRequestForm
+                      buttonText={`Use Custom ${category.name}`}
+                      onSubmit={(
+                        input
+                      ) =>
+                        onSelectCustom(
+                          category.id,
+                          input
+                        )
+                      }
+                    />
+                  </div>
+                ) : null}
+              </div>
+            </>
           ) : (
             <div
               className="
@@ -2465,43 +3442,73 @@ function ItemSelector({
                 border-dashed
                 border-brand/20
                 bg-white
-                px-6
-                py-12
-                text-center
+                p-6
               "
             >
-              <Package className="mx-auto h-8 w-8 text-brand/30" />
-
-              <p
+              <div
                 className="
-                  mt-3
-                  font-display
-                  text-lg
-                  font-extrabold
-                  uppercase
-                  text-brand-deep
+                  text-center
                 "
               >
-                No Options Available
-              </p>
+                <Package className="mx-auto h-9 w-9 text-brand/30" />
 
-              <p
+                <p
+                  className="
+                    mt-3
+                    font-display
+                    text-lg
+                    font-extrabold
+                    uppercase
+                    text-brand-deep
+                  "
+                >
+                  No Listed Options Yet
+                </p>
+
+                <p
+                  className="
+                    mx-auto
+                    mt-2
+                    max-w-lg
+                    text-sm
+                    leading-6
+                    text-slate-400
+                  "
+                >
+                  GameX has not added a listed product to this category yet.
+                  You can still enter the component you want below.
+                </p>
+              </div>
+
+              <div
                 className="
-                  mt-2
-                  text-sm
-                  text-slate-400
+                  mt-6
+                  border-t
+                  border-brand/10
+                  pt-6
                 "
               >
-                GameX has not added any visible items to this category yet.
-              </p>
+                <CustomRequestForm
+                  buttonText={`Use Custom ${category.name}`}
+                  onSubmit={(
+                    input
+                  ) =>
+                    onSelectCustom(
+                      category.id,
+                      input
+                    )
+                  }
+                />
+              </div>
             </div>
           )}
         </div>
 
-        {/* OPTIONAL SKIP */}
+        {/* FOOTER */}
 
         <div
           className="
+            shrink-0
             flex
             flex-wrap
             items-center
@@ -2522,7 +3529,7 @@ function ItemSelector({
             "
           >
             {category.isRequired
-              ? "This category is marked as required by GameX."
+              ? "This category is marked as required."
               : "This category is optional and can be skipped."}
           </p>
 
@@ -2587,5 +3594,316 @@ function ItemSelector({
         </div>
       </div>
     </div>
+  );
+}
+
+/* =========================================================
+   CUSTOM REQUEST FORM
+   ========================================================= */
+
+function CustomRequestForm({
+  buttonText,
+  onSubmit,
+  onCancel,
+}: {
+  buttonText: string;
+
+  onSubmit: (
+    input: CustomPartInput
+  ) => void;
+
+  onCancel?: () => void;
+}) {
+  function handleSubmit(
+    event: FormEvent<HTMLFormElement>
+  ) {
+    event.preventDefault();
+
+    const form =
+      event.currentTarget;
+
+    const formData =
+      new FormData(
+        form
+      );
+
+    const name =
+      String(
+        formData.get(
+          "customName"
+        ) ?? ""
+      ).trim();
+
+    if (!name) {
+      return;
+    }
+
+    const productUrl =
+      String(
+        formData.get(
+          "customProductUrl"
+        ) ?? ""
+      ).trim();
+
+    const note =
+      String(
+        formData.get(
+          "customNote"
+        ) ?? ""
+      ).trim();
+
+    const price =
+      parseOptionalPrice(
+        formData.get(
+          "customPrice"
+        )
+      );
+
+    onSubmit({
+      name,
+      price,
+      productUrl,
+      note,
+    });
+
+    form.reset();
+  }
+
+  return (
+    <form
+      onSubmit={
+        handleSubmit
+      }
+    >
+      <div
+        className="
+          grid
+          gap-4
+          sm:grid-cols-2
+        "
+      >
+        <div>
+          <label
+            className="
+              mb-2
+              block
+              text-[10px]
+              font-bold
+              uppercase
+              tracking-wider
+              text-slate-500
+            "
+          >
+            Item / Component Name
+          </label>
+
+          <input
+            name="customName"
+            required
+            placeholder="e.g. ASUS RTX 4070 Super"
+            className="
+              w-full
+              rounded-xl
+              border
+              border-brand/15
+              bg-white
+              px-4
+              py-3
+              text-sm
+              text-brand-deep
+              outline-none
+              focus:border-brand
+            "
+          />
+        </div>
+
+        <div>
+          <label
+            className="
+              mb-2
+              block
+              text-[10px]
+              font-bold
+              uppercase
+              tracking-wider
+              text-slate-500
+            "
+          >
+            Expected Price
+          </label>
+
+          <input
+            name="customPrice"
+            type="number"
+            min="0"
+            step="1"
+            placeholder="Optional"
+            className="
+              w-full
+              rounded-xl
+              border
+              border-brand/15
+              bg-white
+              px-4
+              py-3
+              text-sm
+              text-brand-deep
+              outline-none
+              focus:border-brand
+            "
+          />
+
+          <p
+            className="
+              mt-1.5
+              text-[10px]
+              text-slate-400
+            "
+          >
+            Leave empty if you want GameX to provide the price.
+          </p>
+        </div>
+      </div>
+
+      <div
+        className="
+          mt-4
+        "
+      >
+        <label
+          className="
+            mb-2
+            block
+            text-[10px]
+            font-bold
+            uppercase
+            tracking-wider
+            text-slate-500
+          "
+        >
+          Product Link
+        </label>
+
+        <input
+          name="customProductUrl"
+          placeholder="Optional product / reference link"
+          className="
+            w-full
+            rounded-xl
+            border
+            border-brand/15
+            bg-white
+            px-4
+            py-3
+            text-sm
+            text-brand-deep
+            outline-none
+            focus:border-brand
+          "
+        />
+      </div>
+
+      <div
+        className="
+          mt-4
+        "
+      >
+        <label
+          className="
+            mb-2
+            block
+            text-[10px]
+            font-bold
+            uppercase
+            tracking-wider
+            text-slate-500
+          "
+        >
+          Note
+        </label>
+
+        <textarea
+          name="customNote"
+          rows={
+            3
+          }
+          placeholder="Color, model, brand or any other requirement..."
+          className="
+            w-full
+            resize-y
+            rounded-xl
+            border
+            border-brand/15
+            bg-white
+            px-4
+            py-3
+            text-sm
+            text-brand-deep
+            outline-none
+            focus:border-brand
+          "
+        />
+      </div>
+
+      <div
+        className="
+          mt-4
+          flex
+          flex-wrap
+          justify-end
+          gap-2
+        "
+      >
+        {onCancel ? (
+          <button
+            type="button"
+            onClick={
+              onCancel
+            }
+            className="
+              rounded-xl
+              border
+              border-brand/15
+              bg-white
+              px-4
+              py-3
+              text-xs
+              font-bold
+              uppercase
+              tracking-wider
+              text-brand
+            "
+          >
+            Cancel
+          </button>
+        ) : null}
+
+        <button
+          type="submit"
+          className="
+            inline-flex
+            items-center
+            gap-2
+            rounded-xl
+            bg-brand
+            px-5
+            py-3
+            text-xs
+            font-bold
+            uppercase
+            tracking-wider
+            text-white
+            transition-all
+            hover:bg-brand-soft
+          "
+        >
+          <Plus className="h-4 w-4" />
+
+          {
+            buttonText
+          }
+        </button>
+      </div>
+    </form>
   );
 }
