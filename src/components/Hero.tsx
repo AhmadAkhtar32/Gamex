@@ -45,34 +45,31 @@ import {
    ANIMATION
    ========================================================= */
 
-const container:
-  Variants = {
+const container: Variants = {
   hidden: {},
   show: {},
 };
 
-const item:
-  Variants = {
+const item: Variants = {
   hidden: {
     opacity: 0,
-    y: 32,
+    y: 24,
   },
 
   show: (
     index: number
   ) => ({
     opacity: 1,
-
     y: 0,
 
     transition: {
       duration:
-        0.75,
+        0.65,
 
       delay:
-        0.1 +
+        0.06 +
         index *
-          0.08,
+          0.06,
 
       ease: [
         0.22,
@@ -93,7 +90,6 @@ export function Hero({
   media,
 }: {
   content: HeroContent;
-
   media: HeroMediaItem[];
 }) {
   const ready =
@@ -104,9 +100,7 @@ export function Hero({
      ======================================================= */
 
   const words =
-    content
-      .rotatingWords
-      .length >
+    content.rotatingWords.length >
     0
       ? content.rotatingWords
       : DEFAULT_HERO_CONTENT.rotatingWords;
@@ -218,7 +212,6 @@ export function Hero({
      IMAGE AUTOPLAY
 
      Images = 5 seconds.
-
      Videos advance when playback ends.
      ======================================================= */
 
@@ -311,91 +304,76 @@ export function Hero({
 
   return (
     <section
-      id="home"
-      className="
-        relative
-
-        overflow-hidden
-
-        pb-10
-pt-24
-md:pb-14
-md:pt-28
-      "
-    >
+  id="home"
+  className="
+    relative
+    min-h-[calc(100svh-5rem)]
+    overflow-hidden
+    pb-4
+    pt-24
+    sm:pt-24
+    md:pb-5
+    md:pt-24
+    lg:pb-5
+    lg:pt-24
+  "
+>
       {/* =====================================================
           BACKGROUND
           ===================================================== */}
 
       <div
+        aria-hidden="true"
         className="
           bg-grid
           grid-animated
-
           absolute
           inset-0
-
           -z-10
-
           opacity-55
-
           [mask-image:radial-gradient(ellipse_75%_65%_at_50%_0%,black,transparent)]
         "
       />
 
       <div
+        aria-hidden="true"
         className="
           stripes-red
-
           absolute
           inset-0
-
           -z-10
-
           opacity-35
-
           [mask-image:radial-gradient(ellipse_70%_60%_at_50%_40%,black,transparent)]
         "
       />
 
       <div
+        aria-hidden="true"
         className="
           radar-sweep
-
           absolute
-
           left-1/2
           top-1/2
-
           -z-10
-
           h-[70rem]
           w-[70rem]
-
           -translate-x-1/2
           -translate-y-1/2
-
           rounded-full
-
           opacity-30
         "
       />
 
       <div
+        aria-hidden="true"
         className="
           red-scan
-
           absolute
-
           inset-x-0
           top-0
-
           -z-10
-
-          h-44
-
+          h-32
           bg-gradient-to-b
-
           from-transparent
           via-brand/[0.06]
           to-transparent
@@ -403,45 +381,33 @@ md:pt-28
       />
 
       <div
+        aria-hidden="true"
         className="
           animate-orb
-
           absolute
-
           -left-40
           -top-40
-
           -z-10
-
           h-[34rem]
           w-[34rem]
-
           rounded-full
-
           bg-brand/[0.09]
-
           blur-[130px]
         "
       />
 
       <div
+        aria-hidden="true"
         className="
           animate-pulse-glow
-
           absolute
-
           -right-40
-          top-24
-
+          top-10
           -z-10
-
           h-[30rem]
           w-[30rem]
-
           rounded-full
-
           bg-brand-soft/[0.07]
-
           blur-[120px]
         "
       />
@@ -452,22 +418,17 @@ md:pt-28
 
       <div
         className="
-          mx-auto
-
-          grid
-
-          max-w-7xl
-
-          items-center
-
-          gap-14
-
-          px-5
-
-          md:px-8
-
-          lg:grid-cols-2
-        "
+  mx-auto
+  grid
+  max-w-7xl
+  items-start
+  gap-6
+  px-5
+  md:px-8
+  lg:grid-cols-[0.92fr_1.08fr]
+  lg:gap-9
+  xl:gap-10
+"
       >
         {/* ===================================================
             LEFT
@@ -483,6 +444,9 @@ md:pt-28
           variants={
             container
           }
+          className="
+            lg:pt-1
+          "
         >
           {/* EYEBROW */}
 
@@ -498,35 +462,23 @@ md:pt-28
             <span
               className="
                 inline-flex
-
                 items-center
-
-                gap-2
-
+                gap-1.5
                 rounded-full
-
                 border
                 border-brand/20
-
                 bg-brand/[0.07]
-
-                px-4
-                py-1.5
-
-                text-xs
-
+                px-3
+                py-1
+                text-[10px]
                 font-bold
-
                 uppercase
-
-                tracking-[0.25em]
-
+                tracking-[0.22em]
                 text-brand
-
                 shadow-[0_8px_28px_-20px_rgba(230,0,0,0.35)]
               "
             >
-              <Zap className="h-3.5 w-3.5" />
+              <Zap className="h-3 w-3" />
 
               <ScrambleText
                 text={
@@ -543,28 +495,19 @@ md:pt-28
 
           <h1
             className="
-              mt-6
-
-              font-display
-
-              text-4xl
-
-              font-black
-
-              uppercase
-
-              leading-[1.02]
-
-              tracking-tight
-
-              text-brand-deep
-
-              sm:text-5xl
-
-              md:text-6xl
-
-              xl:text-7xl
-            "
+  mt-3
+  font-display
+  text-[2.25rem]
+  font-black
+  uppercase
+  leading-[0.98]
+  tracking-tight
+  text-brand-deep
+  sm:text-[2.55rem]
+  md:text-[2.85rem]
+  lg:text-[3rem]
+  xl:text-[3.1rem]
+"
           >
             <motion.span
               variants={
@@ -590,15 +533,11 @@ md:pt-28
                 2
               }
               className="
-                mt-1
-
+                mt-0.5
                 flex
-
                 flex-wrap
-
                 items-baseline
-
-                gap-x-3
+                gap-x-2
               "
             >
               <span>
@@ -610,11 +549,8 @@ md:pt-28
               <span
                 className="
                   relative
-
                   inline-flex
-
                   min-w-[4.6em]
-
                   text-brand
                 "
               >
@@ -626,7 +562,7 @@ md:pt-28
                         0,
 
                       y:
-                        18,
+                        14,
 
                       filter:
                         "blur(7px)",
@@ -646,14 +582,14 @@ md:pt-28
                         0,
 
                       y:
-                        -18,
+                        -14,
 
                       filter:
                         "blur(7px)",
                     }}
                     transition={{
                       duration:
-                        0.35,
+                        0.3,
 
                       ease: [
                         0.22,
@@ -684,18 +620,15 @@ md:pt-28
               3
             }
             className="
-              mt-6
-
+              mt-4
               flex
-
               items-center
-
-              gap-3
+              gap-2
             "
           >
-            <span className="h-[3px] w-16 rounded-full bg-brand" />
+            <span className="h-[3px] w-14 rounded-full bg-brand" />
 
-            <span className="h-[3px] w-5 rounded-full bg-black/70" />
+            <span className="h-[3px] w-4 rounded-full bg-black/70" />
 
             <span className="h-[3px] w-2 rounded-full bg-brand/40" />
           </motion.div>
@@ -710,19 +643,13 @@ md:pt-28
               4
             }
             className="
-              mt-6
-
-              max-w-2xl
-
-              text-base
-
+              mt-3
+              max-w-xl
+              text-sm
               font-medium
-
-              leading-8
-
+              leading-6
               text-slate-600
-
-              sm:text-lg
+              sm:text-[15px]
             "
           >
             {
@@ -740,13 +667,10 @@ md:pt-28
               5
             }
             className="
-              mt-8
-
+              mt-4
               flex
-
               flex-wrap
-
-              gap-3
+              gap-2.5
             "
           >
             <Magnetic>
@@ -756,66 +680,40 @@ md:pt-28
                 }
                 className="
                   group
-
                   relative
-
                   inline-flex
-
                   items-center
                   justify-center
-
                   gap-2
-
                   overflow-hidden
-
-                  rounded-xl
-
+                  rounded-lg
                   bg-brand
-
-                  px-7
-                  py-4
-
+                  px-5
+                  py-3
                   font-display
-
-                  text-xs
-
+                  text-[11px]
                   font-bold
-
                   uppercase
-
                   tracking-[0.12em]
-
                   text-white
-
                   shadow-[0_16px_38px_-18px_rgba(230,0,0,0.72)]
-
                   transition-all
-
                   duration-300
-
                   hover:-translate-y-0.5
-
                   hover:bg-[#c90000]
                 "
               >
                 <span
                   className="
                     absolute
-
                     -left-12
                     top-0
-
                     h-full
                     w-10
-
                     -skew-x-12
-
                     bg-white/20
-
                     transition-all
-
                     duration-700
-
                     group-hover:left-[120%]
                   "
                 />
@@ -829,11 +727,8 @@ md:pt-28
                 <span
                   className="
                     relative
-
                     transition-transform
-
                     duration-300
-
                     group-hover:translate-x-1
                   "
                 >
@@ -849,46 +744,27 @@ md:pt-28
                 }
                 className="
                   group
-
                   inline-flex
-
                   items-center
                   justify-center
-
                   gap-2
-
-                  rounded-xl
-
+                  rounded-lg
                   border
                   border-black/15
-
                   bg-white
-
-                  px-7
-                  py-4
-
+                  px-5
+                  py-3
                   font-display
-
-                  text-xs
-
+                  text-[11px]
                   font-bold
-
                   uppercase
-
                   tracking-[0.12em]
-
                   text-brand-deep
-
                   transition-all
-
                   duration-300
-
                   hover:-translate-y-0.5
-
                   hover:border-brand/35
-
                   hover:bg-[#fff8f8]
-
                   hover:text-brand
                 "
               >
@@ -900,15 +776,10 @@ md:pt-28
                   className="
                     h-1.5
                     w-1.5
-
                     rounded-full
-
                     bg-brand
-
                     transition-transform
-
                     duration-300
-
                     group-hover:scale-125
                   "
                 />
@@ -926,25 +797,19 @@ md:pt-28
               6
             }
             className="
-              mt-10
-
+              mt-5
               grid
-
               max-w-xl
-
-              gap-3
-
+              gap-2
               border-t
               border-black/[0.07]
-
-              pt-5
-
+              pt-4
               sm:grid-cols-3
             "
           >
             <TrustPoint
               icon={
-                <Gauge className="h-4 w-4" />
+                <Gauge className="h-3.5 w-3.5" />
               }
               text={
                 content.trustPoint1
@@ -953,7 +818,7 @@ md:pt-28
 
             <TrustPoint
               icon={
-                <Cpu className="h-4 w-4" />
+                <Cpu className="h-3.5 w-3.5" />
               }
               text={
                 content.trustPoint2
@@ -962,7 +827,7 @@ md:pt-28
 
             <TrustPoint
               icon={
-                <MousePointerClick className="h-4 w-4" />
+                <MousePointerClick className="h-3.5 w-3.5" />
               }
               text={
                 content.trustPoint3
@@ -973,9 +838,6 @@ md:pt-28
 
         {/* ===================================================
             RIGHT — MEDIA SLIDER
-
-            NO FLOATING CARDS
-            NO IMAGE CROPPING
             =================================================== */}
 
         <motion.div
@@ -984,7 +846,7 @@ md:pt-28
               0,
 
             y:
-              34,
+              24,
 
             scale:
               0.97,
@@ -1006,7 +868,7 @@ md:pt-28
                     0,
 
                   y:
-                    34,
+                    24,
 
                   scale:
                     0.97,
@@ -1014,10 +876,10 @@ md:pt-28
           }
           transition={{
             duration:
-              0.9,
+              0.75,
 
             delay:
-              0.28,
+              0.18,
 
             ease: [
               0.22,
@@ -1026,20 +888,19 @@ md:pt-28
               1,
             ],
           }}
-          className="relative"
+          className="
+            relative
+            lg:-mt-1
+          "
         >
           <div
+            aria-hidden="true"
             className="
               absolute
-
-              -inset-5
-
+              -inset-4
               -z-10
-
-              rounded-[2.4rem]
-
+              rounded-[2rem]
               bg-brand/[0.07]
-
               blur-3xl
             "
           />
@@ -1047,32 +908,24 @@ md:pt-28
           <div
             className="
               relative
-
               overflow-hidden
-
-              rounded-[1.8rem]
-
+              rounded-[1.5rem]
               border
               border-brand/20
-
               bg-[#111]
-
               shadow-[0_30px_90px_-35px_rgba(230,0,0,0.42)]
             "
           >
             {/* FRAME */}
 
             <div
+              aria-hidden="true"
               className="
                 pointer-events-none
-
                 absolute
                 inset-0
-
                 z-30
-
-                rounded-[1.8rem]
-
+                rounded-[1.5rem]
                 ring-1
                 ring-inset
                 ring-white/10
@@ -1080,20 +933,15 @@ md:pt-28
             />
 
             <div
+              aria-hidden="true"
               className="
                 pointer-events-none
-
                 absolute
-
                 inset-x-0
                 top-0
-
                 z-30
-
                 h-[3px]
-
                 bg-gradient-to-r
-
                 from-transparent
                 via-brand
                 to-transparent
@@ -1103,20 +951,15 @@ md:pt-28
             {/* =================================================
                 MEDIA AREA
 
-                Stable 16:10 frame.
-
-                object-contain preserves the source ratio and
-                keeps the complete image/video visible.
+                Shorter 16:9 frame keeps entire slider visible
+                above the fold on normal laptop screens.
                 ================================================= */}
 
             <div
               className="
                 relative
-
-                aspect-[16/10]
-
+                aspect-video
                 w-full
-
                 bg-[#0d0d0d]
               "
             >
@@ -1187,7 +1030,6 @@ md:pt-28
                         className="
                           h-full
                           w-full
-
                           object-contain
                         "
                       />
@@ -1204,7 +1046,6 @@ md:pt-28
                         className="
                           h-full
                           w-full
-
                           object-contain
                         "
                       />
@@ -1216,13 +1057,9 @@ md:pt-28
                   className="
                     absolute
                     inset-0
-
                     grid
-
                     place-items-center
-
                     px-8
-
                     text-center
                   "
                 >
@@ -1230,28 +1067,20 @@ md:pt-28
                     <Zap
                       className="
                         mx-auto
-
-                        h-10
-                        w-10
-
+                        h-9
+                        w-9
                         text-brand
                       "
                     />
 
                     <p
                       className="
-                        mt-4
-
+                        mt-3
                         font-display
-
                         text-sm
-
                         font-bold
-
                         uppercase
-
                         tracking-wider
-
                         text-white
                       "
                     >
@@ -1260,17 +1089,13 @@ md:pt-28
 
                     <p
                       className="
-                        mt-2
-
+                        mt-1.5
                         text-xs
-
                         leading-relaxed
-
                         text-white/50
                       "
                     >
-                      Add images or video from Admin → Hero
-                      Settings.
+                      Add images or video from Admin → Hero Settings.
                     </p>
                   </div>
                 </div>
@@ -1291,42 +1116,27 @@ md:pt-28
                     aria-label="Previous Hero media"
                     className="
                       absolute
-
                       left-3
                       top-1/2
-
                       z-40
-
                       grid
-
-                      h-10
-                      w-10
-
+                      h-9
+                      w-9
                       -translate-y-1/2
-
                       place-items-center
-
                       rounded-full
-
                       border
                       border-white/20
-
                       bg-black/45
-
                       text-white
-
                       backdrop-blur-md
-
                       transition-all
-
                       hover:border-brand
-
                       hover:bg-brand
-
                       sm:left-4
                     "
                   >
-                    <ChevronLeft className="h-5 w-5" />
+                    <ChevronLeft className="h-4 w-4" />
                   </button>
 
                   <button
@@ -1337,42 +1147,27 @@ md:pt-28
                     aria-label="Next Hero media"
                     className="
                       absolute
-
                       right-3
                       top-1/2
-
                       z-40
-
                       grid
-
-                      h-10
-                      w-10
-
+                      h-9
+                      w-9
                       -translate-y-1/2
-
                       place-items-center
-
                       rounded-full
-
                       border
                       border-white/20
-
                       bg-black/45
-
                       text-white
-
                       backdrop-blur-md
-
                       transition-all
-
                       hover:border-brand
-
                       hover:bg-brand
-
                       sm:right-4
                     "
                   >
-                    <ChevronRight className="h-5 w-5" />
+                    <ChevronRight className="h-4 w-4" />
                   </button>
 
                   {/* DOTS */}
@@ -1380,30 +1175,19 @@ md:pt-28
                   <div
                     className="
                       absolute
-
-                      bottom-4
+                      bottom-3
                       left-1/2
-
                       z-40
-
                       flex
-
                       -translate-x-1/2
-
                       items-center
-
                       gap-2
-
                       rounded-full
-
                       border
                       border-white/15
-
                       bg-black/45
-
                       px-3
-                      py-2
-
+                      py-1.5
                       backdrop-blur-md
                     "
                   >
@@ -1428,11 +1212,8 @@ md:pt-28
                           }`}
                           className={`
                             h-1.5
-
                             rounded-full
-
                             transition-all
-
                             duration-300
 
                             ${
@@ -1457,23 +1238,15 @@ md:pt-28
           0 ? (
             <div
               className="
-                mt-3
-
+                mt-2
                 flex
-
                 items-center
                 justify-between
-
                 px-1
-
-                text-[10px]
-
+                text-[9px]
                 font-bold
-
                 uppercase
-
                 tracking-[0.18em]
-
                 text-slate-400
               "
             >
@@ -1517,19 +1290,16 @@ md:pt-28
         }
         transition={{
           delay:
-            1,
+            0.8,
 
           duration:
-            0.5,
+            0.4,
         }}
         className="
-          mt-8
-
-          flex
-
+          mt-3
+          hidden
           justify-center
-
-          md:mt-10
+          lg:flex
         "
       >
         <MouseIndicator />
@@ -1547,40 +1317,28 @@ function TrustPoint({
   text,
 }: {
   icon: ReactNode;
-
   text: string;
 }) {
   return (
     <div
       className="
         flex
-
         items-center
-
-        gap-2.5
-
-        text-xs
-
+        gap-2
+        text-[11px]
         font-semibold
-
         text-slate-500
       "
     >
       <span
         className="
           grid
-
-          h-8
-          w-8
-
+          h-7
+          w-7
           shrink-0
-
           place-items-center
-
           rounded-lg
-
           bg-brand/[0.07]
-
           text-brand
         "
       >

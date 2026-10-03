@@ -1,19 +1,42 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
+import {
+  useEffect,
+  useState,
+} from "react";
+
+import {
+  AnimatePresence,
+  motion,
+} from "framer-motion";
+
 import {
   ArrowUpRight,
   Check,
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
-import { FaWhatsapp } from "react-icons/fa";
 
-import { DetailsModal } from "@/components/DetailsModal";
-import { SectionHeading, SpotlightCard } from "@/components/ui";
-import { formatPrice } from "@/lib/price";
+import {
+  FaWhatsapp,
+} from "react-icons/fa";
+
+import {
+  DetailsModal,
+} from "@/components/DetailsModal";
+
+import {
+  SectionHeading,
+  SpotlightCard,
+} from "@/components/ui";
+
+import {
+  formatPrice,
+} from "@/lib/price";
+
+/* =========================================================
+   TYPES
+   ========================================================= */
 
 export type PublicCategory = {
   id: string;
@@ -22,26 +45,63 @@ export type PublicCategory = {
 
 export type PublicProduct = {
   id: string;
+
   name: string;
+
   category: string;
+
   tag: string;
-  price: number | null;
+
+  price:
+    | number
+    | null;
+
   description: string;
+
   specs: string[];
+
   image: string;
 };
 
+/* =========================================================
+   RESPONSIVE LIMIT
+   ========================================================= */
+
 function getProductLimit() {
-  if (typeof window === "undefined") return 8;
+  if (
+    typeof window ===
+    "undefined"
+  ) {
+    return 8;
+  }
 
-  if (window.innerWidth >= 1280) return 8;
+  if (
+    window.innerWidth >=
+    1280
+  ) {
+    return 8;
+  }
 
-  if (window.innerWidth >= 1024) return 6;
+  if (
+    window.innerWidth >=
+    1024
+  ) {
+    return 6;
+  }
 
-  if (window.innerWidth >= 640) return 4;
+  if (
+    window.innerWidth >=
+    640
+  ) {
+    return 4;
+  }
 
   return 2;
 }
+
+/* =========================================================
+   PRODUCTS
+   ========================================================= */
 
 export default function Products({
   products,
@@ -50,8 +110,13 @@ export default function Products({
   products: PublicProduct[];
   categories: PublicCategory[];
 }) {
-  const [active, setActive] =
-    useState<string>("all");
+  const [
+    active,
+    setActive,
+  ] =
+    useState<string>(
+      "all"
+    );
 
   const [
     selectedProduct,
@@ -61,7 +126,10 @@ export default function Products({
       null
     );
 
-  const [showAll, setShowAll] =
+  const [
+    showAll,
+    setShowAll,
+  ] =
     useState(false);
 
   const [
@@ -70,12 +138,17 @@ export default function Products({
   ] =
     useState(8);
 
+  /* =======================================================
+     RESPONSIVE LIMIT
+     ======================================================= */
+
   useEffect(() => {
-    const updateLimit = () => {
-      setInitialLimit(
-        getProductLimit()
-      );
-    };
+    const updateLimit =
+      () => {
+        setInitialLimit(
+          getProductLimit()
+        );
+      };
 
     updateLimit();
 
@@ -92,6 +165,10 @@ export default function Products({
     };
   }, []);
 
+  /* =======================================================
+     VALID ACTIVE CATEGORY
+     ======================================================= */
+
   useEffect(() => {
     if (
       active ===
@@ -102,12 +179,16 @@ export default function Products({
 
     const exists =
       categories.some(
-        (category) =>
+        (
+          category
+        ) =>
           category.id ===
           active
       );
 
-    if (!exists) {
+    if (
+      !exists
+    ) {
       setActive(
         "all"
       );
@@ -121,11 +202,18 @@ export default function Products({
     categories,
   ]);
 
+  /* =======================================================
+     FILTER
+     ======================================================= */
+
   const filteredProducts =
-    active === "all"
+    active ===
+    "all"
       ? products
       : products.filter(
-          (product) =>
+          (
+            product
+          ) =>
             product.category ===
             active
         );
@@ -142,6 +230,10 @@ export default function Products({
     filteredProducts.length >
     initialLimit;
 
+  /* =======================================================
+     CATEGORY CHANGE
+     ======================================================= */
+
   function changeCategory(
     categoryId: string
   ) {
@@ -154,8 +246,14 @@ export default function Products({
     );
   }
 
+  /* =======================================================
+     SHOW MORE / LESS
+     ======================================================= */
+
   function toggleProducts() {
-    if (showAll) {
+    if (
+      showAll
+    ) {
       setShowAll(
         false
       );
@@ -185,6 +283,10 @@ export default function Products({
     );
   }
 
+  /* =======================================================
+     RENDER
+     ======================================================= */
+
   return (
     <>
       <section
@@ -197,6 +299,8 @@ export default function Products({
           md:py-20
         "
       >
+        {/* BACKGROUND */}
+
         <div
           aria-hidden="true"
           className="
@@ -219,6 +323,8 @@ export default function Products({
           "
         />
 
+        {/* CONTENT */}
+
         <div
           className="
             relative
@@ -233,6 +339,8 @@ export default function Products({
             title="Products"
             subtitle="Premium gaming hardware selected for performance, reliability, and serious gaming setups."
           />
+
+          {/* FILTERS */}
 
           <div
             className="
@@ -303,11 +411,14 @@ export default function Products({
             )}
           </div>
 
+          {/* PRODUCT GRID */}
+
           <motion.div
             layout
             className="
               mt-9
               grid
+              auto-rows-fr
               gap-5
               sm:grid-cols-2
               lg:grid-cols-3
@@ -333,6 +444,19 @@ export default function Products({
                     `https://wa.me/923036009123?text=${encodeURIComponent(
                       `Hi GameX, I want to order ${product.name}. Product link: https://gamex.pk/product/${product.id}`
                     )}`;
+
+                  const visibleSpecs =
+                    product.specs.slice(
+                      0,
+                      3
+                    );
+
+                  const remainingSpecs =
+                    Math.max(
+                      product.specs.length -
+                        3,
+                      0
+                    );
 
                   return (
                     <motion.div
@@ -392,6 +516,7 @@ export default function Products({
                           0.28,
                       }}
                       className="
+                        h-full
                         cursor-pointer
                         rounded-2xl
                         focus:outline-none
@@ -403,6 +528,7 @@ export default function Products({
                         className="
                           group
                           flex
+                          h-full
                           flex-col
                           overflow-hidden
                           rounded-2xl
@@ -417,6 +543,8 @@ export default function Products({
                           hover:shadow-[0_25px_60px_-38px_rgba(230,0,0,0.34)]
                         "
                       >
+                        {/* IMAGE */}
+
                         <div
                           className="
                             relative
@@ -424,10 +552,12 @@ export default function Products({
                             overflow-hidden
                             border-b
                             border-black/[0.05]
-                            bg-[#f4f4f4]
+                            bg-[#f7f7f7]
+                            p-2
                           "
                         >
                           {/* eslint-disable-next-line @next/next/no-img-element */}
+
                           <img
                             src={
                               product.image
@@ -435,16 +565,14 @@ export default function Products({
                             alt={`${product.name} - ${categoryLabel} at GameX Pakistan`}
                             loading="lazy"
                             className="
-                              absolute
-                              inset-0
                               h-full
                               w-full
-                              object-cover
+                              object-contain
                               object-center
                               transition-transform
                               duration-500
                               ease-out
-                              group-hover:scale-[1.045]
+                              group-hover:scale-[1.025]
                             "
                           />
 
@@ -455,21 +583,9 @@ export default function Products({
                               absolute
                               inset-0
                               bg-gradient-to-t
-                              from-brand/[0.055]
+                              from-brand/[0.035]
                               via-transparent
                               to-transparent
-                            "
-                          />
-
-                          <div
-                            aria-hidden="true"
-                            className="
-                              pointer-events-none
-                              absolute
-                              inset-0
-                              ring-1
-                              ring-inset
-                              ring-black/[0.025]
                             "
                           />
 
@@ -495,7 +611,7 @@ export default function Products({
                                 uppercase
                                 tracking-wider
                                 text-brand
-                                shadow-[0_8px_22px_-16px_rgba(230,0,0,0.5)]
+                                shadow-sm
                                 backdrop-blur-md
                               "
                             >
@@ -506,13 +622,18 @@ export default function Products({
                           </div>
                         </div>
 
+                        {/* CARD CONTENT */}
+
                         <div
                           className="
                             flex
+                            flex-1
                             flex-col
                             p-4
                           "
                         >
+                          {/* CATEGORY */}
+
                           <p
                             className="
                               text-[10px]
@@ -527,22 +648,34 @@ export default function Products({
                             }
                           </p>
 
-                          <h3
+                          {/* FIXED PRODUCT NAME AREA */}
+
+                          <div
                             className="
                               mt-1.5
-                              font-display
-                              text-lg
-                              font-extrabold
-                              leading-tight
-                              text-brand-deep
-                              transition-colors
-                              group-hover:text-brand
+                              h-[3.15rem]
+                              overflow-hidden
                             "
                           >
-                            {
-                              product.name
-                            }
-                          </h3>
+                            <h3
+                              className="
+                                line-clamp-2
+                                font-display
+                                text-lg
+                                font-extrabold
+                                leading-[1.35]
+                                text-brand-deep
+                                transition-colors
+                                group-hover:text-brand
+                              "
+                            >
+                              {
+                                product.name
+                              }
+                            </h3>
+                          </div>
+
+                          {/* PRICE */}
 
                           <div
                             className="
@@ -614,126 +747,96 @@ export default function Products({
                             </p>
                           </div>
 
+                          {/* 3 SPECIFICATIONS */}
+
                           <div
                             className="
                               mt-3
+                              min-h-[5.25rem]
                               space-y-2
                               border-t
                               border-black/[0.06]
                               pt-3
                             "
                           >
-                            {product.specs
-                              .slice(
-                                0,
-                                4
-                              )
-                              .map(
-                                (
-                                  spec,
-                                  index
-                                ) => (
-                                  <div
-                                    key={`${product.id}-${index}`}
+                            {visibleSpecs.map(
+                              (
+                                spec,
+                                index
+                              ) => (
+                                <div
+                                  key={`${product.id}-${index}`}
+                                  className="
+                                    flex
+                                    min-h-[1.25rem]
+                                    items-center
+                                    gap-2
+                                    text-xs
+                                    text-slate-600
+                                  "
+                                >
+                                  <span
                                     className="
-                                      flex
-                                      items-start
-                                      gap-2.5
-                                      text-xs
-                                      text-slate-600
+                                      grid
+                                      h-4
+                                      w-4
+                                      shrink-0
+                                      place-items-center
+                                      rounded-full
+                                      bg-brand/[0.08]
+                                      text-brand
                                     "
                                   >
-                                    <span
-                                      className="
-                                        mt-0.5
-                                        grid
-                                        h-4
-                                        w-4
-                                        shrink-0
-                                        place-items-center
-                                        rounded-full
-                                        bg-brand/[0.08]
-                                        text-brand
-                                      "
-                                    >
-                                      <Check className="h-2.5 w-2.5" />
-                                    </span>
+                                    <Check className="h-2.5 w-2.5" />
+                                  </span>
 
-                                    <span>
-                                      {
-                                        spec
-                                      }
-                                    </span>
-                                  </div>
-                                )
-                              )}
+                                  <span
+                                    className="
+                                      min-w-0
+                                      flex-1
+                                      truncate
+                                    "
+                                  >
+                                    {
+                                      spec
+                                    }
+                                  </span>
+                                </div>
+                              )
+                            )}
                           </div>
 
-                          {product.specs.length >
-                          4 ? (
-                            <p
-                              className="
-                                mt-2
-                                text-[10px]
-                                font-bold
-                                uppercase
-                                tracking-wider
-                                text-brand/70
-                              "
-                            >
-                              +
-                              {product.specs.length -
-                                4}{" "}
-                              more specifications
-                            </p>
-                          ) : null}
+                          {/* MORE SPECIFICATIONS — FIXED HEIGHT */}
+
+                          <div className="h-5">
+                            {remainingSpecs >
+                            0 ? (
+                              <p
+                                className="
+                                  text-[10px]
+                                  font-bold
+                                  uppercase
+                                  tracking-wider
+                                  text-brand/70
+                                "
+                              >
+                                +
+                                {
+                                  remainingSpecs
+                                }{" "}
+                                more specifications
+                              </p>
+                            ) : null}
+                          </div>
+
+                          {/* ORDER NOW ONLY */}
 
                           <div
                             className="
-                              mt-3
-                              grid
-                              gap-2
+                              mt-auto
+                              pt-3
                             "
                           >
-                            <button
-                              type="button"
-                              onClick={(
-                                event
-                              ) => {
-                                event.stopPropagation();
-
-                                setSelectedProduct(
-                                  product
-                                );
-                              }}
-                              className="
-                                flex
-                                w-full
-                                items-center
-                                justify-between
-                                rounded-xl
-                                border
-                                border-black/[0.08]
-                                bg-[#fff8f8]
-                                px-4
-                                py-2.5
-                                text-xs
-                                font-bold
-                                uppercase
-                                tracking-wider
-                                text-brand-deep
-                                transition-all
-                                duration-300
-                                hover:border-brand
-                                hover:bg-brand
-                                hover:text-white
-                              "
-                            >
-                              View Details
-
-                              <ArrowUpRight className="h-4 w-4" />
-                            </button>
-
                             <a
                               href={
                                 whatsappUrl
@@ -786,46 +889,6 @@ export default function Products({
 
                               <ArrowUpRight className="h-4 w-4" />
                             </a>
-
-                            <Link
-                              href={`/product/${product.id}`}
-                              onClick={(
-                                event
-                              ) => {
-                                event.stopPropagation();
-                              }}
-                              onKeyDown={(
-                                event
-                              ) => {
-                                event.stopPropagation();
-                              }}
-                              aria-label={`Open product page for ${product.name}`}
-                              className="
-                                flex
-                                w-full
-                                items-center
-                                justify-between
-                                rounded-xl
-                                border
-                                border-brand/20
-                                bg-white
-                                px-4
-                                py-2.5
-                                text-xs
-                                font-bold
-                                uppercase
-                                tracking-wider
-                                text-brand
-                                transition-all
-                                duration-300
-                                hover:border-brand
-                                hover:bg-brand/[0.04]
-                              "
-                            >
-                              Product Page
-
-                              <ArrowUpRight className="h-4 w-4" />
-                            </Link>
                           </div>
                         </div>
                       </SpotlightCard>
@@ -835,6 +898,8 @@ export default function Products({
               )}
             </AnimatePresence>
           </motion.div>
+
+          {/* VIEW MORE / LESS */}
 
           {canToggle ? (
             <div
@@ -875,39 +940,26 @@ export default function Products({
                   hover:border-brand
                   hover:bg-brand
                   hover:text-white
-                  hover:shadow-[0_15px_34px_-20px_rgba(230,0,0,0.65)]
                 "
               >
                 {showAll ? (
                   <>
                     Show Less
 
-                    <ChevronUp
-                      className="
-                        h-4
-                        w-4
-                        transition-transform
-                        group-hover:-translate-y-0.5
-                      "
-                    />
+                    <ChevronUp className="h-4 w-4" />
                   </>
                 ) : (
                   <>
                     View More
 
-                    <ChevronDown
-                      className="
-                        h-4
-                        w-4
-                        transition-transform
-                        group-hover:translate-y-0.5
-                      "
-                    />
+                    <ChevronDown className="h-4 w-4" />
                   </>
                 )}
               </button>
             </div>
           ) : null}
+
+          {/* EMPTY */}
 
           {filteredProducts.length ===
           0 ? (
@@ -950,6 +1002,8 @@ export default function Products({
           ) : null}
         </div>
       </section>
+
+      {/* DETAILS POPUP */}
 
       <DetailsModal
         item={
