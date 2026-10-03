@@ -16,6 +16,7 @@ import {
   blogPosts,
   catalogCategories,
   customBuilds,
+  pcBuilderSettings,
   products,
 } from "@/db/schema";
 
@@ -25,7 +26,12 @@ import {
 
 const SITE_URL =
   "https://gamex.pk";
-  export const dynamic =
+
+/* =========================================================
+   ALWAYS LOAD CURRENT DATABASE DATA
+   ========================================================= */
+
+export const dynamic =
   "force-dynamic";
 
 /* =========================================================
@@ -62,7 +68,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         asc(
           catalogCategories.sortOrder
         ),
-
         asc(
           catalogCategories.id
         )
@@ -97,14 +102,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         asc(
           products.sortOrder
         ),
-
         asc(
           products.name
         )
       );
 
   /* =======================================================
-     BUILDS
+     CUSTOM BUILDS
      ======================================================= */
 
   const visibleBuilds =
@@ -129,7 +133,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         asc(
           customBuilds.sortOrder
         ),
-
         asc(
           customBuilds.name
         )
@@ -167,7 +170,48 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       );
 
   /* =======================================================
-     CATEGORY USAGE
+     PC BUILDER SETTINGS
+     ======================================================= */
+
+  const builderSettingsRows =
+    await db
+      .select({
+        isVisible:
+          pcBuilderSettings.isVisible,
+
+        updatedAt:
+          pcBuilderSettings.updatedAt,
+      })
+      .from(
+        pcBuilderSettings
+      )
+      .where(
+        eq(
+          pcBuilderSettings.id,
+          "main"
+        )
+      )
+      .limit(
+        1
+      );
+
+  const builderSettings =
+    builderSettingsRows[0];
+
+  /*
+   * If there is no settings row yet,
+   * the public builder uses its default
+   * visible state.
+   */
+  const builderIsVisible =
+    builderSettings?.isVisible ??
+    true;
+
+  /* =======================================================
+     CATEGORY URLS
+
+     Only include product categories that actually
+     contain at least one visible product.
      ======================================================= */
 
   const categoriesWithProducts =
@@ -179,10 +223,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           product.category
       )
     );
-
-  /* =======================================================
-     CATEGORY URLS
-     ======================================================= */
 
   const categoryUrls:
     MetadataRoute.Sitemap =
@@ -268,7 +308,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     );
 
   /* =======================================================
-     BLOG POST URLS
+     BLOG URLS
      ======================================================= */
 
   const blogPostUrls:
@@ -292,10 +332,40 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     );
 
   /* =======================================================
-     FINAL
+     PC BUILDER URL
+     ======================================================= */
+
+  const builderUrls:
+    MetadataRoute.Sitemap =
+    builderIsVisible
+      ? [
+          {
+            url:
+              `${SITE_URL}/build-your-rig`,
+
+            ...(builderSettings
+              ? {
+                  lastModified:
+                    builderSettings.updatedAt,
+                }
+              : {}),
+
+            changeFrequency:
+              "weekly" as const,
+
+            priority:
+              0.9,
+          },
+        ]
+      : [];
+
+  /* =======================================================
+     FINAL SITEMAP
      ======================================================= */
 
   return [
+    /* HOME */
+
     {
       url:
         `${SITE_URL}/`,
@@ -307,6 +377,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         1,
     },
 
+    /* PC BUILDER */
+
+    ...builderUrls,
+
+    /* BLOG */
+
     {
       url:
         `${SITE_URL}/blog`,
@@ -317,6 +393,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority:
         0.8,
     },
+
+    /* DYNAMIC CONTENT */
 
     ...categoryUrls,
 
