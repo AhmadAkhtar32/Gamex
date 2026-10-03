@@ -17,10 +17,22 @@ import {
 
 import {
   customBuilds,
+  navbarLinks as navbarLinksTable,
+  navbarSettings as navbarSettingsTable,
   pcBuilderCategories,
   pcBuilderItems,
   pcBuilderSettings,
 } from "@/db/schema";
+
+import {
+  Navbar,
+  DEFAULT_NAVBAR_LINKS,
+  DEFAULT_NAVBAR_SETTINGS,
+} from "@/components/Navbar";
+
+import {
+  ScrollProgress,
+} from "@/components/ui";
 
 import {
   PcBuilder,
@@ -49,7 +61,7 @@ export const metadata: Metadata = {
     "Build Your Gaming PC in Pakistan | GameX",
 
   description:
-    "Build your custom gaming PC with GameX Pakistan. Choose your motherboard, processor, RAM, graphics card, storage, power supply, case and accessories, see the live total and request a quotation on WhatsApp.",
+    "Build your custom gaming PC with GameX Pakistan. Choose components, calculate your total and request a quotation on WhatsApp.",
 
   alternates: {
     canonical:
@@ -73,18 +85,7 @@ export const metadata: Metadata = {
       "Build Your Gaming PC in Pakistan | GameX",
 
     description:
-      "Choose your gaming PC components, calculate your build total and send the complete configuration to GameX on WhatsApp.",
-  },
-
-  twitter: {
-    card:
-      "summary",
-
-    title:
-      "Build Your Gaming PC in Pakistan | GameX",
-
-    description:
-      "Choose your gaming PC components, calculate your build total and request a quotation from GameX.",
+      "Choose your gaming PC components, calculate your build total and send the complete configuration to GameX.",
   },
 
   robots: {
@@ -93,22 +94,11 @@ export const metadata: Metadata = {
 
     follow:
       true,
-
-    googleBot: {
-      index:
-        true,
-
-      follow:
-        true,
-
-      "max-image-preview":
-        "large",
-    },
   },
 };
 
 /* =========================================================
-   DEFAULT SETTINGS
+   DEFAULT BUILDER SETTINGS
    ========================================================= */
 
 const DEFAULT_SETTINGS = {
@@ -141,17 +131,117 @@ const DEFAULT_SETTINGS = {
 };
 
 /* =========================================================
+   HOMEPAGE LINK HELPER
+   ========================================================= */
+
+function homepageHref(
+  href: string
+) {
+  if (
+    href.startsWith(
+      "#"
+    )
+  ) {
+    return `/${href}`;
+  }
+
+  return href;
+}
+
+/* =========================================================
    PAGE
    ========================================================= */
 
 export default async function BuildYourRigPage() {
   const [
+    navbarSettingsRows,
+    databaseNavbarLinks,
     settingsRows,
     categories,
     items,
     builds,
   ] =
     await Promise.all([
+      /* ===============================================
+         NAVBAR SETTINGS
+         =============================================== */
+
+      db
+        .select({
+          brandText:
+            navbarSettingsTable.brandText,
+
+          brandHref:
+            navbarSettingsTable.brandHref,
+
+          logoImage:
+            navbarSettingsTable.logoImage,
+
+          logoAlt:
+            navbarSettingsTable.logoAlt,
+
+          ctaText:
+            navbarSettingsTable.ctaText,
+
+          ctaHref:
+            navbarSettingsTable.ctaHref,
+
+          ctaVisible:
+            navbarSettingsTable.ctaVisible,
+
+          isVisible:
+            navbarSettingsTable.isVisible,
+        })
+        .from(
+          navbarSettingsTable
+        )
+        .where(
+          eq(
+            navbarSettingsTable.id,
+            "main"
+          )
+        )
+        .limit(
+          1
+        ),
+
+      /* ===============================================
+         NAVBAR LINKS
+         =============================================== */
+
+      db
+        .select({
+          id:
+            navbarLinksTable.id,
+
+          label:
+            navbarLinksTable.label,
+
+          href:
+            navbarLinksTable.href,
+        })
+        .from(
+          navbarLinksTable
+        )
+        .where(
+          eq(
+            navbarLinksTable.isVisible,
+            true
+          )
+        )
+        .orderBy(
+          asc(
+            navbarLinksTable.sortOrder
+          ),
+          asc(
+            navbarLinksTable.id
+          )
+        ),
+
+      /* ===============================================
+         BUILDER SETTINGS
+         =============================================== */
+
       db
         .select()
         .from(
@@ -166,6 +256,10 @@ export default async function BuildYourRigPage() {
         .limit(
           1
         ),
+
+      /* ===============================================
+         BUILDER CATEGORIES
+         =============================================== */
 
       db
         .select()
@@ -186,6 +280,10 @@ export default async function BuildYourRigPage() {
             pcBuilderCategories.id
           )
         ),
+
+      /* ===============================================
+         BUILDER ITEMS
+         =============================================== */
 
       db
         .select()
@@ -209,6 +307,10 @@ export default async function BuildYourRigPage() {
             pcBuilderItems.id
           )
         ),
+
+      /* ===============================================
+         READY BUILDS
+         =============================================== */
 
       db
         .select({
@@ -255,6 +357,10 @@ export default async function BuildYourRigPage() {
         ),
     ]);
 
+  /* =======================================================
+     BUILDER SETTINGS
+     ======================================================= */
+
   const settings =
     settingsRows[0] ??
     DEFAULT_SETTINGS;
@@ -265,92 +371,169 @@ export default async function BuildYourRigPage() {
     notFound();
   }
 
+  /* =======================================================
+     NAVBAR
+     ======================================================= */
+
+  const navbarHasDatabaseSettings =
+    Boolean(
+      navbarSettingsRows[0]
+    );
+
+  const rawNavbarContent =
+    navbarSettingsRows[0] ??
+    DEFAULT_NAVBAR_SETTINGS;
+
+  const navbarContent = {
+    ...rawNavbarContent,
+
+    brandHref:
+      homepageHref(
+        rawNavbarContent.brandHref
+      ),
+
+    /*
+     * Important:
+     * Build Your Rig should always point to this page.
+     */
+    ctaHref:
+      rawNavbarContent.ctaHref ||
+      "/build-your-rig",
+  };
+
+  const rawNavbarLinks =
+    navbarHasDatabaseSettings
+      ? databaseNavbarLinks
+      : databaseNavbarLinks.length >
+          0
+        ? databaseNavbarLinks
+        : DEFAULT_NAVBAR_LINKS;
+
+  /*
+   * Homepage anchors like #products do not work correctly
+   * from /build-your-rig.
+   *
+   * Convert:
+   * #products -> /#products
+   * #contact  -> /#contact
+   */
+  const publicNavbarLinks =
+    rawNavbarLinks.map(
+      (
+        link
+      ) => ({
+        ...link,
+
+        href:
+          homepageHref(
+            link.href
+          ),
+      })
+    );
+
+  /* =======================================================
+     RENDER
+     ======================================================= */
+
   return (
-    <PcBuilder
-      settings={{
-        title:
-          settings.title,
+    <>
+      <ScrollProgress />
 
-        subtitle:
-          settings.subtitle,
+      <Navbar
+        settings={
+          navbarContent
+        }
+        links={
+          publicNavbarLinks
+        }
+      />
 
-        readyBuildsLabel:
-          settings.readyBuildsLabel,
+      <PcBuilder
+        settings={{
+          title:
+            settings.title,
 
-        scratchBuilderLabel:
-          settings.scratchBuilderLabel,
+          subtitle:
+            settings.subtitle,
 
-        quoteButtonText:
-          settings.quoteButtonText,
+          readyBuildsLabel:
+            settings.readyBuildsLabel,
 
-        whatsappNumber:
-          settings.whatsappNumber,
+          scratchBuilderLabel:
+            settings.scratchBuilderLabel,
 
-        showReadyBuilds:
-          settings.showReadyBuilds,
+          quoteButtonText:
+            settings.quoteButtonText,
 
-        showScratchBuilder:
-          settings.showScratchBuilder,
-      }}
-      categories={
-        categories.map(
-          (
-            category
-          ) => ({
-            id:
-              category.id,
+          whatsappNumber:
+            settings.whatsappNumber,
 
-            name:
-              category.name,
+          showReadyBuilds:
+            settings.showReadyBuilds,
 
-            slug:
-              category.slug,
+          showScratchBuilder:
+            settings.showScratchBuilder,
+        }}
+        categories={
+          categories.map(
+            (
+              category
+            ) => ({
+              id:
+                category.id,
 
-            description:
-              category.description,
+              name:
+                category.name,
 
-            helpText:
-              category.helpText,
+              slug:
+                category.slug,
 
-            isRequired:
-              category.isRequired,
-          })
-        )
-      }
-      items={
-        items.map(
-          (
-            item
-          ) => ({
-            id:
-              item.id,
+              description:
+                category.description,
 
-            categoryId:
-              item.categoryId,
+              helpText:
+                category.helpText,
 
-            name:
-              item.name,
+              isRequired:
+                category.isRequired,
+            })
+          )
+        }
+        items={
+          items.map(
+            (
+              item
+            ) => ({
+              id:
+                item.id,
 
-            price:
-              item.price,
+              categoryId:
+                item.categoryId,
 
-            description:
-              item.description,
+              name:
+                item.name,
 
-            specs:
-              item.specs,
+              price:
+                item.price,
 
-            image:
-              item.image,
+              description:
+                item.description,
 
-            productUrl:
-              item.productUrl,
-          })
-        )
-      }
-      builds={
-        builds
-      }
-    />
+              specs:
+                item.specs,
+
+              image:
+                item.image,
+
+              productUrl:
+                item.productUrl,
+            })
+          )
+        }
+        builds={
+          builds
+        }
+      />
+    </>
   );
 }

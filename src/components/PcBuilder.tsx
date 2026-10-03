@@ -137,20 +137,15 @@ type SelectedPart = {
     | number
     | null;
 
-  description:
-    string;
+  description: string;
 
-  specs:
-    string[];
+  specs: string[];
 
-  image:
-    string;
+  image: string;
 
-  productUrl:
-    string;
+  productUrl: string;
 
-  note:
-    string;
+  note: string;
 };
 
 type CustomExtra = {
@@ -162,11 +157,9 @@ type CustomExtra = {
     | number
     | null;
 
-  productUrl:
-    string;
+  productUrl: string;
 
-  note:
-    string;
+  note: string;
 };
 
 type SelectionMap =
@@ -206,7 +199,9 @@ function createLocalId() {
 }
 
 function parseOptionalPrice(
-  value: FormDataEntryValue | null
+  value:
+    | FormDataEntryValue
+    | null
 ) {
   const raw =
     String(
@@ -349,11 +344,11 @@ export function PcBuilder({
         extras.reduce(
           (
             sum,
-            item
+            extra
           ) =>
             sum +
             (
-              item.price ??
+              extra.price ??
               0
             ),
           0
@@ -556,6 +551,7 @@ export function PcBuilder({
         current
       ) => [
         ...current,
+
         {
           id:
             createLocalId(),
@@ -593,9 +589,9 @@ export function PcBuilder({
       ) =>
         current.filter(
           (
-            item
+            extra
           ) =>
-            item.id !==
+            extra.id !==
             extraId
         )
     );
@@ -612,6 +608,10 @@ export function PcBuilder({
 
     setExtras(
       []
+    );
+
+    setShowExtraForm(
+      false
     );
   }
 
@@ -694,18 +694,22 @@ export function PcBuilder({
       );
     }
 
+    /* =====================================================
+       EXTRAS
+       ===================================================== */
+
+    lines.push(
+      "*CUSTOM / EXTRA ITEMS*"
+    );
+
+    lines.push(
+      ""
+    );
+
     if (
       extras.length >
       0
     ) {
-      lines.push(
-        "*CUSTOM / EXTRA ITEMS*"
-      );
-
-      lines.push(
-        ""
-      );
-
       extras.forEach(
         (
           extra,
@@ -749,10 +753,6 @@ export function PcBuilder({
       );
     } else {
       lines.push(
-        "*CUSTOM / EXTRA ITEMS*"
-      );
-
-      lines.push(
         "None"
       );
 
@@ -776,7 +776,7 @@ export function PcBuilder({
     );
 
     lines.push(
-      "Note: Items with no entered price are not included in the calculated total."
+      "Items marked Price on request are not included in the calculated total."
     );
 
     lines.push(
@@ -807,12 +807,12 @@ export function PcBuilder({
         min-h-screen
         bg-[#fff8f8]
         pb-28
-        pt-24
+        pt-20
         lg:pb-16
       "
     >
       {/* =====================================================
-          HERO
+          BUILDER HERO
           ===================================================== */}
 
       <section
@@ -827,10 +827,10 @@ export function PcBuilder({
             mx-auto
             max-w-7xl
             px-5
-            py-10
+            py-8
             text-center
             md:px-8
-            md:py-14
+            md:py-10
           "
         >
           <span
@@ -879,7 +879,7 @@ export function PcBuilder({
           <p
             className="
               mx-auto
-              mt-4
+              mt-3
               max-w-2xl
               text-sm
               leading-7
@@ -899,7 +899,7 @@ export function PcBuilder({
           <div
             className="
               mx-auto
-              mt-7
+              mt-6
               inline-flex
               max-w-full
               rounded-2xl
@@ -938,6 +938,7 @@ export function PcBuilder({
                       `
                       : `
                         text-slate-500
+                        hover:bg-white
                         hover:text-brand
                       `
                   }
@@ -978,6 +979,7 @@ export function PcBuilder({
                       `
                       : `
                         text-slate-500
+                        hover:bg-white
                         hover:text-brand
                       `
                   }
@@ -1010,7 +1012,7 @@ export function PcBuilder({
       ) : null}
 
       {/* =====================================================
-          SCRATCH BUILDER
+          BUILD FROM SCRATCH
           ===================================================== */}
 
       {mode ===
@@ -1035,7 +1037,7 @@ export function PcBuilder({
             "
           >
             {/* ===============================================
-                LEFT SIDE
+                LEFT
                 =============================================== */}
 
             <div>
@@ -1102,7 +1104,8 @@ export function PcBuilder({
                       text-brand
                       transition-all
                       hover:border-brand
-                      hover:bg-brand/[0.04]
+                      hover:bg-brand
+                      hover:text-white
                     "
                   >
                     <RotateCcw className="h-4 w-4" />
@@ -1116,11 +1119,7 @@ export function PcBuilder({
                   COMPONENT ROWS
                   ============================================= */}
 
-              <div
-                className="
-                  space-y-3
-                "
-              >
+              <div className="space-y-3">
                 {categories.map(
                   (
                     category,
@@ -1191,7 +1190,7 @@ export function PcBuilder({
                             )}
                           </div>
 
-                          {/* CATEGORY */}
+                          {/* CATEGORY INFO */}
 
                           <div
                             className="
@@ -1394,7 +1393,7 @@ export function PcBuilder({
                             </div>
                           ) : null}
 
-                          {/* ACTION */}
+                          {/* ACTIONS */}
 
                           <div
                             className="
@@ -1430,8 +1429,7 @@ export function PcBuilder({
                               </button>
                             ) : null}
 
-                            {/* IMPORTANT:
-                                Never disabled now. */}
+                            {/* SELECT IS NEVER DISABLED */}
 
                             <button
                               type="button"
@@ -1545,7 +1543,7 @@ export function PcBuilder({
                         text-slate-400
                       "
                     >
-                      Add anything else you want with your build.
+                      Fans, accessories, cables or anything else you want with the build.
                     </p>
                   </div>
 
@@ -1592,7 +1590,7 @@ export function PcBuilder({
                   </button>
                 </div>
 
-                {/* EXTRA ITEMS */}
+                {/* EXTRA LIST */}
 
                 {extras.length >
                 0 ? (
@@ -1673,6 +1671,21 @@ export function PcBuilder({
                                     extra.price
                                   )}
                             </p>
+
+                            {extra.note ? (
+                              <p
+                                className="
+                                  mt-1
+                                  line-clamp-1
+                                  text-[10px]
+                                  text-slate-400
+                                "
+                              >
+                                {
+                                  extra.note
+                                }
+                              </p>
+                            ) : null}
                           </div>
 
                           <button
@@ -1710,11 +1723,11 @@ export function PcBuilder({
                       text-slate-400
                     "
                   >
-                    No extras added.
+                    No extra items added.
                   </div>
                 )}
 
-                {/* EXTRA FORM */}
+                {/* ADD EXTRA FORM */}
 
                 {showExtraForm ? (
                   <div
@@ -1742,7 +1755,7 @@ export function PcBuilder({
             </div>
 
             {/* ===============================================
-                DESKTOP SUMMARY
+                DESKTOP BUILD SUMMARY
                 =============================================== */}
 
             <aside
@@ -1789,7 +1802,7 @@ export function PcBuilder({
       ) : null}
 
       {/* =====================================================
-          MOBILE STICKY QUOTE
+          MOBILE BOTTOM BAR
           ===================================================== */}
 
       {mode ===
@@ -1883,7 +1896,7 @@ export function PcBuilder({
       ) : null}
 
       {/* =====================================================
-          ITEM SELECTOR MODAL
+          SELECTOR MODAL
           ===================================================== */}
 
       {activeCategory ? (
@@ -1975,7 +1988,7 @@ function ReadyBuilds({
             text-slate-500
           "
         >
-          Prefer a complete setup? Choose one of our existing GameX builds.
+          Choose one of our existing complete gaming PC builds.
         </p>
       </div>
 
@@ -2238,6 +2251,8 @@ function ReadyBuilds({
                           uppercase
                           tracking-wider
                           text-white
+                          transition-all
+                          hover:bg-[#1ebe5d]
                         "
                       >
                         <FaWhatsapp className="h-4 w-4" />
@@ -2264,14 +2279,7 @@ function ReadyBuilds({
             text-center
           "
         >
-          <Package
-            className="
-              mx-auto
-              h-8
-              w-8
-              text-brand/40
-            "
-          />
+          <Package className="mx-auto h-8 w-8 text-brand/40" />
 
           <h3
             className="
@@ -2332,7 +2340,7 @@ function BuildSummary({
     <div
       className="
         flex
-        max-h-[calc(100vh-7rem)]
+        h-[calc(100vh-7rem)]
         min-h-0
         flex-col
         overflow-hidden
@@ -2343,7 +2351,9 @@ function BuildSummary({
         shadow-[0_25px_70px_-50px_rgba(0,0,0,0.4)]
       "
     >
-      {/* FIXED HEADER */}
+      {/* ===================================================
+          FIXED HEADER
+          =================================================== */}
 
       <div
         className="
@@ -2474,18 +2484,25 @@ function BuildSummary({
         </div>
       </div>
 
-      {/* SCROLLABLE CONTENT */}
+      {/* ===================================================
+          SCROLLABLE SUMMARY
+          =================================================== */}
 
       <div
         className="
           min-h-0
           flex-1
           space-y-2
-          overflow-y-auto
+          overflow-y-scroll
           overscroll-contain
           p-4
           pr-3
+          [scrollbar-width:thin]
         "
+        style={{
+          scrollbarGutter:
+            "stable",
+        }}
       >
         {categories.map(
           (
@@ -2517,11 +2534,7 @@ function BuildSummary({
                     gap-3
                   "
                 >
-                  <div
-                    className="
-                      min-w-0
-                    "
-                  >
+                  <div className="min-w-0">
                     <p
                       className="
                         text-[9px]
@@ -2628,7 +2641,9 @@ function BuildSummary({
           }
         )}
 
-        {/* EXTRAS SUMMARY */}
+        {/* ===============================================
+            EXTRAS SUMMARY
+            =============================================== */}
 
         {extras.length >
         0 ? (
@@ -2739,7 +2754,9 @@ function BuildSummary({
         ) : null}
       </div>
 
-      {/* FIXED FOOTER */}
+      {/* ===================================================
+          FIXED FOOTER
+          =================================================== */}
 
       <div
         className="
@@ -2914,12 +2931,14 @@ function ItemSelector({
           sm:rounded-3xl
         "
       >
-        {/* HEADER */}
+        {/* =================================================
+            MODAL HEADER
+            ================================================= */}
 
         <div
           className="
-            shrink-0
             flex
+            shrink-0
             items-start
             justify-between
             gap-4
@@ -2952,17 +2971,27 @@ function ItemSelector({
               </p>
 
               <span
-                className="
+                className={`
                   rounded-full
-                  bg-brand/[0.07]
                   px-2.5
                   py-1
                   text-[9px]
                   font-bold
                   uppercase
                   tracking-wider
-                  text-brand
-                "
+
+                  ${
+                    category.isRequired
+                      ? `
+                        bg-brand/[0.08]
+                        text-brand
+                      `
+                      : `
+                        bg-slate-100
+                        text-slate-500
+                      `
+                  }
+                `}
               >
                 {category.isRequired
                   ? "Required"
@@ -3023,7 +3052,9 @@ function ItemSelector({
           </button>
         </div>
 
-        {/* SCROLLABLE BODY */}
+        {/* =================================================
+            SCROLLABLE MODAL BODY
+            ================================================= */}
 
         <div
           className="
@@ -3039,6 +3070,10 @@ function ItemSelector({
           {items.length >
           0 ? (
             <>
+              {/* =============================================
+                  ADMIN ITEMS
+                  ============================================= */}
+
               <div
                 className="
                   grid
@@ -3145,7 +3180,7 @@ function ItemSelector({
                           ) : null}
                         </div>
 
-                        {/* INFO */}
+                        {/* CONTENT */}
 
                         <div
                           className="
@@ -3333,7 +3368,9 @@ function ItemSelector({
                 )}
               </div>
 
-              {/* CUSTOM REQUEST TOGGLE */}
+              {/* =============================================
+                  CUSTOM COMPONENT
+                  ============================================= */}
 
               <div
                 className="
@@ -3375,7 +3412,7 @@ function ItemSelector({
                         text-slate-400
                       "
                     >
-                      Add your own requested component and GameX will quote it.
+                      Enter your own requested component and GameX will quote it.
                     </p>
                   </div>
 
@@ -3402,11 +3439,19 @@ function ItemSelector({
                       uppercase
                       tracking-wider
                       text-white
+                      transition-all
+                      hover:bg-brand-soft
                     "
                   >
-                    <Plus className="h-4 w-4" />
+                    {showCustom ? (
+                      <X className="h-4 w-4" />
+                    ) : (
+                      <Plus className="h-4 w-4" />
+                    )}
 
-                    Custom Part
+                    {showCustom
+                      ? "Close"
+                      : "Custom Part"}
                   </button>
                 </div>
 
@@ -3435,6 +3480,10 @@ function ItemSelector({
               </div>
             </>
           ) : (
+            /* ===============================================
+               ZERO ADMIN ITEMS
+               =============================================== */
+
             <div
               className="
                 rounded-2xl
@@ -3445,11 +3494,7 @@ function ItemSelector({
                 p-6
               "
             >
-              <div
-                className="
-                  text-center
-                "
-              >
+              <div className="text-center">
                 <Package className="mx-auto h-9 w-9 text-brand/30" />
 
                 <p
@@ -3475,8 +3520,8 @@ function ItemSelector({
                     text-slate-400
                   "
                 >
-                  GameX has not added a listed product to this category yet.
-                  You can still enter the component you want below.
+                  GameX has not added any listed item to this category yet.
+                  Enter the component you want below.
                 </p>
               </div>
 
@@ -3504,12 +3549,14 @@ function ItemSelector({
           )}
         </div>
 
-        {/* FOOTER */}
+        {/* =================================================
+            MODAL FOOTER
+            ================================================= */}
 
         <div
           className="
-            shrink-0
             flex
+            shrink-0
             flex-wrap
             items-center
             justify-between
@@ -3682,6 +3729,8 @@ function CustomRequestForm({
           sm:grid-cols-2
         "
       >
+        {/* NAME */}
+
         <div>
           <label
             className="
@@ -3712,10 +3761,15 @@ function CustomRequestForm({
               text-sm
               text-brand-deep
               outline-none
+              transition-all
+              placeholder:text-slate-400
               focus:border-brand
+              focus:shadow-[0_0_0_3px_rgba(230,0,0,0.08)]
             "
           />
         </div>
+
+        {/* PRICE */}
 
         <div>
           <label
@@ -3749,7 +3803,10 @@ function CustomRequestForm({
               text-sm
               text-brand-deep
               outline-none
+              transition-all
+              placeholder:text-slate-400
               focus:border-brand
+              focus:shadow-[0_0_0_3px_rgba(230,0,0,0.08)]
             "
           />
 
@@ -3760,16 +3817,14 @@ function CustomRequestForm({
               text-slate-400
             "
           >
-            Leave empty if you want GameX to provide the price.
+            Leave empty if GameX should provide the price.
           </p>
         </div>
       </div>
 
-      <div
-        className="
-          mt-4
-        "
-      >
+      {/* LINK */}
+
+      <div className="mt-4">
         <label
           className="
             mb-2
@@ -3781,12 +3836,12 @@ function CustomRequestForm({
             text-slate-500
           "
         >
-          Product Link
+          Product / Reference Link
         </label>
 
         <input
           name="customProductUrl"
-          placeholder="Optional product / reference link"
+          placeholder="Optional product link"
           className="
             w-full
             rounded-xl
@@ -3798,16 +3853,17 @@ function CustomRequestForm({
             text-sm
             text-brand-deep
             outline-none
+            transition-all
+            placeholder:text-slate-400
             focus:border-brand
+            focus:shadow-[0_0_0_3px_rgba(230,0,0,0.08)]
           "
         />
       </div>
 
-      <div
-        className="
-          mt-4
-        "
-      >
+      {/* NOTE */}
+
+      <div className="mt-4">
         <label
           className="
             mb-2
@@ -3819,7 +3875,7 @@ function CustomRequestForm({
             text-slate-500
           "
         >
-          Note
+          Requirements / Note
         </label>
 
         <textarea
@@ -3827,7 +3883,7 @@ function CustomRequestForm({
           rows={
             3
           }
-          placeholder="Color, model, brand or any other requirement..."
+          placeholder="Brand, model, color or any other requirement..."
           className="
             w-full
             resize-y
@@ -3840,10 +3896,15 @@ function CustomRequestForm({
             text-sm
             text-brand-deep
             outline-none
+            transition-all
+            placeholder:text-slate-400
             focus:border-brand
+            focus:shadow-[0_0_0_3px_rgba(230,0,0,0.08)]
           "
         />
       </div>
+
+      {/* ACTIONS */}
 
       <div
         className="
@@ -3872,6 +3933,8 @@ function CustomRequestForm({
               uppercase
               tracking-wider
               text-brand
+              transition-all
+              hover:border-brand
             "
           >
             Cancel
