@@ -32,16 +32,8 @@ import {
   formatPrice,
 } from "@/lib/price";
 
-/* =========================================================
-   CONSTANTS
-   ========================================================= */
-
 const SITE_URL =
   "https://gamex.pk";
-
-/* =========================================================
-   TYPES
-   ========================================================= */
 
 type BuilderSettings = {
   title: string;
@@ -61,17 +53,6 @@ type BuilderCategory = {
   description: string;
   helpText: string;
   isRequired: boolean;
-};
-
-type BuilderItem = {
-  id: number;
-  categoryId: number;
-  name: string;
-  price: number;
-  description: string;
-  specs: string[];
-  image: string;
-  productUrl: string;
 };
 
 type CatalogProduct = {
@@ -102,29 +83,13 @@ type BuilderMode =
 
 type SelectableItem = {
   key: string;
-
-  source:
-    | "product"
-    | "builder-item";
-
-  id:
-    | string
-    | number;
-
+  id: string;
   name: string;
-
-  price:
-    | number
-    | null;
-
+  price: number | null;
   description: string;
-
   specs: string[];
-
   image: string;
-
   productUrl: string;
-
   badge: string;
 };
 
@@ -133,7 +98,6 @@ type SelectedPart = {
 
   source:
     | "product"
-    | "builder-item"
     | "custom";
 
   categoryId: number;
@@ -189,18 +153,6 @@ type CustomPartInput = {
 
 /* =========================================================
    STRICT CATEGORY MATCHING
-
-   THIS IS THE IMPORTANT FIX.
-
-   We no longer inspect:
-   - product name
-   - B450/B550 etc.
-   - specifications
-   - tags
-   - aliases
-
-   The database category slug must match the builder
-   category slug exactly.
    ========================================================= */
 
 function productMatchesCategory(
@@ -212,10 +164,6 @@ function productMatchesCategory(
     category.slug
   );
 }
-
-/* =========================================================
-   HELPERS
-   ========================================================= */
 
 function createLocalId() {
   if (
@@ -242,9 +190,7 @@ function parseOptionalPrice(
         ""
     ).trim();
 
-  if (
-    !raw
-  ) {
+  if (!raw) {
     return null;
   }
 
@@ -274,9 +220,7 @@ function normalizeLink(
   const link =
     value.trim();
 
-  if (
-    !link
-  ) {
+  if (!link) {
     return "";
   }
 
@@ -291,14 +235,9 @@ function normalizeLink(
   return link;
 }
 
-/* =========================================================
-   MAIN COMPONENT
-   ========================================================= */
-
 export function PcBuilder({
   settings,
   categories,
-  items,
   products,
   builds,
 }: {
@@ -306,24 +245,18 @@ export function PcBuilder({
 
   categories: BuilderCategory[];
 
-  items: BuilderItem[];
-
   products: CatalogProduct[];
 
   builds: ReadyBuild[];
 }) {
-  const initialMode:
-    BuilderMode =
-    settings.showScratchBuilder
-      ? "scratch"
-      : "ready";
-
   const [
     mode,
     setMode,
   ] =
     useState<BuilderMode>(
-      initialMode
+      settings.showScratchBuilder
+        ? "scratch"
+        : "ready"
     );
 
   const [
@@ -359,7 +292,7 @@ export function PcBuilder({
     );
 
   /* =======================================================
-     OPTIONS BY BUILDER CATEGORY
+     PRODUCTS PER CATEGORY
      ======================================================= */
 
   const optionsByCategory =
@@ -375,13 +308,9 @@ export function PcBuilder({
           const category of
           categories
         ) {
-          /* ===============================================
-             NORMAL WEBSITE PRODUCTS
-
-             STRICT CATEGORY MATCH.
-             =============================================== */
-
-          const websiteProducts =
+          result[
+            category.id
+          ] =
             products
               .filter(
                 (
@@ -395,13 +324,9 @@ export function PcBuilder({
               .map(
                 (
                   product
-                ):
-                  SelectableItem => ({
+                ) => ({
                   key:
                     `product-${product.id}`,
-
-                  source:
-                    "product",
 
                   id:
                     product.id,
@@ -428,110 +353,15 @@ export function PcBuilder({
                     product.tag,
                 })
               );
-
-          /* ===============================================
-             MANUAL PC BUILDER ITEMS
-             =============================================== */
-
-          const manualItems =
-            items
-              .filter(
-                (
-                  item
-                ) =>
-                  item.categoryId ===
-                  category.id
-              )
-              .map(
-                (
-                  item
-                ):
-                  SelectableItem => ({
-                  key:
-                    `builder-${item.id}`,
-
-                  source:
-                    "builder-item",
-
-                  id:
-                    item.id,
-
-                  name:
-                    item.name,
-
-                  price:
-                    item.price,
-
-                  description:
-                    item.description,
-
-                  specs:
-                    item.specs,
-
-                  image:
-                    item.image,
-
-                  productUrl:
-                    item.productUrl,
-
-                  badge:
-                    "Builder Item",
-                })
-              );
-
-          /* ===============================================
-             MERGE + DEDUPE
-             =============================================== */
-
-          const allOptions = [
-            ...websiteProducts,
-            ...manualItems,
-          ];
-
-          const seen =
-            new Set<string>();
-
-          result[
-            category.id
-          ] =
-            allOptions.filter(
-              (
-                option
-              ) => {
-                const dedupeKey =
-                  option.name
-                    .trim()
-                    .toLowerCase();
-
-                if (
-                  seen.has(
-                    dedupeKey
-                  )
-                ) {
-                  return false;
-                }
-
-                seen.add(
-                  dedupeKey
-                );
-
-                return true;
-              }
-            );
         }
 
         return result;
       },
       [
         categories,
-        items,
         products,
       ]
     );
-
-  /* =======================================================
-     TOTALS
-     ======================================================= */
 
   const componentsTotal =
     useMemo(
@@ -606,54 +436,46 @@ export function PcBuilder({
         []
       : [];
 
-  /* =======================================================
-     SELECT LISTED ITEM
-     ======================================================= */
-
   function selectListedItem(
     categoryId: number,
     item: SelectableItem
   ) {
-    const selected:
-      SelectedPart = {
-      key:
-        item.key,
-
-      source:
-        item.source,
-
-      categoryId,
-
-      name:
-        item.name,
-
-      price:
-        item.price,
-
-      description:
-        item.description,
-
-      specs:
-        item.specs,
-
-      image:
-        item.image,
-
-      productUrl:
-        item.productUrl,
-
-      note:
-        "",
-    };
-
     setSelections(
       (
         current
       ) => ({
         ...current,
 
-        [categoryId]:
-          selected,
+        [categoryId]: {
+          key:
+            item.key,
+
+          source:
+            "product",
+
+          categoryId,
+
+          name:
+            item.name,
+
+          price:
+            item.price,
+
+          description:
+            item.description,
+
+          specs:
+            item.specs,
+
+          image:
+            item.image,
+
+          productUrl:
+            item.productUrl,
+
+          note:
+            "",
+        },
       })
     );
 
@@ -661,55 +483,47 @@ export function PcBuilder({
       null
     );
   }
-
-  /* =======================================================
-     CUSTOM PART
-     ======================================================= */
 
   function selectCustomPart(
     categoryId: number,
     input: CustomPartInput
   ) {
-    const selected:
-      SelectedPart = {
-      key:
-        `custom-${createLocalId()}`,
-
-      source:
-        "custom",
-
-      categoryId,
-
-      name:
-        input.name,
-
-      price:
-        input.price,
-
-      description:
-        input.note,
-
-      specs:
-        [],
-
-      image:
-        "",
-
-      productUrl:
-        input.productUrl,
-
-      note:
-        input.note,
-    };
-
     setSelections(
       (
         current
       ) => ({
         ...current,
 
-        [categoryId]:
-          selected,
+        [categoryId]: {
+          key:
+            `custom-${createLocalId()}`,
+
+          source:
+            "custom",
+
+          categoryId,
+
+          name:
+            input.name,
+
+          price:
+            input.price,
+
+          description:
+            input.note,
+
+          specs:
+            [],
+
+          image:
+            "",
+
+          productUrl:
+            input.productUrl,
+
+          note:
+            input.note,
+        },
       })
     );
 
@@ -717,10 +531,6 @@ export function PcBuilder({
       null
     );
   }
-
-  /* =======================================================
-     REMOVE PART
-     ======================================================= */
 
   function removeItem(
     categoryId: number
@@ -741,10 +551,6 @@ export function PcBuilder({
       }
     );
   }
-
-  /* =======================================================
-     EXTRAS
-     ======================================================= */
 
   function addExtra(
     input: CustomPartInput
@@ -780,7 +586,7 @@ export function PcBuilder({
   }
 
   function removeExtra(
-    extraId: string
+    id: string
   ) {
     setExtras(
       (
@@ -791,7 +597,7 @@ export function PcBuilder({
             extra
           ) =>
             extra.id !==
-            extraId
+            id
         )
     );
   }
@@ -804,15 +610,7 @@ export function PcBuilder({
     setExtras(
       []
     );
-
-    setShowExtraForm(
-      false
-    );
   }
-
-  /* =======================================================
-     WHATSAPP QUOTATION
-     ======================================================= */
 
   function createQuoteMessage() {
     const lines:
@@ -821,79 +619,77 @@ export function PcBuilder({
       "",
     ];
 
-    for (
-      const category of
-      categories
-    ) {
-      const selected =
-        selections[
-          category.id
-        ];
+    categories.forEach(
+      (
+        category
+      ) => {
+        const selected =
+          selections[
+            category.id
+          ];
 
-      lines.push(
-        `*${category.name}*`
-      );
-
-      if (
-        selected
-      ) {
         lines.push(
-          selected.name
+          `*${category.name}*`
         );
 
-        lines.push(
-          selected.price ===
-            null
-            ? "Price on request"
-            : formatPrice(
-                selected.price
+        if (
+          selected
+        ) {
+          lines.push(
+            selected.name
+          );
+
+          lines.push(
+            selected.price ===
+              null
+              ? "Price on request"
+              : formatPrice(
+                  selected.price
+                )
+          );
+
+          if (
+            selected.source ===
+            "custom"
+          ) {
+            lines.push(
+              "Custom customer request"
+            );
+          }
+
+          if (
+            selected.note
+          ) {
+            lines.push(
+              `Note: ${selected.note}`
+            );
+          }
+
+          if (
+            selected.productUrl
+          ) {
+            lines.push(
+              normalizeLink(
+                selected.productUrl
               )
-        );
-
-        if (
-          selected.source ===
-          "custom"
-        ) {
+            );
+          }
+        } else {
           lines.push(
-            "Custom customer request"
+            category.isRequired
+              ? "Not selected (Required)"
+              : "Not selected"
           );
         }
 
-        if (
-          selected.note
-        ) {
-          lines.push(
-            `Note: ${selected.note}`
-          );
-        }
-
-        if (
-          selected.productUrl
-        ) {
-          lines.push(
-            normalizeLink(
-              selected.productUrl
-            )
-          );
-        }
-      } else {
         lines.push(
-          category.isRequired
-            ? "Not selected (Required)"
-            : "Not selected"
+          ""
         );
       }
-
-      lines.push(
-        ""
-      );
-    }
-
-    lines.push(
-      "*CUSTOM / EXTRA ITEMS*"
     );
 
     lines.push(
+      "*CUSTOM / EXTRA ITEMS*",
       ""
     );
 
@@ -944,10 +740,7 @@ export function PcBuilder({
       );
     } else {
       lines.push(
-        "None"
-      );
-
-      lines.push(
+        "None",
         ""
       );
     }
@@ -963,18 +756,9 @@ export function PcBuilder({
     );
 
     lines.push(
-      ""
-    );
-
-    lines.push(
-      "Items with Price on request are not included in the calculated total."
-    );
-
-    lines.push(
-      ""
-    );
-
-    lines.push(
+      "",
+      "Items with Price on request are not included in the calculated total.",
+      "",
       `Builder: ${SITE_URL}/build-your-rig`
     );
 
@@ -988,10 +772,6 @@ export function PcBuilder({
       createQuoteMessage()
     )}`;
 
-  /* =======================================================
-     UI
-     ======================================================= */
-
   return (
     <main
       className="
@@ -1002,10 +782,6 @@ export function PcBuilder({
         lg:pb-16
       "
     >
-      {/* =====================================================
-          HERO
-          ===================================================== */}
-
       <section className="border-b border-brand/10 bg-white">
         <div
           className="
@@ -1050,7 +826,6 @@ export function PcBuilder({
               text-3xl
               font-black
               uppercase
-              leading-tight
               text-brand-deep
               sm:text-4xl
               lg:text-5xl
@@ -1069,7 +844,6 @@ export function PcBuilder({
               text-sm
               leading-7
               text-slate-500
-              md:text-base
             "
           >
             {
@@ -1082,7 +856,6 @@ export function PcBuilder({
               mx-auto
               mt-6
               inline-flex
-              max-w-full
               rounded-2xl
               border
               border-brand/10
@@ -1100,19 +873,17 @@ export function PcBuilder({
                 }
                 className={`
                   rounded-xl
-                  px-4
+                  px-5
                   py-3
                   text-xs
                   font-bold
                   uppercase
-                  tracking-wider
-                  transition-all
-                  sm:px-6
+
                   ${
                     mode ===
                     "ready"
                       ? "bg-brand text-white"
-                      : "text-slate-500 hover:bg-white hover:text-brand"
+                      : "text-slate-500"
                   }
                 `}
               >
@@ -1132,19 +903,17 @@ export function PcBuilder({
                 }
                 className={`
                   rounded-xl
-                  px-4
+                  px-5
                   py-3
                   text-xs
                   font-bold
                   uppercase
-                  tracking-wider
-                  transition-all
-                  sm:px-6
+
                   ${
                     mode ===
                     "scratch"
                       ? "bg-brand text-white"
-                      : "text-slate-500 hover:bg-white hover:text-brand"
+                      : "text-slate-500"
                   }
                 `}
               >
@@ -1157,11 +926,8 @@ export function PcBuilder({
         </div>
       </section>
 
-      {/* READY BUILDS */}
-
       {mode ===
-        "ready" &&
-      settings.showReadyBuilds ? (
+        "ready" ? (
         <ReadyBuilds
           builds={
             builds
@@ -1170,15 +936,7 @@ export function PcBuilder({
             settings.whatsappNumber
           }
         />
-      ) : null}
-
-      {/* =====================================================
-          SCRATCH BUILDER
-          ===================================================== */}
-
-      {mode ===
-        "scratch" &&
-      settings.showScratchBuilder ? (
+      ) : (
         <section
           className="
             mx-auto
@@ -1186,7 +944,6 @@ export function PcBuilder({
             px-5
             py-8
             md:px-8
-            md:py-10
           "
         >
           <div
@@ -1197,25 +954,39 @@ export function PcBuilder({
               lg:grid-cols-[minmax(0,1fr)_360px]
             "
           >
-            {/* LEFT */}
-
             <div>
               <div
                 className="
                   mb-5
                   flex
-                  flex-wrap
                   items-end
                   justify-between
-                  gap-3
+                  gap-4
                 "
               >
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand">
+                  <p
+                    className="
+                      text-xs
+                      font-bold
+                      uppercase
+                      tracking-[0.2em]
+                      text-brand
+                    "
+                  >
                     Build From Scratch
                   </p>
 
-                  <h2 className="mt-1 font-display text-2xl font-extrabold uppercase text-brand-deep">
+                  <h2
+                    className="
+                      mt-1
+                      font-display
+                      text-2xl
+                      font-extrabold
+                      uppercase
+                      text-brand-deep
+                    "
+                  >
                     Choose Your Components
                   </h2>
                 </div>
@@ -1236,27 +1007,20 @@ export function PcBuilder({
                       rounded-xl
                       border
                       border-brand/15
-                      bg-white
                       px-4
                       py-2.5
                       text-xs
                       font-bold
                       uppercase
-                      tracking-wider
                       text-brand
-                      hover:border-brand
-                      hover:bg-brand
-                      hover:text-white
                     "
                   >
                     <RotateCcw className="h-4 w-4" />
 
-                    Clear Build
+                    Clear
                   </button>
                 ) : null}
               </div>
-
-              {/* COMPONENTS */}
 
               <div className="space-y-3">
                 {categories.map(
@@ -1269,7 +1033,7 @@ export function PcBuilder({
                         category.id
                       ];
 
-                    const availableOptions =
+                    const options =
                       optionsByCategory[
                         category.id
                       ] ??
@@ -1281,11 +1045,11 @@ export function PcBuilder({
                           category.id
                         }
                         className="
-                          overflow-hidden
                           rounded-2xl
                           border
                           border-brand/10
                           bg-white
+                          p-5
                         "
                       >
                         <div
@@ -1293,10 +1057,8 @@ export function PcBuilder({
                             flex
                             flex-col
                             gap-4
-                            p-4
                             sm:flex-row
                             sm:items-center
-                            md:p-5
                           "
                         >
                           <div
@@ -1325,26 +1087,31 @@ export function PcBuilder({
 
                           <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-2">
-                              <h3 className="font-display text-base font-extrabold uppercase text-brand-deep md:text-lg">
+                              <h3
+                                className="
+                                  font-display
+                                  text-lg
+                                  font-extrabold
+                                  uppercase
+                                  text-brand-deep
+                                "
+                              >
                                 {
                                   category.name
                                 }
                               </h3>
 
                               <span
-                                className={`
+                                className="
                                   rounded-full
+                                  bg-brand/[0.07]
                                   px-2.5
                                   py-1
                                   text-[9px]
-                                  font-extrabold
+                                  font-bold
                                   uppercase
-                                  ${
-                                    category.isRequired
-                                      ? "bg-brand/[0.08] text-brand"
-                                      : "bg-slate-100 text-slate-500"
-                                  }
-                                `}
+                                  text-brand
+                                "
                               >
                                 {category.isRequired
                                   ? "Required"
@@ -1352,37 +1119,32 @@ export function PcBuilder({
                               </span>
                             </div>
 
-                            {category.helpText ? (
-                              <p className="mt-1 text-xs text-slate-400">
-                                {
-                                  category.helpText
-                                }
-                              </p>
-                            ) : null}
+                            <p className="mt-1 text-xs text-slate-400">
+                              {
+                                category.helpText
+                              }
+                            </p>
 
                             {!selected ? (
                               <p className="mt-2 text-xs font-semibold text-slate-500">
-                                {availableOptions.length >
+                                {options.length >
                                 0
-                                  ? `${availableOptions.length} product${
-                                      availableOptions.length ===
+                                  ? `${options.length} product${
+                                      options.length ===
                                       1
                                         ? ""
                                         : "s"
                                     } available`
-                                  : "No listed products — custom selection available"}
+                                  : `No products saved in "${category.slug}"`}
                               </p>
                             ) : null}
                           </div>
-
-                          {/* SELECTED */}
 
                           {selected ? (
                             <div
                               className="
                                 flex
                                 min-w-0
-                                flex-1
                                 items-center
                                 gap-3
                                 rounded-xl
@@ -1390,16 +1152,14 @@ export function PcBuilder({
                                 border-brand/10
                                 bg-[#fff8f8]
                                 p-3
-                                sm:max-w-[330px]
+                                sm:w-[310px]
                               "
                             >
                               <div
                                 className="
-                                  grid
                                   h-14
                                   w-14
                                   shrink-0
-                                  place-items-center
                                   overflow-hidden
                                   rounded-lg
                                   bg-white
@@ -1414,10 +1174,15 @@ export function PcBuilder({
                                     alt={
                                       selected.name
                                     }
-                                    className="h-full w-full object-contain p-1"
+                                    className="
+                                      h-full
+                                      w-full
+                                      object-contain
+                                      p-1
+                                    "
                                   />
                                 ) : (
-                                  <Package className="h-5 w-5 text-slate-300" />
+                                  <Package className="m-auto mt-4 h-5 w-5 text-slate-300" />
                                 )}
                               </div>
 
@@ -1428,7 +1193,7 @@ export function PcBuilder({
                                   }
                                 </p>
 
-                                <p className="mt-1 text-xs font-extrabold text-brand">
+                                <p className="mt-1 text-xs font-bold text-brand">
                                   {selected.price ===
                                   null
                                     ? "Price on request"
@@ -1440,9 +1205,7 @@ export function PcBuilder({
                             </div>
                           ) : null}
 
-                          {/* ACTIONS */}
-
-                          <div className="flex shrink-0 gap-2">
+                          <div className="flex gap-2">
                             {selected ? (
                               <button
                                 type="button"
@@ -1461,7 +1224,6 @@ export function PcBuilder({
                                   border-red-200
                                   bg-red-50
                                   text-red-500
-                                  hover:bg-red-100
                                 "
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -1477,9 +1239,8 @@ export function PcBuilder({
                               }
                               className="
                                 inline-flex
-                                min-h-11
+                                h-11
                                 items-center
-                                justify-center
                                 gap-2
                                 rounded-xl
                                 bg-brand
@@ -1487,11 +1248,7 @@ export function PcBuilder({
                                 text-xs
                                 font-bold
                                 uppercase
-                                tracking-wider
                                 text-white
-                                transition-all
-                                hover:-translate-y-0.5
-                                hover:bg-brand-soft
                               "
                             >
                               {selected
@@ -1508,20 +1265,41 @@ export function PcBuilder({
                 )}
               </div>
 
-              {/* =================================================
-                  EXTRAS
-                  ================================================= */}
-
-              <div className="mt-5 overflow-hidden rounded-2xl border border-brand/10 bg-white">
-                <div className="flex flex-wrap items-center justify-between gap-4 border-b border-brand/10 px-5 py-4">
+              <div
+                className="
+                  mt-5
+                  rounded-2xl
+                  border
+                  border-brand/10
+                  bg-white
+                "
+              >
+                <div
+                  className="
+                    flex
+                    items-center
+                    justify-between
+                    gap-4
+                    border-b
+                    border-brand/10
+                    p-5
+                  "
+                >
                   <div>
-                    <h3 className="font-display text-lg font-extrabold uppercase text-brand-deep">
+                    <h3
+                      className="
+                        font-display
+                        text-lg
+                        font-extrabold
+                        uppercase
+                        text-brand-deep
+                      "
+                    >
                       Extras
                     </h3>
 
                     <p className="mt-1 text-xs text-slate-400">
-                      Add fans, cables, accessories or any other
-                      custom item.
+                      Add any additional custom item.
                     </p>
                   </div>
 
@@ -1529,10 +1307,7 @@ export function PcBuilder({
                     type="button"
                     onClick={() =>
                       setShowExtraForm(
-                        (
-                          current
-                        ) =>
-                          !current
+                        !showExtraForm
                       )
                     }
                     className="
@@ -1542,27 +1317,17 @@ export function PcBuilder({
                       rounded-xl
                       border
                       border-brand/15
-                      bg-[#fff8f8]
                       px-4
                       py-2.5
                       text-xs
                       font-bold
                       uppercase
-                      tracking-wider
                       text-brand
-                      hover:bg-brand
-                      hover:text-white
                     "
                   >
-                    {showExtraForm ? (
-                      <X className="h-4 w-4" />
-                    ) : (
-                      <Plus className="h-4 w-4" />
-                    )}
+                    <Plus className="h-4 w-4" />
 
-                    {showExtraForm
-                      ? "Close"
-                      : "Add Extra"}
+                    Add Extra
                   </button>
                 </div>
 
@@ -1577,9 +1342,17 @@ export function PcBuilder({
                           key={
                             extra.id
                           }
-                          className="flex items-center gap-3 rounded-xl border border-black/[0.06] bg-[#fffafa] p-3"
+                          className="
+                            flex
+                            items-center
+                            justify-between
+                            gap-3
+                            rounded-xl
+                            bg-[#fff8f8]
+                            p-3
+                          "
                         >
-                          <div className="min-w-0 flex-1">
+                          <div>
                             <p className="text-sm font-bold text-brand-deep">
                               {
                                 extra.name
@@ -1603,7 +1376,7 @@ export function PcBuilder({
                                 extra.id
                               )
                             }
-                            className="grid h-9 w-9 place-items-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500"
+                            className="text-red-500"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -1611,14 +1384,10 @@ export function PcBuilder({
                       )
                     )}
                   </div>
-                ) : (
-                  <div className="px-5 py-5 text-sm italic text-slate-400">
-                    No extra items added.
-                  </div>
-                )}
+                ) : null}
 
                 {showExtraForm ? (
-                  <div className="border-t border-brand/10 bg-[#fffafa] p-5">
+                  <div className="border-t border-brand/10 p-5">
                     <CustomRequestForm
                       buttonText="Add Extra"
                       onSubmit={
@@ -1635,9 +1404,14 @@ export function PcBuilder({
               </div>
             </div>
 
-            {/* SUMMARY */}
-
-            <aside className="hidden lg:sticky lg:top-24 lg:block lg:self-start">
+            <aside
+              className="
+                hidden
+                lg:sticky
+                lg:top-24
+                lg:block
+              "
+            >
               <BuildSummary
                 categories={
                   categories
@@ -1663,78 +1437,11 @@ export function PcBuilder({
                 onRemove={
                   removeItem
                 }
-                onRemoveExtra={
-                  removeExtra
-                }
               />
             </aside>
           </div>
         </section>
-      ) : null}
-
-      {/* =====================================================
-          MOBILE BAR
-          ===================================================== */}
-
-      {mode ===
-        "scratch" &&
-      settings.showScratchBuilder ? (
-        <div
-          className="
-            fixed
-            inset-x-0
-            bottom-0
-            z-40
-            border-t
-            border-brand/15
-            bg-white/95
-            p-3
-            backdrop-blur-lg
-            lg:hidden
-          "
-        >
-          <div className="mx-auto flex max-w-7xl items-center gap-3">
-            <div className="min-w-0 flex-1">
-              <p className="text-[9px] font-bold uppercase text-slate-400">
-                Build Total
-              </p>
-
-              <p className="font-display text-lg font-extrabold text-brand-deep">
-                {formatPrice(
-                  total
-                )}
-              </p>
-            </div>
-
-            <a
-              href={
-                quoteUrl
-              }
-              target="_blank"
-              rel="noopener noreferrer"
-              className="
-                inline-flex
-                items-center
-                gap-2
-                rounded-xl
-                bg-[#25D366]
-                px-4
-                py-3
-                text-xs
-                font-bold
-                uppercase
-                text-white
-              "
-            >
-              <FaWhatsapp className="h-4 w-4" />
-
-              Get Quote
-            </a>
-          </div>
-        </div>
-      ) : null}
-
-      {/* SELECTOR */}
+      )}
 
       {activeCategory ? (
         <ItemSelector
@@ -1754,9 +1461,6 @@ export function PcBuilder({
           }
           onSelectCustom={
             selectCustomPart
-          }
-          onRemove={
-            removeItem
           }
           onClose={() =>
             setActiveCategory(
@@ -1778,6 +1482,7 @@ function ReadyBuilds({
   whatsappNumber,
 }: {
   builds: ReadyBuild[];
+
   whatsappNumber: string;
 }) {
   return (
@@ -1792,138 +1497,105 @@ function ReadyBuilds({
         </h2>
       </div>
 
-      {builds.length >
-      0 ? (
-        <div className="grid auto-rows-fr gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {builds.map(
-            (
-              build
-            ) => {
-              const buildUrl =
-                `${SITE_URL}/build/${build.id}`;
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        {builds.map(
+          (
+            build
+          ) => {
+            const url =
+              `${SITE_URL}/build/${build.id}`;
 
-              const whatsappUrl =
-                `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-                  `Hi GameX, I want a quotation for ${build.name}.\n\nBuild: ${buildUrl}\nPrice: ${formatPrice(
-                    build.price
-                  )}`
-                )}`;
+            const whatsapp =
+              `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
+                `Hi GameX, I want a quotation for ${build.name}.\n${url}`
+              )}`;
 
-              return (
-                <article
-                  key={
-                    build.id
-                  }
-                  className="flex h-full flex-col overflow-hidden rounded-2xl border border-brand/10 bg-white"
-                >
-                  <div className="relative aspect-[16/10] bg-[#f6f6f6] p-2">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
+            return (
+              <article
+                key={
+                  build.id
+                }
+                className="overflow-hidden rounded-2xl border border-brand/10 bg-white"
+              >
+                <div className="aspect-[16/10] bg-[#f7f7f7] p-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={
+                      build.image
+                    }
+                    alt={
+                      build.name
+                    }
+                    className="h-full w-full object-contain"
+                  />
+                </div>
 
-                    <img
-                      src={
-                        build.image
-                      }
-                      alt={
-                        build.name
-                      }
-                      className="h-full w-full object-contain"
-                    />
+                <div className="p-5">
+                  <h3 className="font-display text-xl font-extrabold uppercase text-brand-deep">
+                    {
+                      build.name
+                    }
+                  </h3>
 
-                    <span className="absolute left-3 top-3 rounded-full bg-white px-3 py-1.5 text-[9px] font-bold uppercase text-brand">
-                      {
-                        build.badge
-                      }
-                    </span>
-                  </div>
+                  <p className="mt-3 font-display text-xl font-bold text-brand">
+                    {formatPrice(
+                      build.price
+                    )}
+                  </p>
 
-                  <div className="flex flex-1 flex-col p-5">
-                    <p className="text-[10px] font-bold uppercase text-brand">
-                      {
-                        build.role
-                      }
-                    </p>
+                  <div className="mt-4 space-y-2">
+                    {build.specs
+                      .slice(
+                        0,
+                        4
+                      )
+                      .map(
+                        (
+                          spec
+                        ) => (
+                          <div
+                            key={
+                              spec
+                            }
+                            className="flex items-start gap-2 text-xs text-slate-500"
+                          >
+                            <Check className="mt-0.5 h-3.5 w-3.5 text-brand" />
 
-                    <h3 className="mt-1 font-display text-xl font-extrabold uppercase text-brand-deep">
-                      {
-                        build.name
-                      }
-                    </h3>
-
-                    <div className="mt-4 rounded-xl bg-brand px-4 py-3 text-white">
-                      <p className="text-[9px] font-bold uppercase text-white/60">
-                        GameX Price
-                      </p>
-
-                      <p className="mt-1 font-display text-2xl font-extrabold">
-                        {formatPrice(
-                          build.price
-                        )}
-                      </p>
-                    </div>
-
-                    <div className="mt-4 space-y-2">
-                      {build.specs
-                        .slice(
-                          0,
-                          4
+                            {
+                              spec
+                            }
+                          </div>
                         )
-                        .map(
-                          (
-                            spec,
-                            index
-                          ) => (
-                            <div
-                              key={
-                                index
-                              }
-                              className="flex items-start gap-2 text-xs text-slate-500"
-                            >
-                              <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" />
-
-                              <span>
-                                {
-                                  spec
-                                }
-                              </span>
-                            </div>
-                          )
-                        )}
-                    </div>
-
-                    <div className="mt-auto grid gap-2 pt-5 sm:grid-cols-2">
-                      <Link
-                        href={`/build/${build.id}`}
-                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-brand/15 px-4 py-3 text-xs font-bold uppercase text-brand"
-                      >
-                        View Build
-
-                        <ExternalLink className="h-4 w-4" />
-                      </Link>
-
-                      <a
-                        href={
-                          whatsappUrl
-                        }
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3 text-xs font-bold uppercase text-white"
-                      >
-                        <FaWhatsapp className="h-4 w-4" />
-
-                        Get Quote
-                      </a>
-                    </div>
+                      )}
                   </div>
-                </article>
-              );
-            }
-          )}
-        </div>
-      ) : (
-        <div className="rounded-2xl border border-dashed border-brand/20 bg-white px-6 py-12 text-center">
-          No Ready Builds
-        </div>
-      )}
+
+                  <div className="mt-5 grid gap-2 sm:grid-cols-2">
+                    <Link
+                      href={`/build/${build.id}`}
+                      className="rounded-xl border border-brand/15 px-4 py-3 text-center text-xs font-bold uppercase text-brand"
+                    >
+                      View Build
+                    </Link>
+
+                    <a
+                      href={
+                        whatsapp
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3 text-xs font-bold uppercase text-white"
+                    >
+                      <FaWhatsapp className="h-4 w-4" />
+
+                      Get Quote
+                    </a>
+                  </div>
+                </div>
+              </article>
+            );
+          }
+        )}
+      </div>
     </section>
   );
 }
@@ -1941,20 +1613,23 @@ function BuildSummary({
   quoteUrl,
   quoteButtonText,
   onRemove,
-  onRemoveExtra,
 }: {
   categories: BuilderCategory[];
+
   selections: SelectionMap;
+
   extras: CustomExtra[];
+
   selectedCount: number;
+
   total: number;
+
   quoteUrl: string;
+
   quoteButtonText: string;
+
   onRemove: (
     categoryId: number
-  ) => void;
-  onRemoveExtra: (
-    extraId: string
   ) => void;
 }) {
   return (
@@ -1962,7 +1637,6 @@ function BuildSummary({
       className="
         flex
         h-[calc(100vh-7rem)]
-        min-h-0
         flex-col
         overflow-hidden
         rounded-2xl
@@ -1971,16 +1645,12 @@ function BuildSummary({
         bg-white
       "
     >
-      {/* HEADER */}
-
       <div className="shrink-0 bg-brand p-5 text-white">
         <div className="flex items-center gap-3">
-          <div className="grid h-10 w-10 place-items-center rounded-xl bg-white/15">
-            <ShoppingCart className="h-5 w-5" />
-          </div>
+          <ShoppingCart className="h-5 w-5" />
 
           <div>
-            <p className="text-[9px] font-bold uppercase text-white/60">
+            <p className="text-[9px] uppercase text-white/60">
               Your Configuration
             </p>
 
@@ -1996,7 +1666,7 @@ function BuildSummary({
               Selected
             </p>
 
-            <p className="mt-1 font-display text-lg font-extrabold">
+            <p className="mt-1 font-display font-bold">
               {selectedCount}/
               {
                 categories.length
@@ -2009,7 +1679,7 @@ function BuildSummary({
               Total
             </p>
 
-            <p className="mt-1 font-display text-lg font-extrabold">
+            <p className="mt-1 font-display font-bold">
               {formatPrice(
                 total
               )}
@@ -2018,26 +1688,18 @@ function BuildSummary({
         </div>
       </div>
 
-      {/* SCROLLABLE BODY */}
-
       <div
         data-lenis-prevent
         data-lenis-prevent-wheel
         className="
           min-h-0
           flex-1
-          touch-pan-y
           space-y-2
           overflow-y-auto
           overscroll-contain
           p-4
-          pr-3
           [scrollbar-width:thin]
         "
-        style={{
-          scrollbarGutter:
-            "stable",
-        }}
       >
         {categories.map(
           (
@@ -2056,35 +1718,41 @@ function BuildSummary({
                 className="rounded-xl border border-black/[0.06] bg-[#fffafa] p-3"
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
+                  <div>
                     <p className="text-[9px] font-bold uppercase text-slate-400">
                       {
                         category.name
                       }
                     </p>
 
-                    {selected ? (
-                      <>
-                        <p className="mt-1 line-clamp-2 text-xs font-bold text-brand-deep">
-                          {
-                            selected.name
-                          }
-                        </p>
+                    <p
+                      className={`
+                        mt-1
+                        text-xs
+                        font-semibold
 
-                        <p className="mt-1 text-xs font-extrabold text-brand">
-                          {selected.price ===
-                          null
-                            ? "Price on request"
-                            : formatPrice(
-                                selected.price
-                              )}
-                        </p>
-                      </>
-                    ) : (
-                      <p className="mt-1 text-xs font-semibold text-slate-400">
-                        Not selected
+                        ${
+                          selected
+                            ? "text-brand-deep"
+                            : "text-slate-400"
+                        }
+                      `}
+                    >
+                      {selected
+                        ? selected.name
+                        : "Not selected"}
+                    </p>
+
+                    {selected ? (
+                      <p className="mt-1 text-xs font-bold text-brand">
+                        {selected.price ===
+                        null
+                          ? "Price on request"
+                          : formatPrice(
+                              selected.price
+                            )}
                       </p>
-                    )}
+                    ) : null}
                   </div>
 
                   {selected ? (
@@ -2095,9 +1763,8 @@ function BuildSummary({
                           category.id
                         )
                       }
-                      className="grid h-7 w-7 shrink-0 place-items-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500"
                     >
-                      <X className="h-3.5 w-3.5" />
+                      <X className="h-4 w-4 text-slate-400" />
                     </button>
                   ) : null}
                 </div>
@@ -2106,63 +1773,31 @@ function BuildSummary({
           }
         )}
 
-        {extras.length >
-        0 ? (
-          <div className="rounded-xl border border-brand/10 bg-brand/[0.025] p-3">
-            <p className="text-[9px] font-bold uppercase text-brand">
-              Extras
-            </p>
+        {extras.map(
+          (
+            extra
+          ) => (
+            <div
+              key={
+                extra.id
+              }
+              className="rounded-xl border border-brand/10 bg-[#fffafa] p-3"
+            >
+              <p className="text-[9px] font-bold uppercase text-brand">
+                Extra
+              </p>
 
-            <div className="mt-2 space-y-2">
-              {extras.map(
-                (
-                  extra
-                ) => (
-                  <div
-                    key={
-                      extra.id
-                    }
-                    className="flex items-start justify-between gap-2"
-                  >
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-brand-deep">
-                        {
-                          extra.name
-                        }
-                      </p>
-
-                      <p className="text-[10px] font-bold text-brand">
-                        {extra.price ===
-                        null
-                          ? "Price on request"
-                          : formatPrice(
-                              extra.price
-                            )}
-                      </p>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        onRemoveExtra(
-                          extra.id
-                        )
-                      }
-                      className="text-slate-400 hover:text-red-500"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                )
-              )}
+              <p className="mt-1 text-xs font-semibold text-brand-deep">
+                {
+                  extra.name
+                }
+              </p>
             </div>
-          </div>
-        ) : null}
+          )
+        )}
       </div>
 
-      {/* FOOTER */}
-
-      <div className="shrink-0 border-t border-brand/10 bg-white p-4">
+      <div className="shrink-0 border-t border-brand/10 p-4">
         <div className="flex items-end justify-between">
           <div>
             <p className="text-[9px] font-bold uppercase text-slate-400">
@@ -2223,7 +1858,6 @@ function ItemSelector({
   selectedItem,
   onSelect,
   onSelectCustom,
-  onRemove,
   onClose,
 }: {
   category: BuilderCategory;
@@ -2244,10 +1878,6 @@ function ItemSelector({
     input: CustomPartInput
   ) => void;
 
-  onRemove: (
-    categoryId: number
-  ) => void;
-
   onClose: () => void;
 }) {
   const [
@@ -2266,12 +1896,11 @@ function ItemSelector({
         inset-0
         z-[100]
         flex
-        items-end
+        items-center
         justify-center
         bg-black/55
+        p-5
         backdrop-blur-sm
-        sm:items-center
-        sm:p-5
       "
       onMouseDown={(
         event
@@ -2292,40 +1921,26 @@ function ItemSelector({
           max-w-6xl
           flex-col
           overflow-hidden
-          rounded-t-3xl
+          rounded-3xl
           bg-white
-          sm:rounded-3xl
         "
       >
-        {/* HEADER */}
-
-        <div className="flex shrink-0 items-start justify-between gap-4 border-b border-brand/10 px-5 py-5 sm:px-6">
+        <div
+          className="
+            flex
+            shrink-0
+            items-start
+            justify-between
+            border-b
+            border-brand/10
+            px-6
+            py-5
+          "
+        >
           <div>
-            <div className="flex items-center gap-2">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand">
-                Select Component
-              </p>
-
-              <span
-                className={`
-                  rounded-full
-                  px-2.5
-                  py-1
-                  text-[9px]
-                  font-bold
-                  uppercase
-                  ${
-                    category.isRequired
-                      ? "bg-brand/[0.08] text-brand"
-                      : "bg-slate-100 text-slate-500"
-                  }
-                `}
-              >
-                {category.isRequired
-                  ? "Required"
-                  : "Optional"}
-              </span>
-            </div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand">
+              Select Component
+            </p>
 
             <h2 className="mt-1 font-display text-2xl font-extrabold uppercase text-brand-deep">
               {
@@ -2333,21 +1948,10 @@ function ItemSelector({
               }
             </h2>
 
-            {category.description ? (
-              <p className="mt-2 text-sm text-slate-500">
-                {
-                  category.description
-                }
-              </p>
-            ) : null}
-
-            <p className="mt-2 text-xs font-semibold text-slate-400">
-              Category slug:{" "}
-              <span className="text-brand">
-                {
-                  category.slug
-                }
-              </span>
+            <p className="mt-2 text-sm text-slate-500">
+              {
+                category.description
+              }
             </p>
           </div>
 
@@ -2356,15 +1960,11 @@ function ItemSelector({
             onClick={
               onClose
             }
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-500 hover:bg-brand hover:text-white"
+            className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
-
-        {/* =================================================
-            SCROLLABLE BODY
-            ================================================= */}
 
         <div
           data-lenis-prevent
@@ -2372,28 +1972,22 @@ function ItemSelector({
           className="
             min-h-0
             flex-1
-            touch-pan-y
             overflow-y-auto
             overscroll-contain
             bg-[#fff8f8]
-            p-4
-            sm:p-6
+            p-6
             [scrollbar-width:thin]
           "
-          style={{
-            scrollbarGutter:
-              "stable",
-          }}
         >
           {items.length >
           0 ? (
             <>
-              <div className="grid auto-rows-fr gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {items.map(
                   (
                     item
                   ) => {
-                    const isSelected =
+                    const selected =
                       selectedItem?.key ===
                       item.key;
 
@@ -2404,21 +1998,19 @@ function ItemSelector({
                         }
                         className={`
                           flex
-                          h-full
                           flex-col
                           overflow-hidden
                           rounded-2xl
                           border
                           bg-white
+
                           ${
-                            isSelected
+                            selected
                               ? "border-brand"
-                              : "border-brand/10 hover:border-brand/35"
+                              : "border-brand/10"
                           }
                         `}
                       >
-                        {/* IMAGE */}
-
                         <div className="relative aspect-[16/10] bg-[#f5f5f5] p-2">
                           {item.image ? (
                             // eslint-disable-next-line @next/next/no-img-element
@@ -2432,30 +2024,18 @@ function ItemSelector({
                               className="h-full w-full object-contain"
                             />
                           ) : (
-                            <div className="grid h-full place-items-center">
-                              <ImageIcon className="h-10 w-10 text-slate-200" />
-                            </div>
+                            <ImageIcon className="m-auto mt-16 h-10 w-10 text-slate-200" />
                           )}
 
-                          {item.badge ? (
-                            <span className="absolute left-3 top-3 rounded-full bg-white px-2.5 py-1 text-[8px] font-bold uppercase text-brand">
-                              {
-                                item.badge
-                              }
-                            </span>
-                          ) : null}
-
-                          {isSelected ? (
+                          {selected ? (
                             <span className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full bg-brand text-white">
                               <CheckCircle2 className="h-4 w-4" />
                             </span>
                           ) : null}
                         </div>
 
-                        {/* CONTENT */}
-
                         <div className="flex flex-1 flex-col p-4">
-                          <h3 className="line-clamp-2 min-h-[2.5rem] font-display text-base font-extrabold text-brand-deep">
+                          <h3 className="font-display text-base font-extrabold text-brand-deep">
                             {
                               item.name
                             }
@@ -2470,67 +2050,45 @@ function ItemSelector({
                                 )}
                           </p>
 
-                          {item.specs.length >
-                          0 ? (
-                            <div className="mt-3 space-y-1.5">
-                              {item.specs
-                                .slice(
-                                  0,
-                                  3
-                                )
-                                .map(
-                                  (
-                                    spec,
-                                    index
-                                  ) => (
-                                    <div
-                                      key={
-                                        index
+                          <div className="mt-3 space-y-1">
+                            {item.specs
+                              .slice(
+                                0,
+                                3
+                              )
+                              .map(
+                                (
+                                  spec
+                                ) => (
+                                  <div
+                                    key={
+                                      spec
+                                    }
+                                    className="flex gap-2 text-[11px] text-slate-500"
+                                  >
+                                    <Check className="h-3 w-3 shrink-0 text-brand" />
+
+                                    <span className="line-clamp-1">
+                                      {
+                                        spec
                                       }
-                                      className="flex items-start gap-2 text-[11px] text-slate-500"
-                                    >
-                                      <Check className="mt-0.5 h-3 w-3 shrink-0 text-brand" />
+                                    </span>
+                                  </div>
+                                )
+                              )}
+                          </div>
 
-                                      <span className="line-clamp-1">
-                                        {
-                                          spec
-                                        }
-                                      </span>
-                                    </div>
-                                  )
-                                )}
-                            </div>
-                          ) : null}
+                          <Link
+                            href={
+                              item.productUrl
+                            }
+                            target="_blank"
+                            className="mt-3 inline-flex items-center gap-1 text-[10px] font-bold uppercase text-brand"
+                          >
+                            Product Details
 
-                          {item.productUrl ? (
-                            item.productUrl.startsWith(
-                              "http"
-                            ) ? (
-                              <a
-                                href={
-                                  item.productUrl
-                                }
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="mt-3 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase text-brand"
-                              >
-                                Product Details
-
-                                <ExternalLink className="h-3 w-3" />
-                              </a>
-                            ) : (
-                              <Link
-                                href={
-                                  item.productUrl
-                                }
-                                className="mt-3 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase text-brand"
-                              >
-                                Product Details
-
-                                <ExternalLink className="h-3 w-3" />
-                              </Link>
-                            )
-                          ) : null}
+                            <ExternalLink className="h-3 w-3" />
+                          </Link>
 
                           <button
                             type="button"
@@ -2540,25 +2098,19 @@ function ItemSelector({
                                 item
                               )
                             }
-                            className={`
-                              mt-auto
-                              w-full
+                            className="
+                              mt-5
                               rounded-xl
+                              bg-brand
                               px-4
                               py-3
                               text-xs
                               font-bold
                               uppercase
-                              ${
-                                isSelected
-                                  ? "bg-brand text-white"
-                                  : "border border-brand/15 bg-[#fff8f8] text-brand hover:bg-brand hover:text-white"
-                              }
-                            `}
+                              text-white
+                            "
                           >
-                            {isSelected
-                              ? "Selected"
-                              : "Select"}
+                            Select
                           </button>
                         </div>
                       </article>
@@ -2567,18 +2119,15 @@ function ItemSelector({
                 )}
               </div>
 
-              {/* CUSTOM */}
-
               <div className="mt-5 rounded-2xl border border-dashed border-brand/20 bg-white p-5">
-                <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="flex items-center justify-between gap-4">
                   <div>
-                    <p className="font-display font-extrabold uppercase text-brand-deep">
+                    <h3 className="font-display font-extrabold uppercase text-brand-deep">
                       Can&apos;t Find Your Part?
-                    </p>
+                    </h3>
 
                     <p className="mt-1 text-xs text-slate-400">
-                      Enter any component you want and GameX will
-                      quote it.
+                      Enter a custom component request.
                     </p>
                   </div>
 
@@ -2586,23 +2135,12 @@ function ItemSelector({
                     type="button"
                     onClick={() =>
                       setShowCustom(
-                        (
-                          value
-                        ) =>
-                          !value
+                        !showCustom
                       )
                     }
-                    className="inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-xs font-bold uppercase text-white"
+                    className="rounded-xl bg-brand px-4 py-2.5 text-xs font-bold uppercase text-white"
                   >
-                    {showCustom ? (
-                      <X className="h-4 w-4" />
-                    ) : (
-                      <Plus className="h-4 w-4" />
-                    )}
-
-                    {showCustom
-                      ? "Close"
-                      : "Custom Part"}
+                    Custom Part
                   </button>
                 </div>
 
@@ -2628,20 +2166,19 @@ function ItemSelector({
               <div className="text-center">
                 <Package className="mx-auto h-9 w-9 text-brand/30" />
 
-                <p className="mt-3 font-display text-lg font-extrabold uppercase text-brand-deep">
+                <h3 className="mt-3 font-display text-lg font-extrabold uppercase text-brand-deep">
                   No Products In This Category
-                </p>
+                </h3>
 
-                <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-400">
-                  No visible product has category slug{" "}
+                <p className="mx-auto mt-2 max-w-xl text-sm text-slate-400">
+                  Builder category slug is{" "}
                   <strong className="text-brand">
                     {
                       category.slug
                     }
                   </strong>
-                  . Assign products to this exact category in the
-                  Admin Product editor, or enter a custom part
-                  below.
+                  . Only website products saved with this exact
+                  category slug will appear here.
                 </p>
               </div>
 
@@ -2661,53 +2198,13 @@ function ItemSelector({
             </div>
           )}
         </div>
-
-        {/* FOOTER */}
-
-        <div className="flex shrink-0 items-center justify-between border-t border-brand/10 bg-white px-5 py-4">
-          <p className="text-xs text-slate-400">
-            {category.isRequired
-              ? "This category is required."
-              : "This category can be skipped."}
-          </p>
-
-          <div className="flex gap-2">
-            {selectedItem ? (
-              <button
-                type="button"
-                onClick={() => {
-                  onRemove(
-                    category.id
-                  );
-
-                  onClose();
-                }}
-                className="rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-xs font-bold uppercase text-red-600"
-              >
-                Remove
-              </button>
-            ) : null}
-
-            {!category.isRequired ? (
-              <button
-                type="button"
-                onClick={
-                  onClose
-                }
-                className="rounded-xl border border-brand/15 px-4 py-2.5 text-xs font-bold uppercase text-brand"
-              >
-                Skip
-              </button>
-            ) : null}
-          </div>
-        </div>
       </div>
     </div>
   );
 }
 
 /* =========================================================
-   CUSTOM REQUEST FORM
+   CUSTOM FORM
    ========================================================= */
 
 function CustomRequestForm({
@@ -2741,12 +2238,10 @@ function CustomRequestForm({
         data.get(
           "customName"
         ) ??
-        ""
+          ""
       ).trim();
 
-    if (
-      !name
-    ) {
+    if (!name) {
       return;
     }
 
@@ -2765,7 +2260,7 @@ function CustomRequestForm({
           data.get(
             "customProductUrl"
           ) ??
-          ""
+            ""
         ).trim(),
 
       note:
@@ -2773,7 +2268,7 @@ function CustomRequestForm({
           data.get(
             "customNote"
           ) ??
-          ""
+            ""
         ).trim(),
     });
 
@@ -2795,8 +2290,7 @@ function CustomRequestForm({
           <input
             name="customName"
             required
-            placeholder="e.g. ASUS RTX 4070 Super"
-            className="w-full rounded-xl border border-brand/15 bg-white px-4 py-3 text-sm outline-none focus:border-brand"
+            className="w-full rounded-xl border border-brand/15 px-4 py-3 text-sm outline-none"
           />
         </div>
 
@@ -2810,13 +2304,8 @@ function CustomRequestForm({
             type="number"
             min="0"
             step="1"
-            placeholder="Optional"
-            className="w-full rounded-xl border border-brand/15 bg-white px-4 py-3 text-sm outline-none focus:border-brand"
+            className="w-full rounded-xl border border-brand/15 px-4 py-3 text-sm outline-none"
           />
-
-          <p className="mt-1.5 text-[10px] text-slate-400">
-            Leave empty if GameX should provide the price.
-          </p>
         </div>
       </div>
 
@@ -2827,8 +2316,7 @@ function CustomRequestForm({
 
         <input
           name="customProductUrl"
-          placeholder="Optional"
-          className="w-full rounded-xl border border-brand/15 bg-white px-4 py-3 text-sm outline-none focus:border-brand"
+          className="w-full rounded-xl border border-brand/15 px-4 py-3 text-sm outline-none"
         />
       </div>
 
@@ -2842,8 +2330,7 @@ function CustomRequestForm({
           rows={
             3
           }
-          placeholder="Brand, model, color or other requirement..."
-          className="w-full resize-y rounded-xl border border-brand/15 bg-white px-4 py-3 text-sm outline-none focus:border-brand"
+          className="w-full rounded-xl border border-brand/15 px-4 py-3 text-sm outline-none"
         />
       </div>
 

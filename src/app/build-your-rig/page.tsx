@@ -1,4 +1,6 @@
-import type { Metadata } from "next";
+import type {
+  Metadata,
+} from "next";
 
 import {
   asc,
@@ -18,7 +20,6 @@ import {
   navbarLinks as navbarLinksTable,
   navbarSettings as navbarSettingsTable,
   pcBuilderCategories,
-  pcBuilderItems,
   pcBuilderSettings,
   products,
 } from "@/db/schema";
@@ -37,23 +38,11 @@ import {
   PcBuilder,
 } from "@/components/PcBuilder";
 
-/* =========================================================
-   CONSTANTS
-   ========================================================= */
-
 const SITE_URL =
   "https://gamex.pk";
 
-/* =========================================================
-   DYNAMIC
-   ========================================================= */
-
 export const dynamic =
   "force-dynamic";
-
-/* =========================================================
-   METADATA
-   ========================================================= */
 
 export const metadata: Metadata = {
   title:
@@ -67,10 +56,6 @@ export const metadata: Metadata = {
       "/build-your-rig",
   },
 };
-
-/* =========================================================
-   DEFAULT BUILDER SETTINGS
-   ========================================================= */
 
 const DEFAULT_SETTINGS = {
   title:
@@ -101,10 +86,6 @@ const DEFAULT_SETTINGS = {
     true,
 };
 
-/* =========================================================
-   HOMEPAGE LINK
-   ========================================================= */
-
 function homepageHref(
   href: string
 ) {
@@ -119,23 +100,16 @@ function homepageHref(
   return href;
 }
 
-/* =========================================================
-   PAGE
-   ========================================================= */
-
 export default async function BuildYourRigPage() {
   const [
     navbarSettingsRows,
     databaseNavbarLinks,
     settingsRows,
     categories,
-    builderItems,
     catalogProducts,
     builds,
   ] =
     await Promise.all([
-      /* NAVBAR SETTINGS */
-
       db
         .select({
           brandText:
@@ -175,8 +149,6 @@ export default async function BuildYourRigPage() {
           1
         ),
 
-      /* NAVBAR LINKS */
-
       db
         .select({
           id:
@@ -206,8 +178,6 @@ export default async function BuildYourRigPage() {
           )
         ),
 
-      /* BUILDER SETTINGS */
-
       db
         .select()
         .from(
@@ -222,8 +192,6 @@ export default async function BuildYourRigPage() {
         .limit(
           1
         ),
-
-      /* BUILDER CATEGORIES */
 
       db
         .select()
@@ -244,33 +212,6 @@ export default async function BuildYourRigPage() {
             pcBuilderCategories.id
           )
         ),
-
-      /* MANUALLY ADDED BUILDER ITEMS */
-
-      db
-        .select()
-        .from(
-          pcBuilderItems
-        )
-        .where(
-          eq(
-            pcBuilderItems.isVisible,
-            true
-          )
-        )
-        .orderBy(
-          asc(
-            pcBuilderItems.categoryId
-          ),
-          asc(
-            pcBuilderItems.sortOrder
-          ),
-          asc(
-            pcBuilderItems.id
-          )
-        ),
-
-      /* NORMAL WEBSITE PRODUCTS */
 
       db
         .select({
@@ -315,8 +256,6 @@ export default async function BuildYourRigPage() {
             products.name
           )
         ),
-
-      /* READY BUILDS */
 
       db
         .select({
@@ -373,15 +312,6 @@ export default async function BuildYourRigPage() {
     notFound();
   }
 
-  /* =======================================================
-     NAVBAR
-     ======================================================= */
-
-  const navbarHasDatabaseSettings =
-    Boolean(
-      navbarSettingsRows[0]
-    );
-
   const rawNavbarContent =
     navbarSettingsRows[0] ??
     DEFAULT_NAVBAR_SETTINGS;
@@ -400,7 +330,7 @@ export default async function BuildYourRigPage() {
   };
 
   const rawNavbarLinks =
-    navbarHasDatabaseSettings
+    navbarSettingsRows[0]
       ? databaseNavbarLinks
       : databaseNavbarLinks.length >
           0
@@ -420,10 +350,6 @@ export default async function BuildYourRigPage() {
           ),
       })
     );
-
-  /* =======================================================
-     RENDER
-     ======================================================= */
 
   return (
     <>
@@ -486,37 +412,6 @@ export default async function BuildYourRigPage() {
 
               isRequired:
                 category.isRequired,
-            })
-          )
-        }
-        items={
-          builderItems.map(
-            (
-              item
-            ) => ({
-              id:
-                item.id,
-
-              categoryId:
-                item.categoryId,
-
-              name:
-                item.name,
-
-              price:
-                item.price,
-
-              description:
-                item.description,
-
-              specs:
-                item.specs,
-
-              image:
-                item.image,
-
-              productUrl:
-                item.productUrl,
             })
           )
         }

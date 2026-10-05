@@ -1,22 +1,23 @@
 import Link from "next/link";
 
 import {
-  ArrowLeft,
-  Eye,
-  EyeOff,
-  PackagePlus,
-  Pencil,
-} from "lucide-react";
-
-import {
   asc,
 } from "drizzle-orm";
+
+import {
+  Eye,
+  EyeOff,
+  Pencil,
+  Plus,
+  Trash2,
+} from "lucide-react";
 
 import {
   db,
 } from "@/db";
 
 import {
+  catalogCategories,
   products,
 } from "@/db/schema";
 
@@ -29,152 +30,282 @@ import {
 } from "@/lib/price";
 
 import {
+  deleteProduct,
   toggleProductVisibility,
 } from "./actions";
 
-import DeleteProductButton from "./DeleteProductButton";
+export const dynamic =
+  "force-dynamic";
 
-export default async function AdminProductsPage() {
+export default async function ProductsAdminPage() {
   await requireAdmin();
 
-  const productList =
-    await db
-      .select()
-      .from(products)
-      .orderBy(
-        asc(
-          products.sortOrder
-        ),
-        asc(
-          products.name
+  const [
+    productRows,
+    categoryRows,
+  ] =
+    await Promise.all([
+      db
+        .select()
+        .from(
+          products
         )
-      );
+        .orderBy(
+          asc(
+            products.sortOrder
+          ),
+          asc(
+            products.name
+          )
+        ),
+
+      db
+        .select({
+          slug:
+            catalogCategories.slug,
+
+          name:
+            catalogCategories.name,
+        })
+        .from(
+          catalogCategories
+        ),
+    ]);
+
+  const categoryNames =
+    new Map(
+      categoryRows.map(
+        (
+          category
+        ) => [
+          category.slug,
+          category.name,
+        ]
+      )
+    );
 
   return (
     <main className="min-h-screen bg-[#f7f9fc]">
       <header className="border-b border-brand/10 bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 md:px-8">
+        <div
+          className="
+            mx-auto
+            flex
+            max-w-7xl
+            items-center
+            justify-between
+            gap-4
+            px-5
+            py-5
+            md:px-8
+          "
+        >
           <div>
-            <p className="font-display text-lg font-extrabold uppercase tracking-widest text-brand-deep">
-              Gamex Admin
-            </p>
+            <h1
+              className="
+                font-display
+                text-xl
+                font-extrabold
+                uppercase
+                tracking-widest
+                text-brand-deep
+              "
+            >
+              GameX Admin
+            </h1>
 
-            <p className="mt-0.5 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-slate-500">
               Product Management
             </p>
           </div>
 
           <Link
             href="/admin"
-            className="inline-flex items-center gap-2 rounded-lg border border-brand/15 bg-white px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-brand transition-all duration-300 hover:border-brand hover:bg-brand hover:text-white"
+            className="
+              rounded-xl
+              border
+              border-brand/15
+              bg-white
+              px-5
+              py-3
+              text-xs
+              font-bold
+              uppercase
+              tracking-wider
+              text-brand
+              transition-all
+              hover:border-brand
+            "
           >
-            <ArrowLeft className="h-4 w-4" />
-
             Dashboard
           </Link>
         </div>
       </header>
 
-      <div className="mx-auto max-w-7xl px-5 py-10 md:px-8 md:py-14">
-        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+      <section
+        className="
+          mx-auto
+          max-w-7xl
+          px-5
+          py-10
+          md:px-8
+        "
+      >
+        <div
+          className="
+            flex
+            flex-col
+            gap-5
+            md:flex-row
+            md:items-end
+            md:justify-between
+          "
+        >
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-brand">
+            <p
+              className="
+                text-xs
+                font-bold
+                uppercase
+                tracking-[0.22em]
+                text-brand
+              "
+            >
               Catalogue
             </p>
 
-            <h1 className="mt-2 font-display text-3xl font-extrabold uppercase text-brand-deep md:text-4xl">
+            <h2
+              className="
+                mt-2
+                font-display
+                text-3xl
+                font-extrabold
+                uppercase
+                text-brand-deep
+              "
+            >
               Products
-            </h1>
+            </h2>
 
-            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-500">
-              Add, edit, show, hide and delete products displayed
-              on the Gamex website.
+            <p className="mt-3 text-sm text-slate-500">
+              Products use the exact categories configured in
+              Admin Categories.
             </p>
           </div>
 
           <Link
             href="/admin/products/new"
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3.5 font-display text-xs font-bold uppercase tracking-wider text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-brand-soft"
+            className="
+              inline-flex
+              items-center
+              justify-center
+              gap-2
+              rounded-xl
+              bg-brand
+              px-5
+              py-3.5
+              text-xs
+              font-bold
+              uppercase
+              tracking-wider
+              text-white
+            "
           >
-            <PackagePlus className="h-4 w-4" />
+            <Plus className="h-4 w-4" />
 
             Add Product
           </Link>
         </div>
 
-        {productList.length ===
-        0 ? (
-          <div className="mt-10 rounded-2xl border border-dashed border-brand/20 bg-white px-6 py-16 text-center">
-            <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-brand/[0.07] text-brand">
-              <PackagePlus className="h-6 w-6" />
-            </div>
+        <div
+          className="
+            mt-8
+            overflow-hidden
+            rounded-2xl
+            border
+            border-brand/10
+            bg-white
+          "
+        >
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[1000px]">
+              <thead className="bg-[#fff8f8]">
+                <tr
+                  className="
+                    text-left
+                    text-xs
+                    font-bold
+                    uppercase
+                    tracking-wider
+                    text-slate-500
+                  "
+                >
+                  <th className="px-5 py-4">
+                    Product
+                  </th>
 
-            <h2 className="mt-5 font-display text-xl font-bold uppercase text-brand-deep">
-              No Products Yet
-            </h2>
+                  <th className="px-5 py-4">
+                    Category
+                  </th>
 
-            <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-slate-500">
-              Your products database is currently empty. Add your
-              first product using the button above.
-            </p>
+                  <th className="px-5 py-4">
+                    Tag
+                  </th>
 
-            <Link
-              href="/admin/products/new"
-              className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 text-xs font-bold uppercase tracking-wider text-white transition-all hover:bg-brand-soft"
-            >
-              <PackagePlus className="h-4 w-4" />
+                  <th className="px-5 py-4">
+                    Price
+                  </th>
 
-              Add First Product
-            </Link>
-          </div>
-        ) : (
-          <div className="mt-10 overflow-hidden rounded-2xl border border-brand/10 bg-white shadow-[0_20px_55px_-42px_rgba(23,49,96,0.35)]">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[1220px]">
-                <thead className="bg-[#f7f9fc]">
-                  <tr className="text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                    <th className="px-5 py-4">
-                      Product
-                    </th>
+                  <th className="px-5 py-4">
+                    Order
+                  </th>
 
-                    <th className="px-5 py-4">
-                      Category
-                    </th>
+                  <th className="px-5 py-4">
+                    Status
+                  </th>
 
-                    <th className="px-5 py-4">
-                      Tag
-                    </th>
+                  <th className="px-5 py-4">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
 
-                    <th className="px-5 py-4">
-                      Price
-                    </th>
+              <tbody>
+                {productRows.map(
+                  (
+                    product
+                  ) => {
+                    const categoryName =
+                      categoryNames.get(
+                        product.category
+                      ) ??
+                      product.category;
 
-                    <th className="px-5 py-4">
-                      Order
-                    </th>
-
-                    <th className="px-5 py-4">
-                      Status
-                    </th>
-
-                    <th className="px-5 py-4">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {productList.map(
-                    (product) => (
+                    return (
                       <tr
                         key={
                           product.id
                         }
-                        className="border-t border-brand/[0.08] transition-colors duration-200 hover:bg-[#fafbfd]"
+                        className="
+                          border-t
+                          border-brand/10
+                          align-middle
+                        "
                       >
                         <td className="px-5 py-5">
                           <div className="flex items-center gap-4">
-                            <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-brand/10 bg-[#f7f9fc]">
+                            <div
+                              className="
+                                h-16
+                                w-16
+                                shrink-0
+                                overflow-hidden
+                                rounded-xl
+                                border
+                                border-brand/10
+                                bg-[#f7f7f7]
+                              "
+                            >
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img
                                 src={
@@ -183,18 +314,34 @@ export default async function AdminProductsPage() {
                                 alt={
                                   product.name
                                 }
-                                className="h-full w-full object-cover"
+                                className="
+                                  h-full
+                                  w-full
+                                  object-contain
+                                  p-1
+                                "
                               />
                             </div>
 
                             <div className="min-w-0">
-                              <p className="max-w-[240px] truncate font-semibold text-brand-deep">
+                              <p
+                                className="
+                                  font-bold
+                                  text-brand-deep
+                                "
+                              >
                                 {
                                   product.name
                                 }
                               </p>
 
-                              <p className="mt-1 max-w-[240px] truncate text-xs text-slate-400">
+                              <p
+                                className="
+                                  mt-1
+                                  text-xs
+                                  text-slate-400
+                                "
+                              >
                                 {
                                   product.id
                                 }
@@ -203,53 +350,134 @@ export default async function AdminProductsPage() {
                           </div>
                         </td>
 
-                        <td className="px-5 py-5 text-sm text-slate-600">
-                          {formatCategory(
-                            product.category
-                          )}
+                        <td className="px-5 py-5">
+                          <div>
+                            <p
+                              className="
+                                text-sm
+                                font-semibold
+                                text-slate-700
+                              "
+                            >
+                              {
+                                categoryName
+                              }
+                            </p>
+
+                            <p
+                              className="
+                                mt-1
+                                text-[10px]
+                                text-slate-400
+                              "
+                            >
+                              {
+                                product.category
+                              }
+                            </p>
+                          </div>
                         </td>
 
                         <td className="px-5 py-5">
-                          <span className="inline-flex rounded-full bg-brand/[0.07] px-3 py-1.5 text-xs font-bold uppercase text-brand">
+                          <span
+                            className="
+                              rounded-full
+                              bg-red-50
+                              px-3
+                              py-1.5
+                              text-[10px]
+                              font-bold
+                              uppercase
+                              text-brand
+                            "
+                          >
                             {
                               product.tag
                             }
                           </span>
                         </td>
 
-                        <td className="px-5 py-5 text-sm font-bold text-brand-deep">
+                        <td
+                          className="
+                            px-5
+                            py-5
+                            text-sm
+                            font-bold
+                            text-brand-deep
+                          "
+                        >
                           {formatPrice(
                             product.price
                           )}
                         </td>
 
-                        <td className="px-5 py-5 text-sm font-medium text-slate-600">
+                        <td
+                          className="
+                            px-5
+                            py-5
+                            text-sm
+                            text-slate-600
+                          "
+                        >
                           {
                             product.sortOrder
                           }
                         </td>
 
                         <td className="px-5 py-5">
-                          {product.isVisible ? (
-                            <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700">
+                          <span
+                            className={`
+                              inline-flex
+                              items-center
+                              gap-2
+                              rounded-full
+                              px-3
+                              py-1.5
+                              text-[10px]
+                              font-bold
+
+                              ${
+                                product.isVisible
+                                  ? "bg-emerald-50 text-emerald-700"
+                                  : "bg-slate-100 text-slate-500"
+                              }
+                            `}
+                          >
+                            {product.isVisible ? (
                               <Eye className="h-3.5 w-3.5" />
-
-                              Visible
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-500">
+                            ) : (
                               <EyeOff className="h-3.5 w-3.5" />
+                            )}
 
-                              Hidden
-                            </span>
-                          )}
+                            {product.isVisible
+                              ? "Visible"
+                              : "Hidden"}
+                          </span>
                         </td>
 
                         <td className="px-5 py-5">
-                          <div className="flex flex-wrap items-center gap-2">
+                          <div
+                            className="
+                              flex
+                              flex-wrap
+                              gap-2
+                            "
+                          >
                             <Link
                               href={`/admin/products/${product.id}/edit`}
-                              className="inline-flex items-center gap-1.5 rounded-lg border border-brand/15 bg-white px-3 py-2 text-xs font-bold text-brand transition-all duration-300 hover:border-brand hover:bg-brand/[0.05]"
+                              className="
+                                inline-flex
+                                items-center
+                                gap-2
+                                rounded-lg
+                                border
+                                border-brand/20
+                                px-3
+                                py-2
+                                text-xs
+                                font-bold
+                                text-brand
+                              "
                             >
                               <Pencil className="h-3.5 w-3.5" />
 
@@ -273,105 +501,105 @@ export default async function AdminProductsPage() {
                                 type="hidden"
                                 name="nextVisibility"
                                 value={
-                                  product.isVisible
-                                    ? "false"
-                                    : "true"
+                                  String(
+                                    !product.isVisible
+                                  )
                                 }
                               />
 
                               <button
                                 type="submit"
-                                className="inline-flex items-center gap-1.5 rounded-lg border border-brand/15 bg-white px-3 py-2 text-xs font-bold text-brand transition-all duration-300 hover:border-brand hover:bg-brand/[0.05]"
+                                className="
+                                  inline-flex
+                                  items-center
+                                  gap-2
+                                  rounded-lg
+                                  border
+                                  border-brand/20
+                                  px-3
+                                  py-2
+                                  text-xs
+                                  font-bold
+                                  text-brand
+                                "
                               >
                                 {product.isVisible ? (
-                                  <>
-                                    <EyeOff className="h-3.5 w-3.5" />
-
-                                    Hide
-                                  </>
+                                  <EyeOff className="h-3.5 w-3.5" />
                                 ) : (
-                                  <>
-                                    <Eye className="h-3.5 w-3.5" />
-
-                                    Show
-                                  </>
+                                  <Eye className="h-3.5 w-3.5" />
                                 )}
+
+                                {product.isVisible
+                                  ? "Hide"
+                                  : "Show"}
                               </button>
                             </form>
 
-                            <DeleteProductButton
-                              productId={
-                                product.id
+                            <form
+                              action={
+                                deleteProduct
                               }
-                              productName={
-                                product.name
-                              }
-                            />
+                            >
+                              <input
+                                type="hidden"
+                                name="productId"
+                                value={
+                                  product.id
+                                }
+                              />
+
+                              <button
+                                type="submit"
+                                className="
+                                  inline-flex
+                                  items-center
+                                  gap-2
+                                  rounded-lg
+                                  border
+                                  border-red-200
+                                  px-3
+                                  py-2
+                                  text-xs
+                                  font-bold
+                                  text-red-600
+                                "
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+
+                                Delete
+                              </button>
+                            </form>
                           </div>
                         </td>
                       </tr>
-                    )
-                  )}
-                </tbody>
-              </table>
-            </div>
+                    );
+                  }
+                )}
+
+                {productRows.length ===
+                0 ? (
+                  <tr>
+                    <td
+                      colSpan={
+                        7
+                      }
+                      className="
+                        px-5
+                        py-14
+                        text-center
+                        text-sm
+                        text-slate-400
+                      "
+                    >
+                      No products found.
+                    </td>
+                  </tr>
+                ) : null}
+              </tbody>
+            </table>
           </div>
-        )}
-
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-          <p className="text-xs text-slate-400">
-            {
-              productList.length
-            }{" "}
-            {productList.length ===
-            1
-              ? "product"
-              : "products"}{" "}
-            in database
-          </p>
-
-          <p className="text-xs text-slate-400">
-            {
-              productList.filter(
-                (
-                  product
-                ) =>
-                  product.isVisible
-              ).length
-            }{" "}
-            visible on website
-          </p>
         </div>
-      </div>
+      </section>
     </main>
-  );
-}
-
-function formatCategory(
-  category: string
-) {
-  const labels: Record<
-    string,
-    string
-  > = {
-    "custom-pcs":
-      "Custom PCs",
-
-    "graphics-cards":
-      "Graphics Cards",
-
-    ram:
-      "RAM",
-
-    processors:
-      "Processors",
-
-    accessories:
-      "Accessories",
-  };
-
-  return (
-    labels[category] ??
-    category
   );
 }
