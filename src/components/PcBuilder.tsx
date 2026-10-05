@@ -79,9 +79,7 @@ type CatalogProduct = {
   name: string;
   category: string;
   tag: string;
-  price:
-    | number
-    | null;
+  price: number | null;
   description: string;
   specs: string[];
   image: string;
@@ -92,9 +90,7 @@ type ReadyBuild = {
   name: string;
   role: string;
   badge: string;
-  price:
-    | number
-    | null;
+  price: number | null;
   description: string;
   specs: string[];
   image: string;
@@ -192,290 +188,34 @@ type CustomPartInput = {
 };
 
 /* =========================================================
-   CATEGORY ALIASES
+   STRICT CATEGORY MATCHING
+
+   THIS IS THE IMPORTANT FIX.
+
+   We no longer inspect:
+   - product name
+   - B450/B550 etc.
+   - specifications
+   - tags
+   - aliases
+
+   The database category slug must match the builder
+   category slug exactly.
    ========================================================= */
-
-const CATEGORY_ALIASES:
-  Record<
-    string,
-    string[]
-  > = {
-  motherboard: [
-    "motherboard",
-    "motherboards",
-    "mobo",
-    "mobos",
-  ],
-
-  processor: [
-    "processor",
-    "processors",
-    "cpu",
-    "cpus",
-  ],
-
-  "cpu-cooler": [
-    "cpu-cooler",
-    "cpu-coolers",
-    "cooler",
-    "coolers",
-    "cooling",
-  ],
-
-  ram: [
-    "ram",
-    "memory",
-    "memories",
-    "desktop-memory",
-  ],
-
-  storage: [
-    "storage",
-    "ssd",
-    "ssds",
-    "nvme",
-    "nvmes",
-    "hdd",
-    "hdds",
-    "hard-drive",
-    "hard-drives",
-  ],
-
-  "graphics-card": [
-    "graphics-card",
-    "graphics-cards",
-    "graphic-card",
-    "graphic-cards",
-    "gpu",
-    "gpus",
-  ],
-
-  "power-supply": [
-    "power-supply",
-    "power-supplies",
-    "psu",
-    "psus",
-  ],
-
-  case: [
-    "case",
-    "cases",
-    "pc-case",
-    "pc-cases",
-    "chassis",
-  ],
-
-  monitor: [
-    "monitor",
-    "monitors",
-    "display",
-    "displays",
-  ],
-
-  keyboard: [
-    "keyboard",
-    "keyboards",
-  ],
-
-  mouse: [
-    "mouse",
-    "mice",
-  ],
-
-  headset: [
-    "headset",
-    "headsets",
-    "headphone",
-    "headphones",
-  ],
-};
-
-/* =========================================================
-   ACCESSORY KEYWORDS
-   ========================================================= */
-
-const ACCESSORY_KEYWORDS:
-  Record<
-    string,
-    string[]
-  > = {
-  motherboard: [
-    "motherboard",
-    "b450",
-    "b550",
-    "b350",
-    "a320",
-    "a520",
-    "x570",
-    "x670",
-    "x870",
-    "z490",
-    "z590",
-    "z690",
-    "z790",
-  ],
-
-  "cpu-cooler": [
-    "cpu-cooler",
-    "cooler",
-    "aio",
-    "liquid-cooler",
-    "air-cooler",
-  ],
-
-  storage: [
-    "ssd",
-    "nvme",
-    "hdd",
-    "hard-drive",
-  ],
-
-  "power-supply": [
-    "power-supply",
-    "psu",
-  ],
-
-  case: [
-    "pc-case",
-    "gaming-case",
-    "chassis",
-    "case",
-  ],
-
-  monitor: [
-    "monitor",
-    "display",
-    "lcd",
-  ],
-
-  keyboard: [
-    "keyboard",
-  ],
-
-  mouse: [
-    "mouse",
-  ],
-
-  headset: [
-    "headset",
-    "headphone",
-  ],
-};
-
-/* =========================================================
-   HELPERS
-   ========================================================= */
-
-function slugify(
-  value: string
-) {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(
-      /[^a-z0-9]+/g,
-      "-"
-    )
-    .replace(
-      /^-+|-+$/g,
-      ""
-    );
-}
-
-function canonicalCategory(
-  value: string
-) {
-  const key =
-    slugify(
-      value
-    );
-
-  for (
-    const [
-      canonical,
-      aliases,
-    ] of Object.entries(
-      CATEGORY_ALIASES
-    )
-  ) {
-    if (
-      canonical ===
-        key ||
-      aliases.includes(
-        key
-      )
-    ) {
-      return canonical;
-    }
-  }
-
-  return key;
-}
 
 function productMatchesCategory(
   category: BuilderCategory,
   product: CatalogProduct
 ) {
-  const builderCategory =
-    canonicalCategory(
-      category.slug ||
-        category.name
-    );
-
-  const productCategory =
-    canonicalCategory(
-      product.category
-    );
-
-  /* Exact / alias category match */
-
-  if (
-    builderCategory ===
-    productCategory
-  ) {
-    return true;
-  }
-
-  /*
-   * If the website product is stored under a broad
-   * Accessories category, use product information
-   * to determine its builder section.
-   */
-
-  if (
-    productCategory ===
-    "accessories"
-  ) {
-    const searchText =
-      slugify(
-        [
-          product.name,
-          product.tag,
-          product.description,
-          ...product.specs,
-        ].join(
-          " "
-        )
-      );
-
-    const keywords =
-      ACCESSORY_KEYWORDS[
-        builderCategory
-      ] ??
-      [];
-
-    return keywords.some(
-      (
-        keyword
-      ) =>
-        searchText.includes(
-          keyword
-        )
-    );
-  }
-
-  return false;
+  return (
+    product.category ===
+    category.slug
+  );
 }
+
+/* =========================================================
+   HELPERS
+   ========================================================= */
 
 function createLocalId() {
   if (
@@ -498,21 +238,27 @@ function parseOptionalPrice(
 ) {
   const raw =
     String(
-      value ?? ""
+      value ??
+        ""
     ).trim();
 
-  if (!raw) {
+  if (
+    !raw
+  ) {
     return null;
   }
 
   const parsed =
-    Number(raw);
+    Number(
+      raw
+    );
 
   if (
     !Number.isFinite(
       parsed
     ) ||
-    parsed < 0
+    parsed <
+      0
   ) {
     return null;
   }
@@ -528,7 +274,9 @@ function normalizeLink(
   const link =
     value.trim();
 
-  if (!link) {
+  if (
+    !link
+  ) {
     return "";
   }
 
@@ -606,12 +354,12 @@ export function PcBuilder({
     showExtraForm,
     setShowExtraForm,
   ] =
-    useState(false);
+    useState(
+      false
+    );
 
   /* =======================================================
-     OPTIONS PER CATEGORY
-
-     Website products + manually added Builder items.
+     OPTIONS BY BUILDER CATEGORY
      ======================================================= */
 
   const optionsByCategory =
@@ -627,6 +375,12 @@ export function PcBuilder({
           const category of
           categories
         ) {
+          /* ===============================================
+             NORMAL WEBSITE PRODUCTS
+
+             STRICT CATEGORY MATCH.
+             =============================================== */
+
           const websiteProducts =
             products
               .filter(
@@ -675,6 +429,10 @@ export function PcBuilder({
                 })
               );
 
+          /* ===============================================
+             MANUAL PC BUILDER ITEMS
+             =============================================== */
+
           const manualItems =
             items
               .filter(
@@ -721,12 +479,9 @@ export function PcBuilder({
                 })
               );
 
-          /*
-           * Website products first.
-           *
-           * Remove obvious duplicates when the same
-           * component has also been manually added.
-           */
+          /* ===============================================
+             MERGE + DEDUPE
+             =============================================== */
 
           const allOptions = [
             ...websiteProducts,
@@ -744,9 +499,9 @@ export function PcBuilder({
                 option
               ) => {
                 const dedupeKey =
-                  slugify(
-                    option.name
-                  );
+                  option.name
+                    .trim()
+                    .toLowerCase();
 
                 if (
                   seen.has(
@@ -775,7 +530,7 @@ export function PcBuilder({
     );
 
   /* =======================================================
-     TOTAL
+     TOTALS
      ======================================================= */
 
   const componentsTotal =
@@ -824,10 +579,6 @@ export function PcBuilder({
     componentsTotal +
     extrasTotal;
 
-  /* =======================================================
-     SELECTED COUNT
-     ======================================================= */
-
   const selectedCount =
     useMemo(
       () =>
@@ -847,15 +598,12 @@ export function PcBuilder({
       ]
     );
 
-  /* =======================================================
-     ACTIVE OPTIONS
-     ======================================================= */
-
   const activeItems =
     activeCategory
       ? optionsByCategory[
           activeCategory.id
-        ] ?? []
+        ] ??
+        []
       : [];
 
   /* =======================================================
@@ -1048,10 +796,6 @@ export function PcBuilder({
     );
   }
 
-  /* =======================================================
-     CLEAR
-     ======================================================= */
-
   function clearBuild() {
     setSelections(
       {}
@@ -1067,7 +811,7 @@ export function PcBuilder({
   }
 
   /* =======================================================
-     WHATSAPP
+     WHATSAPP QUOTATION
      ======================================================= */
 
   function createQuoteMessage() {
@@ -1262,13 +1006,7 @@ export function PcBuilder({
           HERO
           ===================================================== */}
 
-      <section
-        className="
-          border-b
-          border-brand/10
-          bg-white
-        "
-      >
+      <section className="border-b border-brand/10 bg-white">
         <div
           className="
             mx-auto
@@ -1370,19 +1108,11 @@ export function PcBuilder({
                   tracking-wider
                   transition-all
                   sm:px-6
-
                   ${
                     mode ===
                     "ready"
-                      ? `
-                        bg-brand
-                        text-white
-                      `
-                      : `
-                        text-slate-500
-                        hover:bg-white
-                        hover:text-brand
-                      `
+                      ? "bg-brand text-white"
+                      : "text-slate-500 hover:bg-white hover:text-brand"
                   }
                 `}
               >
@@ -1410,19 +1140,11 @@ export function PcBuilder({
                   tracking-wider
                   transition-all
                   sm:px-6
-
                   ${
                     mode ===
                     "scratch"
-                      ? `
-                        bg-brand
-                        text-white
-                      `
-                      : `
-                        text-slate-500
-                        hover:bg-white
-                        hover:text-brand
-                      `
+                      ? "bg-brand text-white"
+                      : "text-slate-500 hover:bg-white hover:text-brand"
                   }
                 `}
               >
@@ -1435,9 +1157,7 @@ export function PcBuilder({
         </div>
       </section>
 
-      {/* =====================================================
-          READY BUILDS
-          ===================================================== */}
+      {/* READY BUILDS */}
 
       {mode ===
         "ready" &&
@@ -1491,28 +1211,11 @@ export function PcBuilder({
                 "
               >
                 <div>
-                  <p
-                    className="
-                      text-xs
-                      font-bold
-                      uppercase
-                      tracking-[0.2em]
-                      text-brand
-                    "
-                  >
+                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand">
                     Build From Scratch
                   </p>
 
-                  <h2
-                    className="
-                      mt-1
-                      font-display
-                      text-2xl
-                      font-extrabold
-                      uppercase
-                      text-brand-deep
-                    "
-                  >
+                  <h2 className="mt-1 font-display text-2xl font-extrabold uppercase text-brand-deep">
                     Choose Your Components
                   </h2>
                 </div>
@@ -1553,7 +1256,7 @@ export function PcBuilder({
                 ) : null}
               </div>
 
-              {/* COMPONENT ROWS */}
+              {/* COMPONENTS */}
 
               <div className="space-y-3">
                 {categories.map(
@@ -1620,30 +1323,9 @@ export function PcBuilder({
                             )}
                           </div>
 
-                          <div
-                            className="
-                              min-w-0
-                              flex-1
-                            "
-                          >
-                            <div
-                              className="
-                                flex
-                                flex-wrap
-                                items-center
-                                gap-2
-                              "
-                            >
-                              <h3
-                                className="
-                                  font-display
-                                  text-base
-                                  font-extrabold
-                                  uppercase
-                                  text-brand-deep
-                                  md:text-lg
-                                "
-                              >
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h3 className="font-display text-base font-extrabold uppercase text-brand-deep md:text-lg">
                                 {
                                   category.name
                                 }
@@ -1657,7 +1339,6 @@ export function PcBuilder({
                                   text-[9px]
                                   font-extrabold
                                   uppercase
-
                                   ${
                                     category.isRequired
                                       ? "bg-brand/[0.08] text-brand"
@@ -1672,13 +1353,7 @@ export function PcBuilder({
                             </div>
 
                             {category.helpText ? (
-                              <p
-                                className="
-                                  mt-1
-                                  text-xs
-                                  text-slate-400
-                                "
-                              >
+                              <p className="mt-1 text-xs text-slate-400">
                                 {
                                   category.helpText
                                 }
@@ -1686,14 +1361,7 @@ export function PcBuilder({
                             ) : null}
 
                             {!selected ? (
-                              <p
-                                className="
-                                  mt-2
-                                  text-xs
-                                  font-semibold
-                                  text-slate-500
-                                "
-                              >
+                              <p className="mt-2 text-xs font-semibold text-slate-500">
                                 {availableOptions.length >
                                 0
                                   ? `${availableOptions.length} product${
@@ -1706,6 +1374,8 @@ export function PcBuilder({
                               </p>
                             ) : null}
                           </div>
+
+                          {/* SELECTED */}
 
                           {selected ? (
                             <div
@@ -1744,45 +1414,21 @@ export function PcBuilder({
                                     alt={
                                       selected.name
                                     }
-                                    className="
-                                      h-full
-                                      w-full
-                                      object-contain
-                                      p-1
-                                    "
+                                    className="h-full w-full object-contain p-1"
                                   />
                                 ) : (
                                   <Package className="h-5 w-5 text-slate-300" />
                                 )}
                               </div>
 
-                              <div
-                                className="
-                                  min-w-0
-                                  flex-1
-                                "
-                              >
-                                <p
-                                  className="
-                                    line-clamp-2
-                                    text-xs
-                                    font-bold
-                                    text-brand-deep
-                                  "
-                                >
+                              <div className="min-w-0 flex-1">
+                                <p className="line-clamp-2 text-xs font-bold text-brand-deep">
                                   {
                                     selected.name
                                   }
                                 </p>
 
-                                <p
-                                  className="
-                                    mt-1
-                                    text-xs
-                                    font-extrabold
-                                    text-brand
-                                  "
-                                >
+                                <p className="mt-1 text-xs font-extrabold text-brand">
                                   {selected.price ===
                                   null
                                     ? "Price on request"
@@ -1794,13 +1440,9 @@ export function PcBuilder({
                             </div>
                           ) : null}
 
-                          <div
-                            className="
-                              flex
-                              shrink-0
-                              gap-2
-                            "
-                          >
+                          {/* ACTIONS */}
+
+                          <div className="flex shrink-0 gap-2">
                             {selected ? (
                               <button
                                 type="button"
@@ -1819,6 +1461,7 @@ export function PcBuilder({
                                   border-red-200
                                   bg-red-50
                                   text-red-500
+                                  hover:bg-red-100
                                 "
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -1865,52 +1508,20 @@ export function PcBuilder({
                 )}
               </div>
 
-              {/* EXTRAS */}
+              {/* =================================================
+                  EXTRAS
+                  ================================================= */}
 
-              <div
-                className="
-                  mt-5
-                  overflow-hidden
-                  rounded-2xl
-                  border
-                  border-brand/10
-                  bg-white
-                "
-              >
-                <div
-                  className="
-                    flex
-                    flex-wrap
-                    items-center
-                    justify-between
-                    gap-4
-                    border-b
-                    border-brand/10
-                    px-5
-                    py-4
-                  "
-                >
+              <div className="mt-5 overflow-hidden rounded-2xl border border-brand/10 bg-white">
+                <div className="flex flex-wrap items-center justify-between gap-4 border-b border-brand/10 px-5 py-4">
                   <div>
-                    <h3
-                      className="
-                        font-display
-                        text-lg
-                        font-extrabold
-                        uppercase
-                        text-brand-deep
-                      "
-                    >
+                    <h3 className="font-display text-lg font-extrabold uppercase text-brand-deep">
                       Extras
                     </h3>
 
-                    <p
-                      className="
-                        mt-1
-                        text-xs
-                        text-slate-400
-                      "
-                    >
-                      Add fans, cables, accessories or any other custom item.
+                    <p className="mt-1 text-xs text-slate-400">
+                      Add fans, cables, accessories or any other
+                      custom item.
                     </p>
                   </div>
 
@@ -1966,16 +1577,7 @@ export function PcBuilder({
                           key={
                             extra.id
                           }
-                          className="
-                            flex
-                            items-center
-                            gap-3
-                            rounded-xl
-                            border
-                            border-black/[0.06]
-                            bg-[#fffafa]
-                            p-3
-                          "
+                          className="flex items-center gap-3 rounded-xl border border-black/[0.06] bg-[#fffafa] p-3"
                         >
                           <div className="min-w-0 flex-1">
                             <p className="text-sm font-bold text-brand-deep">
@@ -2001,16 +1603,7 @@ export function PcBuilder({
                                 extra.id
                               )
                             }
-                            className="
-                              grid
-                              h-9
-                              w-9
-                              place-items-center
-                              rounded-lg
-                              text-slate-400
-                              hover:bg-red-50
-                              hover:text-red-500
-                            "
+                            className="grid h-9 w-9 place-items-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -2025,14 +1618,7 @@ export function PcBuilder({
                 )}
 
                 {showExtraForm ? (
-                  <div
-                    className="
-                      border-t
-                      border-brand/10
-                      bg-[#fffafa]
-                      p-5
-                    "
-                  >
+                  <div className="border-t border-brand/10 bg-[#fffafa] p-5">
                     <CustomRequestForm
                       buttonText="Add Extra"
                       onSubmit={
@@ -2051,15 +1637,7 @@ export function PcBuilder({
 
             {/* SUMMARY */}
 
-            <aside
-              className="
-                hidden
-                lg:sticky
-                lg:top-24
-                lg:block
-                lg:self-start
-              "
-            >
+            <aside className="hidden lg:sticky lg:top-24 lg:block lg:self-start">
               <BuildSummary
                 categories={
                   categories
@@ -2094,7 +1672,9 @@ export function PcBuilder({
         </section>
       ) : null}
 
-      {/* MOBILE BAR */}
+      {/* =====================================================
+          MOBILE BAR
+          ===================================================== */}
 
       {mode ===
         "scratch" &&
@@ -2113,15 +1693,7 @@ export function PcBuilder({
             lg:hidden
           "
         >
-          <div
-            className="
-              mx-auto
-              flex
-              max-w-7xl
-              items-center
-              gap-3
-            "
-          >
+          <div className="mx-auto flex max-w-7xl items-center gap-3">
             <div className="min-w-0 flex-1">
               <p className="text-[9px] font-bold uppercase text-slate-400">
                 Build Total
@@ -2206,19 +1778,10 @@ function ReadyBuilds({
   whatsappNumber,
 }: {
   builds: ReadyBuild[];
-
   whatsappNumber: string;
 }) {
   return (
-    <section
-      className="
-        mx-auto
-        max-w-7xl
-        px-5
-        py-10
-        md:px-8
-      "
-    >
+    <section className="mx-auto max-w-7xl px-5 py-10 md:px-8">
       <div className="mb-7">
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand">
           Ready To Order
@@ -2231,15 +1794,7 @@ function ReadyBuilds({
 
       {builds.length >
       0 ? (
-        <div
-          className="
-            grid
-            auto-rows-fr
-            gap-5
-            md:grid-cols-2
-            xl:grid-cols-3
-          "
-        >
+        <div className="grid auto-rows-fr gap-5 md:grid-cols-2 xl:grid-cols-3">
           {builds.map(
             (
               build
@@ -2259,16 +1814,7 @@ function ReadyBuilds({
                   key={
                     build.id
                   }
-                  className="
-                    flex
-                    h-full
-                    flex-col
-                    overflow-hidden
-                    rounded-2xl
-                    border
-                    border-brand/10
-                    bg-white
-                  "
+                  className="flex h-full flex-col overflow-hidden rounded-2xl border border-brand/10 bg-white"
                 >
                   <div className="relative aspect-[16/10] bg-[#f6f6f6] p-2">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -2283,21 +1829,7 @@ function ReadyBuilds({
                       className="h-full w-full object-contain"
                     />
 
-                    <span
-                      className="
-                        absolute
-                        left-3
-                        top-3
-                        rounded-full
-                        bg-white
-                        px-3
-                        py-1.5
-                        text-[9px]
-                        font-bold
-                        uppercase
-                        text-brand
-                      "
-                    >
+                    <span className="absolute left-3 top-3 rounded-full bg-white px-3 py-1.5 text-[9px] font-bold uppercase text-brand">
                       {
                         build.badge
                       }
@@ -2344,19 +1876,15 @@ function ReadyBuilds({
                               key={
                                 index
                               }
-                              className="
-                                flex
-                                items-start
-                                gap-2
-                                text-xs
-                                text-slate-500
-                              "
+                              className="flex items-start gap-2 text-xs text-slate-500"
                             >
                               <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" />
 
-                              {
-                                spec
-                              }
+                              <span>
+                                {
+                                  spec
+                                }
+                              </span>
                             </div>
                           )
                         )}
@@ -2365,21 +1893,7 @@ function ReadyBuilds({
                     <div className="mt-auto grid gap-2 pt-5 sm:grid-cols-2">
                       <Link
                         href={`/build/${build.id}`}
-                        className="
-                          inline-flex
-                          items-center
-                          justify-center
-                          gap-2
-                          rounded-xl
-                          border
-                          border-brand/15
-                          px-4
-                          py-3
-                          text-xs
-                          font-bold
-                          uppercase
-                          text-brand
-                        "
+                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-brand/15 px-4 py-3 text-xs font-bold uppercase text-brand"
                       >
                         View Build
 
@@ -2392,20 +1906,7 @@ function ReadyBuilds({
                         }
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="
-                          inline-flex
-                          items-center
-                          justify-center
-                          gap-2
-                          rounded-xl
-                          bg-[#25D366]
-                          px-4
-                          py-3
-                          text-xs
-                          font-bold
-                          uppercase
-                          text-white
-                        "
+                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3 text-xs font-bold uppercase text-white"
                       >
                         <FaWhatsapp className="h-4 w-4" />
 
@@ -2443,23 +1944,15 @@ function BuildSummary({
   onRemoveExtra,
 }: {
   categories: BuilderCategory[];
-
   selections: SelectionMap;
-
   extras: CustomExtra[];
-
   selectedCount: number;
-
   total: number;
-
   quoteUrl: string;
-
   quoteButtonText: string;
-
   onRemove: (
     categoryId: number
   ) => void;
-
   onRemoveExtra: (
     extraId: string
   ) => void;
@@ -2478,7 +1971,7 @@ function BuildSummary({
         bg-white
       "
     >
-      {/* FIXED HEADER */}
+      {/* HEADER */}
 
       <div className="shrink-0 bg-brand p-5 text-white">
         <div className="flex items-center gap-3">
@@ -2525,10 +2018,7 @@ function BuildSummary({
         </div>
       </div>
 
-      {/* ===================================================
-          IMPORTANT:
-          LENIS MUST NOT CAPTURE WHEEL HERE
-          =================================================== */}
+      {/* SCROLLABLE BODY */}
 
       <div
         data-lenis-prevent
@@ -2563,13 +2053,7 @@ function BuildSummary({
                 key={
                   category.id
                 }
-                className="
-                  rounded-xl
-                  border
-                  border-black/[0.06]
-                  bg-[#fffafa]
-                  p-3
-                "
+                className="rounded-xl border border-black/[0.06] bg-[#fffafa] p-3"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -2611,17 +2095,7 @@ function BuildSummary({
                           category.id
                         )
                       }
-                      className="
-                        grid
-                        h-7
-                        w-7
-                        shrink-0
-                        place-items-center
-                        rounded-lg
-                        text-slate-400
-                        hover:bg-red-50
-                        hover:text-red-500
-                      "
+                      className="grid h-7 w-7 shrink-0 place-items-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500"
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>
@@ -2686,7 +2160,7 @@ function BuildSummary({
         ) : null}
       </div>
 
-      {/* FIXED FOOTER */}
+      {/* FOOTER */}
 
       <div className="shrink-0 border-t border-brand/10 bg-white p-4">
         <div className="flex items-end justify-between">
@@ -2832,7 +2306,21 @@ function ItemSelector({
                 Select Component
               </p>
 
-              <span className="rounded-full bg-brand/[0.08] px-2.5 py-1 text-[9px] font-bold uppercase text-brand">
+              <span
+                className={`
+                  rounded-full
+                  px-2.5
+                  py-1
+                  text-[9px]
+                  font-bold
+                  uppercase
+                  ${
+                    category.isRequired
+                      ? "bg-brand/[0.08] text-brand"
+                      : "bg-slate-100 text-slate-500"
+                  }
+                `}
+              >
                 {category.isRequired
                   ? "Required"
                   : "Optional"}
@@ -2852,6 +2340,15 @@ function ItemSelector({
                 }
               </p>
             ) : null}
+
+            <p className="mt-2 text-xs font-semibold text-slate-400">
+              Category slug:{" "}
+              <span className="text-brand">
+                {
+                  category.slug
+                }
+              </span>
+            </p>
           </div>
 
           <button
@@ -2859,18 +2356,7 @@ function ItemSelector({
             onClick={
               onClose
             }
-            className="
-              grid
-              h-10
-              w-10
-              shrink-0
-              place-items-center
-              rounded-xl
-              bg-slate-100
-              text-slate-500
-              hover:bg-brand
-              hover:text-white
-            "
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-500 hover:bg-brand hover:text-white"
           >
             <X className="h-5 w-5" />
           </button>
@@ -2878,8 +2364,6 @@ function ItemSelector({
 
         {/* =================================================
             SCROLLABLE BODY
-
-            data-lenis-prevent fixes mouse wheel.
             ================================================= */}
 
         <div
@@ -2904,15 +2388,7 @@ function ItemSelector({
           {items.length >
           0 ? (
             <>
-              <div
-                className="
-                  grid
-                  auto-rows-fr
-                  gap-4
-                  sm:grid-cols-2
-                  lg:grid-cols-3
-                "
-              >
+              <div className="grid auto-rows-fr gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {items.map(
                   (
                     item
@@ -2934,7 +2410,6 @@ function ItemSelector({
                           rounded-2xl
                           border
                           bg-white
-
                           ${
                             isSelected
                               ? "border-brand"
@@ -2963,21 +2438,7 @@ function ItemSelector({
                           )}
 
                           {item.badge ? (
-                            <span
-                              className="
-                                absolute
-                                left-3
-                                top-3
-                                rounded-full
-                                bg-white
-                                px-2.5
-                                py-1
-                                text-[8px]
-                                font-bold
-                                uppercase
-                                text-brand
-                              "
-                            >
+                            <span className="absolute left-3 top-3 rounded-full bg-white px-2.5 py-1 text-[8px] font-bold uppercase text-brand">
                               {
                                 item.badge
                               }
@@ -2994,16 +2455,7 @@ function ItemSelector({
                         {/* CONTENT */}
 
                         <div className="flex flex-1 flex-col p-4">
-                          <h3
-                            className="
-                              line-clamp-2
-                              min-h-[2.5rem]
-                              font-display
-                              text-base
-                              font-extrabold
-                              text-brand-deep
-                            "
-                          >
+                          <h3 className="line-clamp-2 min-h-[2.5rem] font-display text-base font-extrabold text-brand-deep">
                             {
                               item.name
                             }
@@ -3035,13 +2487,7 @@ function ItemSelector({
                                       key={
                                         index
                                       }
-                                      className="
-                                        flex
-                                        items-start
-                                        gap-2
-                                        text-[11px]
-                                        text-slate-500
-                                      "
+                                      className="flex items-start gap-2 text-[11px] text-slate-500"
                                     >
                                       <Check className="mt-0.5 h-3 w-3 shrink-0 text-brand" />
 
@@ -3057,32 +2503,33 @@ function ItemSelector({
                           ) : null}
 
                           {item.productUrl ? (
-                            <Link
-                              href={
-                                item.productUrl
-                              }
-                              target={
-                                item.productUrl.startsWith(
-                                  "http"
-                                )
-                                  ? "_blank"
-                                  : undefined
-                              }
-                              className="
-                                mt-3
-                                inline-flex
-                                items-center
-                                gap-1.5
-                                text-[10px]
-                                font-bold
-                                uppercase
-                                text-brand
-                              "
-                            >
-                              Product Details
+                            item.productUrl.startsWith(
+                              "http"
+                            ) ? (
+                              <a
+                                href={
+                                  item.productUrl
+                                }
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="mt-3 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase text-brand"
+                              >
+                                Product Details
 
-                              <ExternalLink className="h-3 w-3" />
-                            </Link>
+                                <ExternalLink className="h-3 w-3" />
+                              </a>
+                            ) : (
+                              <Link
+                                href={
+                                  item.productUrl
+                                }
+                                className="mt-3 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase text-brand"
+                              >
+                                Product Details
+
+                                <ExternalLink className="h-3 w-3" />
+                              </Link>
+                            )
                           ) : null}
 
                           <button
@@ -3102,7 +2549,6 @@ function ItemSelector({
                               text-xs
                               font-bold
                               uppercase
-
                               ${
                                 isSelected
                                   ? "bg-brand text-white"
@@ -3131,7 +2577,8 @@ function ItemSelector({
                     </p>
 
                     <p className="mt-1 text-xs text-slate-400">
-                      Enter any component you want and GameX will quote it.
+                      Enter any component you want and GameX will
+                      quote it.
                     </p>
                   </div>
 
@@ -3145,23 +2592,17 @@ function ItemSelector({
                           !value
                       )
                     }
-                    className="
-                      inline-flex
-                      items-center
-                      gap-2
-                      rounded-xl
-                      bg-brand
-                      px-4
-                      py-2.5
-                      text-xs
-                      font-bold
-                      uppercase
-                      text-white
-                    "
+                    className="inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-xs font-bold uppercase text-white"
                   >
-                    <Plus className="h-4 w-4" />
+                    {showCustom ? (
+                      <X className="h-4 w-4" />
+                    ) : (
+                      <Plus className="h-4 w-4" />
+                    )}
 
-                    Custom Part
+                    {showCustom
+                      ? "Close"
+                      : "Custom Part"}
                   </button>
                 </div>
 
@@ -3188,11 +2629,19 @@ function ItemSelector({
                 <Package className="mx-auto h-9 w-9 text-brand/30" />
 
                 <p className="mt-3 font-display text-lg font-extrabold uppercase text-brand-deep">
-                  No Listed Products
+                  No Products In This Category
                 </p>
 
-                <p className="mt-2 text-sm text-slate-400">
-                  No matching website or Builder products are available in this category.
+                <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-400">
+                  No visible product has category slug{" "}
+                  <strong className="text-brand">
+                    {
+                      category.slug
+                    }
+                  </strong>
+                  . Assign products to this exact category in the
+                  Admin Product editor, or enter a custom part
+                  below.
                 </p>
               </div>
 
@@ -3258,7 +2707,7 @@ function ItemSelector({
 }
 
 /* =========================================================
-   CUSTOM FORM
+   CUSTOM REQUEST FORM
    ========================================================= */
 
 function CustomRequestForm({
@@ -3291,10 +2740,13 @@ function CustomRequestForm({
       String(
         data.get(
           "customName"
-        ) ?? ""
+        ) ??
+        ""
       ).trim();
 
-    if (!name) {
+    if (
+      !name
+    ) {
       return;
     }
 
@@ -3312,14 +2764,16 @@ function CustomRequestForm({
         String(
           data.get(
             "customProductUrl"
-          ) ?? ""
+          ) ??
+          ""
         ).trim(),
 
       note:
         String(
           data.get(
             "customNote"
-          ) ?? ""
+          ) ??
+          ""
         ).trim(),
     });
 
@@ -3342,18 +2796,7 @@ function CustomRequestForm({
             name="customName"
             required
             placeholder="e.g. ASUS RTX 4070 Super"
-            className="
-              w-full
-              rounded-xl
-              border
-              border-brand/15
-              bg-white
-              px-4
-              py-3
-              text-sm
-              outline-none
-              focus:border-brand
-            "
+            className="w-full rounded-xl border border-brand/15 bg-white px-4 py-3 text-sm outline-none focus:border-brand"
           />
         </div>
 
@@ -3366,20 +2809,14 @@ function CustomRequestForm({
             name="customPrice"
             type="number"
             min="0"
+            step="1"
             placeholder="Optional"
-            className="
-              w-full
-              rounded-xl
-              border
-              border-brand/15
-              bg-white
-              px-4
-              py-3
-              text-sm
-              outline-none
-              focus:border-brand
-            "
+            className="w-full rounded-xl border border-brand/15 bg-white px-4 py-3 text-sm outline-none focus:border-brand"
           />
+
+          <p className="mt-1.5 text-[10px] text-slate-400">
+            Leave empty if GameX should provide the price.
+          </p>
         </div>
       </div>
 
@@ -3391,18 +2828,7 @@ function CustomRequestForm({
         <input
           name="customProductUrl"
           placeholder="Optional"
-          className="
-            w-full
-            rounded-xl
-            border
-            border-brand/15
-            bg-white
-            px-4
-            py-3
-            text-sm
-            outline-none
-            focus:border-brand
-          "
+          className="w-full rounded-xl border border-brand/15 bg-white px-4 py-3 text-sm outline-none focus:border-brand"
         />
       </div>
 
@@ -3417,19 +2843,7 @@ function CustomRequestForm({
             3
           }
           placeholder="Brand, model, color or other requirement..."
-          className="
-            w-full
-            resize-y
-            rounded-xl
-            border
-            border-brand/15
-            bg-white
-            px-4
-            py-3
-            text-sm
-            outline-none
-            focus:border-brand
-          "
+          className="w-full resize-y rounded-xl border border-brand/15 bg-white px-4 py-3 text-sm outline-none focus:border-brand"
         />
       </div>
 
@@ -3448,19 +2862,7 @@ function CustomRequestForm({
 
         <button
           type="submit"
-          className="
-            inline-flex
-            items-center
-            gap-2
-            rounded-xl
-            bg-brand
-            px-5
-            py-3
-            text-xs
-            font-bold
-            uppercase
-            text-white
-          "
+          className="inline-flex items-center gap-2 rounded-xl bg-brand px-5 py-3 text-xs font-bold uppercase text-white"
         >
           <Plus className="h-4 w-4" />
 
