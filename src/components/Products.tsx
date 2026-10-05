@@ -26,7 +26,6 @@ import {
 } from "@/components/DetailsModal";
 
 import {
-  SectionHeading,
   SpotlightCard,
 } from "@/components/ui";
 
@@ -290,13 +289,15 @@ export default function Products({
   return (
     <>
       <section
-        id="products"
-        className="
-          relative
-          overflow-hidden
-          bg-white
-          py-14
-          md:py-20
+         id="products"
+  className="
+    relative
+    overflow-hidden
+    bg-white
+    pb-2
+    pt-5
+    md:pb-2
+    md:pt-5s
         "
       >
         {/* ===================================================
@@ -338,11 +339,67 @@ export default function Products({
             md:px-8
           "
         >
-          <SectionHeading
-            eyebrow="Catalogue"
-            title="Products"
-            subtitle="Premium gaming hardware selected for performance, reliability, and serious gaming setups."
-          />
+          <div className="text-center">
+  <div
+    className="
+      inline-flex
+      items-center
+      gap-2
+      rounded-full
+      border
+      border-brand/25
+      bg-brand/[0.04]
+      px-4
+      py-2
+      text-xs
+      font-bold
+      uppercase
+      tracking-[0.18em]
+      text-brand
+    "
+  >
+    <span
+      className="
+        h-2
+        w-2
+        rounded-full
+        bg-brand
+        shadow-[0_0_10px_rgba(230,0,0,0.45)]
+      "
+    />
+
+    Catalogue
+  </div>
+
+  <div
+    className="
+      mx-auto
+      mt-4
+      flex
+      items-center
+      justify-center
+      gap-2
+    "
+  >
+    <span className="h-[3px] w-10 rounded-full bg-brand" />
+    <span className="h-[3px] w-3 rounded-full bg-brand-deep" />
+    <span className="h-[3px] w-2 rounded-full bg-brand/40" />
+  </div>
+
+  {/* <p
+    className="
+      mx-auto
+      mt-3
+      max-w-2xl
+      text-base
+      leading-7
+      text-slate-600
+    "
+  >
+    Premium gaming hardware selected for performance,
+    reliability, and serious gaming setups.
+  </p> */}
+</div>
 
           {/* =================================================
               FILTERS

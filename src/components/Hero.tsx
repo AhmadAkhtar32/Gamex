@@ -304,17 +304,15 @@ export function Hero({
 
   return (
     <section
-  id="home"
+   id="home"
   className="
     relative
-    min-h-[calc(100svh-5rem)]
     overflow-hidden
-    pb-4
-    pt-24
-    sm:pt-24
-    md:pb-5
-    md:pt-24
-    lg:pb-5
+    pb-2
+    pt-20
+    md:pb-2
+    md:pt-20
+    lg:pb-2
     lg:pt-24
   "
 >
