@@ -418,16 +418,17 @@ export function Hero({
 
       <div
         className="
-  mx-auto
-  grid
-  max-w-7xl
-  items-start
-  gap-6
-  px-5
-  md:px-8
-  lg:grid-cols-[0.92fr_1.08fr]
-  lg:gap-9
-  xl:gap-10
+      mx-auto
+    grid
+    max-w-7xl
+    items-start
+    gap-7
+    px-5
+    md:px-8
+    lg:grid-cols-[0.92fr_1.08fr]
+    lg:items-center
+    lg:gap-9
+    xl:gap-10
 "
       >
         {/* ===================================================
@@ -891,6 +892,7 @@ export function Hero({
           className="
             relative
             lg:-mt-1
+            lg:self-center
           "
         >
           <div
