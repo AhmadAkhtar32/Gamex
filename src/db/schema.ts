@@ -3102,16 +3102,19 @@ export const catalogCategories = pgTable(
      * build   = Build forms only
      * both    = Product + Build forms
      */
-    appliesTo: varchar(
-      "applies_to",
-      {
-        length: 20,
-      }
-    )
-      .default(
-        "product"
-      )
-      .notNull(),
+  appliesTo: varchar(
+  "applies_to",
+  {
+    length: 20,
+  }
+)
+  .$type<
+    "product" | "build" | "both"
+  >()
+  .default(
+    "product"
+  )
+  .notNull(),
 
     sortOrder: integer(
       "sort_order"
