@@ -8,7 +8,7 @@ export default defineConfig({
 
   schema: [
     "./src/db/schema.ts",
-    "./src/db/builder-schema.ts",
+    "./src/db/catalog-extensions.ts",
   ],
 
   dbCredentials: {

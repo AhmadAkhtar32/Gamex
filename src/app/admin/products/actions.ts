@@ -29,15 +29,18 @@ import {
 } from "@/db/schema";
 
 import {
+  catalogSubcategories,
+  productSubcategoryAssignments,
+} from "@/db/catalog-extensions";
+
+import {
   requireAdmin,
 } from "@/lib/admin-auth";
 
-/* =========================================================
-   CONSTANTS
-   ========================================================= */
-
 const MAX_IMAGE_SIZE =
-  5 * 1024 * 1024;
+  5 *
+  1024 *
+  1024;
 
 const ALLOWED_IMAGE_TYPES = [
   "image/jpeg",
@@ -45,9 +48,16 @@ const ALLOWED_IMAGE_TYPES = [
   "image/webp",
 ];
 
-/* =========================================================
-   ERROR REDIRECTS
-   ========================================================= */
+function getText(
+  formData: FormData,
+  name: string
+) {
+  return String(
+    formData.get(
+      name
+    ) ?? ""
+  ).trim();
+}
 
 function redirectNewProductError(
   message: string
@@ -71,56 +81,6 @@ function redirectEditProductError(
     )}`
   );
 }
-
-/* =========================================================
-   PRODUCT CATEGORY VALIDATION
-   ========================================================= */
-
-async function getProductCategory(
-  category: string
-) {
-  const rows =
-    await db
-      .select({
-        id:
-          catalogCategories.id,
-
-        isVisible:
-          catalogCategories.isVisible,
-      })
-      .from(
-        catalogCategories
-      )
-      .where(
-        and(
-          eq(
-            catalogCategories.slug,
-            category
-          ),
-
-          or(
-            eq(
-              catalogCategories.appliesTo,
-              "product"
-            ),
-
-            eq(
-              catalogCategories.appliesTo,
-              "both"
-            )
-          )
-        )
-      )
-      .limit(
-        1
-      );
-
-  return rows[0];
-}
-
-/* =========================================================
-   PRODUCT ID
-   ========================================================= */
 
 function makeProductId(
   name: string
@@ -151,10 +111,6 @@ function makeProductId(
   )}`;
 }
 
-/* =========================================================
-   IMAGE URL VALIDATION
-   ========================================================= */
-
 function isValidImageUrl(
   value: string
 ) {
@@ -175,10 +131,6 @@ function isValidImageUrl(
   }
 }
 
-/* =========================================================
-   CLOUDINARY SIGNATURE
-   ========================================================= */
-
 function createCloudinarySignature({
   timestamp,
   folder,
@@ -198,10 +150,6 @@ function createCloudinarySignature({
       "hex"
     );
 }
-
-/* =========================================================
-   UPLOAD PRODUCT IMAGE
-   ========================================================= */
 
 async function uploadProductImage(
   imageFile: File
@@ -328,144 +276,195 @@ async function uploadProductImage(
   return result.secure_url;
 }
 
-/* =========================================================
-   PARSE PRICE
-   ========================================================= */
-
-function parsePrice(
-  formData: FormData
+async function getProductCategory(
+  slug: string
 ) {
-  const raw =
-    String(
-      formData.get(
-        "price"
-      ) ?? ""
-    ).trim();
+  const rows =
+    await db
+      .select({
+        id:
+          catalogCategories.id,
 
-  return raw ===
-    ""
-    ? null
-    : Number(
-        raw
+        slug:
+          catalogCategories.slug,
+
+        isVisible:
+          catalogCategories.isVisible,
+      })
+      .from(
+        catalogCategories
+      )
+      .where(
+        and(
+          eq(
+            catalogCategories.slug,
+            slug
+          ),
+
+          or(
+            eq(
+              catalogCategories.appliesTo,
+              "product"
+            ),
+
+            eq(
+              catalogCategories.appliesTo,
+              "both"
+            )
+          )
+        )
+      )
+      .limit(
+        1
       );
+
+  return rows[0];
 }
 
-/* =========================================================
-   PARSE SPECS
-   ========================================================= */
+async function getSubcategory({
+  rawId,
+  categoryId,
+}: {
+  rawId: string;
+  categoryId: number;
+}) {
+  if (!rawId) {
+    return null;
+  }
 
-function parseSpecs(
-  formData: FormData
-) {
-  return String(
-    formData.get(
-      "specs"
-    ) ?? ""
-  )
-    .split(
-      "\n"
-    )
-    .map(
-      (
-        spec
-      ) =>
-        spec.trim()
-    )
-    .filter(
-      Boolean
+  const id =
+    Number.parseInt(
+      rawId,
+      10
     );
+
+  if (
+    !Number.isInteger(
+      id
+    ) ||
+    id <= 0
+  ) {
+    return undefined;
+  }
+
+  const rows =
+    await db
+      .select({
+        id:
+          catalogSubcategories.id,
+
+        categoryId:
+          catalogSubcategories.categoryId,
+
+        isVisible:
+          catalogSubcategories.isVisible,
+      })
+      .from(
+        catalogSubcategories
+      )
+      .where(
+        and(
+          eq(
+            catalogSubcategories.id,
+            id
+          ),
+
+          eq(
+            catalogSubcategories.categoryId,
+            categoryId
+          )
+        )
+      )
+      .limit(
+        1
+      );
+
+  return rows[0];
 }
 
-/* =========================================================
-   PARSE SORT ORDER
-   ========================================================= */
-
-function parseSortOrder(
+function parseCommonProductFields(
   formData: FormData
 ) {
-  return Number.parseInt(
-    String(
-      formData.get(
-        "sortOrder"
-      ) ?? "0"
-    ).trim(),
-
-    10
-  );
-}
-
-/* =========================================================
-   REVALIDATE PUBLIC PRODUCT DATA
-   ========================================================= */
-
-function revalidateProductPublicPages() {
-  revalidatePath(
-    "/"
-  );
-
-  revalidatePath(
-    "/sitemap.xml"
-  );
-}
-
-/* =========================================================
-   CREATE PRODUCT
-   ========================================================= */
-
-export async function createProduct(
-  formData: FormData
-) {
-  await requireAdmin();
-
   const name =
-    String(
-      formData.get(
-        "name"
-      ) ?? ""
-    ).trim();
+    getText(
+      formData,
+      "name"
+    );
 
   const category =
-    String(
-      formData.get(
-        "category"
-      ) ?? ""
-    ).trim();
+    getText(
+      formData,
+      "category"
+    );
+
+  const subcategoryIdRaw =
+    getText(
+      formData,
+      "subcategoryId"
+    );
 
   const tag =
-    String(
-      formData.get(
-        "tag"
-      ) ?? ""
-    ).trim();
+    getText(
+      formData,
+      "tag"
+    );
+
+  const priceRaw =
+    getText(
+      formData,
+      "price"
+    );
 
   const price =
-    parsePrice(
-      formData
-    );
+    priceRaw ===
+    ""
+      ? null
+      : Number(
+          priceRaw
+        );
 
   const description =
-    String(
-      formData.get(
-        "description"
-      ) ?? ""
-    ).trim();
-
-  const specs =
-    parseSpecs(
-      formData
+    getText(
+      formData,
+      "description"
     );
 
+  const specs =
+    getText(
+      formData,
+      "specs"
+    )
+      .split(
+        "\n"
+      )
+      .map(
+        (
+          spec
+        ) =>
+          spec.trim()
+      )
+      .filter(
+        Boolean
+      );
+
+  const sortOrderRaw =
+    getText(
+      formData,
+      "sortOrder"
+    ) ||
+    "0";
+
   const sortOrder =
-    parseSortOrder(
-      formData
+    Number.parseInt(
+      sortOrderRaw,
+      10
     );
 
   const imageUrl =
-    String(
-      formData.get(
-        "imageUrl"
-      ) ?? ""
-    ).trim();
+    getText(
+      formData,
+      "imageUrl"
+    );
 
   const possibleImageFile =
     formData.get(
@@ -484,171 +483,277 @@ export async function createProduct(
     imageFile.size >
       0;
 
-  const hasImageUrl =
-    imageUrl.length >
-    0;
-
   const isVisible =
     formData.get(
       "isVisible"
     ) === "on";
 
-  /* =======================================================
-     VALIDATION
-     ======================================================= */
+  return {
+    name,
+    category,
+    subcategoryIdRaw,
+    tag,
+    price,
+    description,
+    specs,
+    sortOrder,
+    imageUrl,
+    imageFile,
+    hasImageFile,
+    isVisible,
+  };
+}
 
+function validateBasicFields(
+  fields: ReturnType<
+    typeof parseCommonProductFields
+  >,
+
+  fail: (
+    message: string
+  ) => never
+) {
   if (
-    !name
+    !fields.name
   ) {
-    redirectNewProductError(
+    fail(
       "Product name is required."
     );
   }
 
   if (
-    !category
+    !fields.category
   ) {
-    redirectNewProductError(
+    fail(
       "Category is required."
     );
   }
 
   if (
-    !description
+    !fields.description
   ) {
-    redirectNewProductError(
+    fail(
       "Description is required."
     );
   }
 
   if (
-    name.length >
+    fields.name.length >
     255
   ) {
-    redirectNewProductError(
+    fail(
       "Product name is too long."
     );
   }
 
   if (
-    category.length >
-    100
+    fields.category.length >
+    120
   ) {
-    redirectNewProductError(
+    fail(
       "Category is too long."
     );
   }
 
   if (
-    tag.length >
+    fields.tag.length >
     120
   ) {
-    redirectNewProductError(
+    fail(
       "Product tag is too long."
     );
   }
 
+  if (
+    fields.price !==
+      null &&
+    (
+      !Number.isSafeInteger(
+        fields.price
+      ) ||
+      fields.price <
+        0
+    )
+  ) {
+    fail(
+      "Price must be a whole number of 0 or greater, or left blank."
+    );
+  }
+
+  if (
+    fields.imageUrl.length >
+    1000
+  ) {
+    fail(
+      "Image URL is too long."
+    );
+  }
+
+  if (
+    fields.imageUrl &&
+    !isValidImageUrl(
+      fields.imageUrl
+    )
+  ) {
+    fail(
+      "Please enter a valid image URL."
+    );
+  }
+
+  if (
+    fields.specs.length ===
+    0
+  ) {
+    fail(
+      "Add at least one specification."
+    );
+  }
+
+  if (
+    !Number.isInteger(
+      fields.sortOrder
+    ) ||
+    fields.sortOrder <
+      0
+  ) {
+    fail(
+      "Display order must be 0 or greater."
+    );
+  }
+}
+
+function refreshProductPages(
+  productId?: string
+) {
+  revalidatePath(
+    "/admin/products"
+  );
+
+  revalidatePath(
+    "/admin/products/new"
+  );
+
+  revalidatePath(
+    "/admin/categories"
+  );
+
+  revalidatePath(
+    "/admin/pc-builder"
+  );
+
+  revalidatePath(
+    "/build-your-rig"
+  );
+
+  revalidatePath(
+    "/"
+  );
+
+  if (
+    productId
+  ) {
+    revalidatePath(
+      `/admin/products/${productId}/edit`
+    );
+
+    revalidatePath(
+      `/product/${productId}`
+    );
+  }
+}
+
+/* =========================================================
+   CREATE
+   ========================================================= */
+
+export async function createProduct(
+  formData: FormData
+) {
+  await requireAdmin();
+
+  const fields =
+    parseCommonProductFields(
+      formData
+    );
+
+  const fail = (
+    message: string
+  ): never =>
+    redirectNewProductError(
+      message
+    );
+
+  validateBasicFields(
+    fields,
+    fail
+  );
+
   const selectedCategory =
     await getProductCategory(
-      category
+      fields.category
     );
 
   if (
     !selectedCategory ||
     !selectedCategory.isVisible
   ) {
-    redirectNewProductError(
+    fail(
       "Selected category is not available for products."
     );
   }
 
+  const selectedSubcategory =
+    await getSubcategory({
+      rawId:
+        fields.subcategoryIdRaw,
+
+      categoryId:
+        selectedCategory.id,
+    });
+
   if (
-    price !==
-      null &&
-    (
-      !Number.isSafeInteger(
-        price
-      ) ||
-      price <
-        0
-    )
+    fields.subcategoryIdRaw &&
+    !selectedSubcategory
   ) {
-    redirectNewProductError(
-      "Price must be a whole number of 0 or greater, or left blank."
+    fail(
+      "Selected subcategory does not belong to this category."
     );
   }
 
   if (
-    imageUrl.length >
-    1000
+    selectedSubcategory &&
+    !selectedSubcategory.isVisible
   ) {
-    redirectNewProductError(
-      "Image URL is too long."
+    fail(
+      "Selected subcategory is currently hidden."
     );
   }
 
   if (
-    !hasImageFile &&
-    !hasImageUrl
+    !fields.hasImageFile &&
+    !fields.imageUrl
   ) {
-    redirectNewProductError(
+    fail(
       "Please upload an image or enter an image URL."
     );
   }
 
-  if (
-    !hasImageFile &&
-    hasImageUrl &&
-    !isValidImageUrl(
-      imageUrl
-    )
-  ) {
-    redirectNewProductError(
-      "Please enter a valid image URL."
-    );
-  }
-
-  if (
-    specs.length ===
-    0
-  ) {
-    redirectNewProductError(
-      "Add at least one specification."
-    );
-  }
-
-  if (
-    !Number.isFinite(
-      sortOrder
-    ) ||
-    sortOrder <
-      0
-  ) {
-    redirectNewProductError(
-      "Display order must be 0 or greater."
-    );
-  }
-
-  /* =======================================================
-     IMAGE
-     ======================================================= */
-
   let finalImageUrl =
-    imageUrl;
+    fields.imageUrl;
 
   if (
-    hasImageFile &&
-    imageFile
+    fields.hasImageFile &&
+    fields.imageFile
   ) {
     try {
       finalImageUrl =
         await uploadProductImage(
-          imageFile
+          fields.imageFile
         );
     } catch (
       error
     ) {
-      redirectNewProductError(
+      fail(
         error instanceof
           Error
           ? error.message
@@ -660,56 +765,75 @@ export async function createProduct(
   if (
     !finalImageUrl
   ) {
-    redirectNewProductError(
+    fail(
       "Product image could not be processed."
     );
   }
 
-  /* =======================================================
-     CREATE
-     ======================================================= */
+  const id =
+    makeProductId(
+      fields.name
+    );
 
-  await db
-    .insert(
-      products
-    )
-    .values({
-      id:
-        makeProductId(
-          name
-        ),
+  await db.transaction(
+    async (tx) => {
+      await tx
+        .insert(
+          products
+        )
+        .values({
+          id,
 
-      name,
+          name:
+            fields.name,
 
-      category,
+          category:
+            fields.category,
 
-      tag:
-        tag ||
-        "FEATURED",
+          tag:
+            fields.tag ||
+            "FEATURED",
 
-      price,
+          price:
+            fields.price,
 
-      description,
+          description:
+            fields.description,
 
-      specs,
+          specs:
+            fields.specs,
 
-      image:
-        finalImageUrl,
+          image:
+            finalImageUrl,
 
-      isVisible,
+          isVisible:
+            fields.isVisible,
 
-      sortOrder,
-    });
+          sortOrder:
+            fields.sortOrder,
+        });
 
-  /* =======================================================
-     REVALIDATE
-     ======================================================= */
+      if (
+        selectedSubcategory
+      ) {
+        await tx
+          .insert(
+            productSubcategoryAssignments
+          )
+          .values({
+            productId:
+              id,
 
-  revalidatePath(
-    "/admin/products"
+            subcategoryId:
+              selectedSubcategory.id,
+          });
+      }
+    }
   );
 
-  revalidateProductPublicPages();
+  refreshProductPages(
+    id
+  );
 
   redirect(
     "/admin/products"
@@ -717,7 +841,7 @@ export async function createProduct(
 }
 
 /* =========================================================
-   UPDATE PRODUCT
+   UPDATE
    ========================================================= */
 
 export async function updateProduct(
@@ -726,11 +850,10 @@ export async function updateProduct(
   await requireAdmin();
 
   const productId =
-    String(
-      formData.get(
-        "productId"
-      ) ?? ""
-    ).trim();
+    getText(
+      formData,
+      "productId"
+    );
 
   if (
     !productId
@@ -767,252 +890,114 @@ export async function updateProduct(
     );
   }
 
-  const name =
-    String(
-      formData.get(
-        "name"
-      ) ?? ""
-    ).trim();
+  const currentAssignmentRows =
+    await db
+      .select()
+      .from(
+        productSubcategoryAssignments
+      )
+      .where(
+        eq(
+          productSubcategoryAssignments.productId,
+          productId
+        )
+      )
+      .limit(
+        1
+      );
 
-  const category =
-    String(
-      formData.get(
-        "category"
-      ) ?? ""
-    ).trim();
+  const currentAssignment =
+    currentAssignmentRows[0];
 
-  const tag =
-    String(
-      formData.get(
-        "tag"
-      ) ?? ""
-    ).trim();
-
-  const price =
-    parsePrice(
+  const fields =
+    parseCommonProductFields(
       formData
     );
 
-  const description =
-    String(
-      formData.get(
-        "description"
-      ) ?? ""
-    ).trim();
-
-  const specs =
-    parseSpecs(
-      formData
-    );
-
-  const sortOrder =
-    parseSortOrder(
-      formData
-    );
-
-  const imageUrl =
-    String(
-      formData.get(
-        "imageUrl"
-      ) ?? ""
-    ).trim();
-
-  const possibleImageFile =
-    formData.get(
-      "imageFile"
-    );
-
-  const imageFile =
-    possibleImageFile instanceof
-    File
-      ? possibleImageFile
-      : null;
-
-  const hasImageFile =
-    imageFile !==
-      null &&
-    imageFile.size >
-      0;
-
-  const hasImageUrl =
-    imageUrl.length >
-    0;
-
-  const isVisible =
-    formData.get(
-      "isVisible"
-    ) === "on";
-
-  /* =======================================================
-     VALIDATION
-     ======================================================= */
-
-  if (
-    !name
-  ) {
+  const fail = (
+    message: string
+  ): never =>
     redirectEditProductError(
       productId,
-      "Product name is required."
+      message
     );
-  }
 
-  if (
-    !category
-  ) {
-    redirectEditProductError(
-      productId,
-      "Category is required."
-    );
-  }
-
-  if (
-    !description
-  ) {
-    redirectEditProductError(
-      productId,
-      "Description is required."
-    );
-  }
-
-  if (
-    name.length >
-    255
-  ) {
-    redirectEditProductError(
-      productId,
-      "Product name is too long."
-    );
-  }
-
-  if (
-    category.length >
-    100
-  ) {
-    redirectEditProductError(
-      productId,
-      "Category is too long."
-    );
-  }
-
-  if (
-    tag.length >
-    120
-  ) {
-    redirectEditProductError(
-      productId,
-      "Product tag is too long."
-    );
-  }
+  validateBasicFields(
+    fields,
+    fail
+  );
 
   const selectedCategory =
     await getProductCategory(
-      category
+      fields.category
     );
 
   if (
     !selectedCategory ||
     (
       !selectedCategory.isVisible &&
-      category !==
+      fields.category !==
         existingProduct.category
     )
   ) {
-    redirectEditProductError(
-      productId,
+    fail(
       "Selected category is not available for products."
     );
   }
 
+  const selectedSubcategory =
+    await getSubcategory({
+      rawId:
+        fields.subcategoryIdRaw,
+
+      categoryId:
+        selectedCategory.id,
+    });
+
   if (
-    price !==
-      null &&
-    (
-      !Number.isSafeInteger(
-        price
-      ) ||
-      price <
-        0
-    )
+    fields.subcategoryIdRaw &&
+    !selectedSubcategory
   ) {
-    redirectEditProductError(
-      productId,
-      "Price must be a whole number of 0 or greater, or left blank."
+    fail(
+      "Selected subcategory does not belong to this category."
     );
   }
 
   if (
-    imageUrl.length >
-    1000
+    selectedSubcategory &&
+    !selectedSubcategory.isVisible &&
+    selectedSubcategory.id !==
+      currentAssignment
+        ?.subcategoryId
   ) {
-    redirectEditProductError(
-      productId,
-      "Image URL is too long."
+    fail(
+      "Selected subcategory is currently hidden."
     );
   }
-
-  if (
-    hasImageUrl &&
-    !isValidImageUrl(
-      imageUrl
-    )
-  ) {
-    redirectEditProductError(
-      productId,
-      "Please enter a valid image URL."
-    );
-  }
-
-  if (
-    specs.length ===
-    0
-  ) {
-    redirectEditProductError(
-      productId,
-      "Add at least one specification."
-    );
-  }
-
-  if (
-    !Number.isFinite(
-      sortOrder
-    ) ||
-    sortOrder <
-      0
-  ) {
-    redirectEditProductError(
-      productId,
-      "Display order must be 0 or greater."
-    );
-  }
-
-  /* =======================================================
-     IMAGE
-     ======================================================= */
 
   let finalImageUrl =
     existingProduct.image;
 
   if (
-    hasImageUrl
+    fields.imageUrl
   ) {
     finalImageUrl =
-      imageUrl;
+      fields.imageUrl;
   }
 
   if (
-    hasImageFile &&
-    imageFile
+    fields.hasImageFile &&
+    fields.imageFile
   ) {
     try {
       finalImageUrl =
         await uploadProductImage(
-          imageFile
+          fields.imageFile
         );
     } catch (
       error
     ) {
-      redirectEditProductError(
-        productId,
+      fail(
         error instanceof
           Error
           ? error.message
@@ -1021,59 +1006,82 @@ export async function updateProduct(
     }
   }
 
-  /* =======================================================
-     UPDATE
-     ======================================================= */
+  await db.transaction(
+    async (tx) => {
+      await tx
+        .update(
+          products
+        )
+        .set({
+          name:
+            fields.name,
 
-  await db
-    .update(
-      products
-    )
-    .set({
-      name,
+          category:
+            fields.category,
 
-      category,
+          tag:
+            fields.tag ||
+            "FEATURED",
 
-      tag:
-        tag ||
-        "FEATURED",
+          price:
+            fields.price,
 
-      price,
+          description:
+            fields.description,
 
-      description,
+          specs:
+            fields.specs,
 
-      specs,
+          image:
+            finalImageUrl,
 
-      image:
-        finalImageUrl,
+          isVisible:
+            fields.isVisible,
 
-      isVisible,
+          sortOrder:
+            fields.sortOrder,
 
-      sortOrder,
+          updatedAt:
+            new Date(),
+        })
+        .where(
+          eq(
+            products.id,
+            productId
+          )
+        );
 
-      updatedAt:
-        new Date(),
-    })
-    .where(
-      eq(
-        products.id,
-        productId
-      )
-    );
+      await tx
+        .delete(
+          productSubcategoryAssignments
+        )
+        .where(
+          eq(
+            productSubcategoryAssignments.productId,
+            productId
+          )
+        );
 
-  /* =======================================================
-     REVALIDATE
-     ======================================================= */
+      if (
+        selectedSubcategory
+      ) {
+        await tx
+          .insert(
+            productSubcategoryAssignments
+          )
+          .values({
+            productId,
 
-  revalidatePath(
-    "/admin/products"
+            subcategoryId:
+              selectedSubcategory.id,
+          });
+      }
+    }
   );
 
-  revalidatePath(
-    `/admin/products/${productId}/edit`
+  refreshProductPages(
+    productId
   );
-
-  revalidateProductPublicPages();
 
   redirect(
     "/admin/products"
@@ -1081,7 +1089,7 @@ export async function updateProduct(
 }
 
 /* =========================================================
-   TOGGLE PRODUCT VISIBILITY
+   VISIBILITY
    ========================================================= */
 
 export async function toggleProductVisibility(
@@ -1090,23 +1098,47 @@ export async function toggleProductVisibility(
   await requireAdmin();
 
   const productId =
-    String(
-      formData.get(
-        "productId"
-      ) ?? ""
-    ).trim();
-
-  const nextVisibility =
-    String(
-      formData.get(
-        "nextVisibility"
-      ) ?? ""
-    ) === "true";
+    getText(
+      formData,
+      "productId"
+    );
 
   if (
     !productId
   ) {
-    return;
+    redirect(
+      "/admin/products"
+    );
+  }
+
+  const rows =
+    await db
+      .select({
+        isVisible:
+          products.isVisible,
+      })
+      .from(
+        products
+      )
+      .where(
+        eq(
+          products.id,
+          productId
+        )
+      )
+      .limit(
+        1
+      );
+
+  const product =
+    rows[0];
+
+  if (
+    !product
+  ) {
+    redirect(
+      "/admin/products"
+    );
   }
 
   await db
@@ -1115,7 +1147,7 @@ export async function toggleProductVisibility(
     )
     .set({
       isVisible:
-        nextVisibility,
+        !product.isVisible,
 
       updatedAt:
         new Date(),
@@ -1127,15 +1159,17 @@ export async function toggleProductVisibility(
       )
     );
 
-  revalidatePath(
-    "/admin/products"
+  refreshProductPages(
+    productId
   );
 
-  revalidateProductPublicPages();
+  redirect(
+    "/admin/products"
+  );
 }
 
 /* =========================================================
-   DELETE PRODUCT
+   DELETE
    ========================================================= */
 
 export async function deleteProduct(
@@ -1144,16 +1178,17 @@ export async function deleteProduct(
   await requireAdmin();
 
   const productId =
-    String(
-      formData.get(
-        "productId"
-      ) ?? ""
-    ).trim();
+    getText(
+      formData,
+      "productId"
+    );
 
   if (
     !productId
   ) {
-    return;
+    redirect(
+      "/admin/products"
+    );
   }
 
   await db
@@ -1167,9 +1202,11 @@ export async function deleteProduct(
       )
     );
 
-  revalidatePath(
-    "/admin/products"
+  refreshProductPages(
+    productId
   );
 
-  revalidateProductPublicPages();
+  redirect(
+    "/admin/products"
+  );
 }

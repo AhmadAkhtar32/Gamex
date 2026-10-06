@@ -1,25 +1,17 @@
-import type {
-  ReactNode,
-} from "react";
-
 import Link from "next/link";
 
 import {
-  ArrowLeft,
-  ImageIcon,
-  LinkIcon,
-  ListChecks,
-  PackagePlus,
-  Tag,
-  Upload,
-} from "lucide-react";
+  asc,
+} from "drizzle-orm";
 
 import {
-  and,
-  asc,
-  eq,
-  or,
-} from "drizzle-orm";
+  ArrowLeft,
+  Eye,
+  EyeOff,
+  PackagePlus,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 
 import {
   db,
@@ -27,945 +19,382 @@ import {
 
 import {
   catalogCategories,
+  products,
 } from "@/db/schema";
+
+import {
+  catalogSubcategories,
+  productSubcategoryAssignments,
+} from "@/db/catalog-extensions";
+
+import {
+  formatPrice,
+} from "@/lib/price";
 
 import {
   requireAdmin,
 } from "@/lib/admin-auth";
 
 import {
-  createProduct,
-} from "../actions";
+  deleteProduct,
+  toggleProductVisibility,
+} from "./actions";
 
-/* =========================================================
-   TYPES
-   ========================================================= */
-
-type NewProductPageProps = {
-  searchParams: Promise<{
-    error?: string;
-  }>;
-};
-
-/* =========================================================
-   PAGE
-   ========================================================= */
-
-export default async function NewProductPage({
-  searchParams,
-}: NewProductPageProps) {
+export default async function ProductsAdminPage() {
   await requireAdmin();
 
-  const params =
-    await searchParams;
-
-  const error =
-    params.error;
-
-  /* =======================================================
-     PRODUCT CATEGORIES
-
-     Only visible categories that are available for:
-     - Products
-     - Products + Builds
-     ======================================================= */
-
-  const productCategories =
-    await db
-      .select({
-        id:
-          catalogCategories.id,
-
-        name:
-          catalogCategories.name,
-
-        slug:
-          catalogCategories.slug,
-      })
-      .from(
-        catalogCategories
-      )
-      .where(
-        and(
-          eq(
-            catalogCategories.isVisible,
-            true
+  const [
+    productRows,
+    categories,
+    subcategories,
+    assignments,
+  ] =
+    await Promise.all([
+      db
+        .select()
+        .from(
+          products
+        )
+        .orderBy(
+          asc(
+            products.sortOrder
           ),
 
-          or(
-            eq(
-              catalogCategories.appliesTo,
-              "product"
-            ),
-
-            eq(
-              catalogCategories.appliesTo,
-              "both"
-            )
+          asc(
+            products.name
           )
-        )
-      )
-      .orderBy(
-        asc(
-          catalogCategories.sortOrder
         ),
 
-        asc(
-          catalogCategories.id
-        )
-      );
+      db
+        .select()
+        .from(
+          catalogCategories
+        ),
+
+      db
+        .select()
+        .from(
+          catalogSubcategories
+        ),
+
+      db
+        .select()
+        .from(
+          productSubcategoryAssignments
+        ),
+    ]);
+
+  const categoryBySlug =
+    new Map(
+      categories.map(
+        (
+          category
+        ) => [
+          category.slug,
+          category,
+        ]
+      )
+    );
+
+  const subcategoryById =
+    new Map(
+      subcategories.map(
+        (
+          subcategory
+        ) => [
+          subcategory.id,
+          subcategory,
+        ]
+      )
+    );
+
+  const assignmentByProductId =
+    new Map(
+      assignments.map(
+        (
+          assignment
+        ) => [
+          assignment.productId,
+          assignment.subcategoryId,
+        ]
+      )
+    );
 
   return (
     <main className="min-h-screen bg-[#f7f9fc]">
-      {/* =====================================================
-          TOP BAR
-          ===================================================== */}
-
       <header className="border-b border-brand/10 bg-white">
-        <div
-          className="
-            mx-auto
-            flex
-            max-w-5xl
-            items-center
-            justify-between
-            gap-4
-            px-5
-            py-4
-            md:px-8
-          "
-        >
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 md:px-8">
           <div>
-            <p
-              className="
-                font-display
-                text-lg
-                font-extrabold
-                uppercase
-                tracking-widest
-                text-brand-deep
-              "
-            >
-              Gamex Admin
+            <p className="font-display text-lg font-extrabold uppercase tracking-widest text-brand-deep">
+              GameX Admin
             </p>
 
             <p className="mt-0.5 text-xs text-slate-500">
-              Add New Product
+              Product Management
             </p>
           </div>
 
           <Link
-            href="/admin/products"
-            className="
-              inline-flex
-              items-center
-              gap-2
-              rounded-lg
-              border
-              border-brand/15
-              bg-white
-              px-4
-              py-2.5
-              text-xs
-              font-bold
-              uppercase
-              tracking-wider
-              text-brand
-              transition-all
-              hover:border-brand
-              hover:bg-brand
-              hover:text-white
-            "
+            href="/admin"
+            className="inline-flex items-center gap-2 rounded-lg border border-brand/15 bg-white px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-brand"
           >
             <ArrowLeft className="h-4 w-4" />
-
-            Products
+            Dashboard
           </Link>
         </div>
       </header>
 
-      {/* =====================================================
-          CONTENT
-          ===================================================== */}
+      <div className="mx-auto max-w-7xl px-5 py-10 md:px-8 md:py-14">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-brand">
+              Catalogue
+            </p>
 
-      <div
-        className="
-          mx-auto
-          max-w-5xl
-          px-5
-          py-10
-          md:px-8
-          md:py-14
-        "
-      >
-        <div>
-          <p
-            className="
-              text-xs
-              font-bold
-              uppercase
-              tracking-[0.24em]
-              text-brand
-            "
-          >
-            Catalogue
-          </p>
+            <h1 className="mt-2 font-display text-3xl font-extrabold uppercase text-brand-deep md:text-4xl">
+              Products
+            </h1>
 
-          <h1
-            className="
-              mt-2
-              font-display
-              text-3xl
-              font-extrabold
-              uppercase
-              text-brand-deep
-              md:text-4xl
-            "
+            <p className="mt-3 max-w-2xl text-sm text-slate-500">
+              Main category is the same category used by Build
+              Your Rig. Optional subcategory is shown below it.
+            </p>
+          </div>
+
+          <Link
+            href="/admin/products/new"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 text-xs font-bold uppercase tracking-wider text-white"
           >
+            <PackagePlus className="h-4 w-4" />
             Add Product
-          </h1>
-
-          <p
-            className="
-              mt-3
-              max-w-2xl
-              text-sm
-              leading-relaxed
-              text-slate-500
-            "
-          >
-            Add a product to the Gamex catalogue. Product
-            categories are controlled from the Categories
-            section of the Admin panel.
-          </p>
+          </Link>
         </div>
 
-        {/* ===================================================
-            ERROR
-            =================================================== */}
+        <div className="mt-8 overflow-x-auto rounded-2xl border border-brand/10 bg-white">
+          <table className="w-full min-w-[1050px] border-collapse text-left">
+            <thead className="bg-[#fff8f8] text-xs font-bold uppercase text-slate-500">
+              <tr>
+                <th className="px-5 py-4">
+                  Product
+                </th>
 
-        {error ? (
-          <div
-            className="
-              mt-7
-              rounded-xl
-              border
-              border-red-200
-              bg-red-50
-              px-5
-              py-4
-              text-sm
-              font-semibold
-              text-red-700
-            "
-          >
-            {error}
-          </div>
-        ) : null}
+                <th className="px-5 py-4">
+                  Category
+                </th>
 
-        {/* ===================================================
-            NO CATEGORIES WARNING
-            =================================================== */}
+                <th className="px-5 py-4">
+                  Tag
+                </th>
 
-        {productCategories.length === 0 ? (
-          <div
-            className="
-              mt-7
-              rounded-xl
-              border
-              border-amber-200
-              bg-amber-50
-              px-5
-              py-4
-              text-sm
-              text-amber-800
-            "
-          >
-            No visible Product categories are available. Create
-            one in{" "}
-            <Link
-              href="/admin/categories"
-              className="font-bold underline"
-            >
-              Admin → Categories
-            </Link>
-            .
-          </div>
-        ) : null}
+                <th className="px-5 py-4">
+                  Price
+                </th>
 
-        {/* ===================================================
-            FORM
-            =================================================== */}
+                <th className="px-5 py-4">
+                  Order
+                </th>
 
-        <form
-          action={
-            createProduct
-          }
-          className="
-            mt-8
-            rounded-2xl
-            border
-            border-brand/10
-            bg-white
-            p-6
-            shadow-[0_25px_65px_-45px_rgba(23,49,96,0.35)]
-            md:p-8
-          "
-        >
-          {/* =================================================
-              BASIC INFORMATION
-              ================================================= */}
+                <th className="px-5 py-4">
+                  Status
+                </th>
 
-          <div
-            className="
-              grid
-              gap-6
-              md:grid-cols-2
-            "
-          >
-            {/* PRODUCT NAME */}
+                <th className="px-5 py-4">
+                  Actions
+                </th>
+              </tr>
+            </thead>
 
-            <FormField
-              label="Product Name"
-              htmlFor="name"
-            >
-              <input
-                id="name"
-                name="name"
-                type="text"
-                required
-                maxLength={
-                  255
-                }
-                placeholder="e.g. ASUS B450M-DRAGON"
-                className={
-                  inputClass
-                }
-              />
-            </FormField>
+            <tbody>
+              {productRows.map(
+                (
+                  product
+                ) => {
+                  const category =
+                    categoryBySlug.get(
+                      product.category
+                    );
 
-            {/* PRICE */}
+                  const subcategoryId =
+                    assignmentByProductId.get(
+                      product.id
+                    );
 
-            <FormField
-              label="Price (PKR)"
-              htmlFor="price"
-            >
-              <input
-                id="price"
-                name="price"
-                type="number"
-                min="0"
-                step="1"
-                placeholder="e.g. 15500"
-                className={
-                  inputClass
-                }
-              />
+                  const subcategory =
+                    subcategoryId
+                      ? subcategoryById.get(
+                          subcategoryId
+                        )
+                      : undefined;
 
-              <p className="mt-2 text-xs text-slate-400">
-                Optional. Leave empty to show Price on request.
-              </p>
-            </FormField>
-
-            {/* =================================================
-                CATEGORY — DATABASE DRIVEN
-                ================================================= */}
-
-            <FormField
-              label="Category"
-              htmlFor="category"
-            >
-              <select
-                id="category"
-                name="category"
-                required
-                defaultValue=""
-                className={
-                  inputClass
-                }
-              >
-                <option
-                  value=""
-                  disabled
-                >
-                  Select category
-                </option>
-
-                {productCategories.map(
-                  (
-                    category
-                  ) => (
-                    <option
+                  return (
+                    <tr
                       key={
-                        category.id
+                        product.id
                       }
-                      value={
-                        category.slug
-                      }
+                      className="border-t border-brand/10 align-middle"
                     >
-                      {
-                        category.name
-                      }
-                    </option>
-                  )
-                )}
-              </select>
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-4">
+                          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-brand/10 bg-[#f7f9fc]">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
 
-              <p className="mt-2 text-xs leading-relaxed text-slate-400">
-                Categories come directly from Admin → Categories.
-              </p>
-            </FormField>
+                            <img
+                              src={
+                                product.image
+                              }
+                              alt={
+                                product.name
+                              }
+                              className="h-full w-full object-contain p-1"
+                            />
+                          </div>
 
-            {/* PRODUCT TAG */}
+                          <div className="min-w-0">
+                            <p className="font-bold text-brand-deep">
+                              {
+                                product.name
+                              }
+                            </p>
 
-            <FormField
-              label="Product Tag"
-              htmlFor="tag"
-            >
-              <div className="relative">
-                <Tag
-                  className="
-                    pointer-events-none
-                    absolute
-                    left-4
-                    top-1/2
-                    h-4
-                    w-4
-                    -translate-y-1/2
-                    text-slate-400
-                  "
-                />
+                            <p className="mt-1 text-xs text-slate-400">
+                              {
+                                product.id
+                              }
+                            </p>
+                          </div>
+                        </div>
+                      </td>
 
-                <input
-                  id="tag"
-                  name="tag"
-                  type="text"
-                  maxLength={
-                    120
-                  }
-                  placeholder="e.g. USED"
-                  className={`${inputClass} pl-11`}
-                />
-              </div>
+                      <td className="px-5 py-4">
+                        <p className="font-semibold text-brand-deep">
+                          {
+                            category
+                              ?.name ??
+                            product.category
+                          }
+                        </p>
 
-              <p className="mt-2 text-xs text-slate-400">
-                Leave empty and FEATURED will be used.
-              </p>
-            </FormField>
+                        <p className="mt-1 text-xs text-slate-400">
+                          {
+                            product.category
+                          }
+                        </p>
 
-            {/* DISPLAY ORDER */}
+                        {subcategory ? (
+                          <p className="mt-2 inline-flex rounded-full bg-brand/[0.06] px-2.5 py-1 text-[10px] font-bold uppercase text-brand">
+                            {
+                              subcategory.name
+                            }
+                          </p>
+                        ) : null}
+                      </td>
 
-            <FormField
-              label="Display Order"
-              htmlFor="sortOrder"
-            >
-              <input
-                id="sortOrder"
-                name="sortOrder"
-                type="number"
-                min="0"
-                step="1"
-                defaultValue="0"
-                className={
-                  inputClass
+                      <td className="px-5 py-4">
+                        <span className="rounded-full bg-red-50 px-3 py-1.5 text-[10px] font-bold uppercase text-brand">
+                          {
+                            product.tag
+                          }
+                        </span>
+                      </td>
+
+                      <td className="px-5 py-4 font-bold text-brand-deep">
+                        {formatPrice(
+                          product.price
+                        )}
+                      </td>
+
+                      <td className="px-5 py-4 text-sm text-slate-600">
+                        {
+                          product.sortOrder
+                        }
+                      </td>
+
+                      <td className="px-5 py-4">
+                        <span
+                          className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[10px] font-bold ${
+                            product.isVisible
+                              ? "bg-emerald-50 text-emerald-700"
+                              : "bg-slate-100 text-slate-500"
+                          }`}
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+
+                          {product.isVisible
+                            ? "Visible"
+                            : "Hidden"}
+                        </span>
+                      </td>
+
+                      <td className="px-5 py-4">
+                        <div className="flex flex-wrap gap-2">
+                          <Link
+                            href={`/admin/products/${product.id}/edit`}
+                            className="inline-flex items-center gap-2 rounded-lg border border-brand/20 px-3 py-2 text-xs font-bold text-brand"
+                          >
+                            <Pencil className="h-4 w-4" />
+                            Edit
+                          </Link>
+
+                          <form
+                            action={
+                              toggleProductVisibility
+                            }
+                          >
+                            <input
+                              type="hidden"
+                              name="productId"
+                              value={
+                                product.id
+                              }
+                            />
+
+                            <button
+                              type="submit"
+                              className="inline-flex items-center gap-2 rounded-lg border border-brand/20 px-3 py-2 text-xs font-bold text-brand"
+                            >
+                              {product.isVisible ? (
+                                <EyeOff className="h-4 w-4" />
+                              ) : (
+                                <Eye className="h-4 w-4" />
+                              )}
+
+                              {product.isVisible
+                                ? "Hide"
+                                : "Show"}
+                            </button>
+                          </form>
+
+                          <form
+                            action={
+                              deleteProduct
+                            }
+                          >
+                            <input
+                              type="hidden"
+                              name="productId"
+                              value={
+                                product.id
+                              }
+                            />
+
+                            <button
+                              type="submit"
+                              className="inline-flex items-center gap-2 rounded-lg border border-red-200 px-3 py-2 text-xs font-bold text-red-600"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              Delete
+                            </button>
+                          </form>
+                        </div>
+                      </td>
+                    </tr>
+                  );
                 }
-              />
-
-              <p className="mt-2 text-xs text-slate-400">
-                Lower numbers appear before higher numbers.
-              </p>
-            </FormField>
-          </div>
-
-          {/* =================================================
-              DESCRIPTION
-              ================================================= */}
-
-          <div className="mt-6">
-            <FormField
-              label="Description"
-              htmlFor="description"
-            >
-              <textarea
-                id="description"
-                name="description"
-                required
-                rows={
-                  5
-                }
-                placeholder="Describe the product..."
-                className={`${inputClass} resize-y`}
-              />
-            </FormField>
-          </div>
-
-          {/* =================================================
-              SPECIFICATIONS
-              ================================================= */}
-
-          <div className="mt-6">
-            <FormField
-              label="Specifications"
-              htmlFor="specs"
-            >
-              <div className="relative">
-                <ListChecks
-                  className="
-                    pointer-events-none
-                    absolute
-                    left-4
-                    top-4
-                    h-4
-                    w-4
-                    text-slate-400
-                  "
-                />
-
-                <textarea
-                  id="specs"
-                  name="specs"
-                  required
-                  rows={
-                    7
-                  }
-                  placeholder={`Socket: AMD AM4
-Chipset: AMD B450
-Memory: 4× DDR4 DIMM slots
-Storage: M.2 support`}
-                  className={`${inputClass} resize-y pl-11`}
-                />
-              </div>
-
-              <p className="mt-2 text-xs text-slate-400">
-                Enter one specification per line.
-              </p>
-            </FormField>
-          </div>
-
-          {/* =================================================
-              PRODUCT IMAGE
-              ================================================= */}
-
-          <div className="mt-8">
-            <div
-              className="
-                rounded-2xl
-                border
-                border-brand/10
-                bg-[#f7f9fc]
-                p-5
-                md:p-6
-              "
-            >
-              <div className="flex items-start gap-3">
-                <div
-                  className="
-                    grid
-                    h-10
-                    w-10
-                    shrink-0
-                    place-items-center
-                    rounded-xl
-                    bg-brand/[0.08]
-                    text-brand
-                  "
-                >
-                  <ImageIcon className="h-5 w-5" />
-                </div>
-
-                <div>
-                  <h2
-                    className="
-                      font-display
-                      text-base
-                      font-bold
-                      uppercase
-                      text-brand-deep
-                    "
-                  >
-                    Product Image
-                  </h2>
-
-                  <p
-                    className="
-                      mt-1
-                      text-xs
-                      leading-relaxed
-                      text-slate-500
-                    "
-                  >
-                    Choose an image from your computer or enter an
-                    image URL below.
-                  </p>
-                </div>
-              </div>
-
-              {/* UPLOAD */}
-
-              <div className="mt-6">
-                <label
-                  htmlFor="imageFile"
-                  className="
-                    mb-2
-                    block
-                    text-xs
-                    font-bold
-                    uppercase
-                    tracking-wider
-                    text-slate-600
-                  "
-                >
-                  Upload From PC
-                </label>
-
-                <label
-                  htmlFor="imageFile"
-                  className="
-                    flex
-                    cursor-pointer
-                    flex-col
-                    items-center
-                    justify-center
-                    rounded-xl
-                    border
-                    border-dashed
-                    border-brand/25
-                    bg-white
-                    px-5
-                    py-8
-                    text-center
-                    transition-all
-                    hover:border-brand/50
-                    hover:bg-brand/[0.02]
-                  "
-                >
-                  <div
-                    className="
-                      grid
-                      h-11
-                      w-11
-                      place-items-center
-                      rounded-xl
-                      bg-brand/[0.08]
-                      text-brand
-                    "
-                  >
-                    <Upload className="h-5 w-5" />
-                  </div>
-
-                  <span
-                    className="
-                      mt-3
-                      text-sm
-                      font-bold
-                      text-brand-deep
-                    "
-                  >
-                    Choose Product Image
-                  </span>
-
-                  <span
-                    className="
-                      mt-1
-                      text-xs
-                      text-slate-400
-                    "
-                  >
-                    JPG, PNG or WebP — maximum 5 MB
-                  </span>
-
-                  <input
-                    id="imageFile"
-                    name="imageFile"
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    className="
-                      mt-4
-                      block
-                      max-w-full
-                      text-xs
-                      text-slate-500
-                      file:mr-4
-                      file:rounded-lg
-                      file:border-0
-                      file:bg-brand
-                      file:px-4
-                      file:py-2.5
-                      file:text-xs
-                      file:font-bold
-                      file:text-white
-                      hover:file:bg-brand-soft
-                    "
-                  />
-                </label>
-              </div>
-
-              <div className="my-6 flex items-center gap-4">
-                <div className="h-px flex-1 bg-brand/10" />
-
-                <span
-                  className="
-                    text-xs
-                    font-bold
-                    uppercase
-                    tracking-[0.2em]
-                    text-slate-400
-                  "
-                >
-                  Or
-                </span>
-
-                <div className="h-px flex-1 bg-brand/10" />
-              </div>
-
-              {/* IMAGE URL */}
-
-              <FormField
-                label="Image URL"
-                htmlFor="imageUrl"
-              >
-                <div className="relative">
-                  <LinkIcon
-                    className="
-                      pointer-events-none
-                      absolute
-                      left-4
-                      top-1/2
-                      h-4
-                      w-4
-                      -translate-y-1/2
-                      text-slate-400
-                    "
-                  />
-
-                  <input
-                    id="imageUrl"
-                    name="imageUrl"
-                    type="url"
-                    maxLength={
-                      1000
-                    }
-                    placeholder="https://example.com/product.jpg"
-                    className={`${inputClass} bg-white pl-11`}
-                  />
-                </div>
-
-                <p
-                  className="
-                    mt-2
-                    text-xs
-                    leading-relaxed
-                    text-slate-400
-                  "
-                >
-                  You only need one image method. If both are
-                  supplied, the uploaded file will be used.
-                </p>
-              </FormField>
-            </div>
-          </div>
-
-          {/* =================================================
-              VISIBILITY
-              ================================================= */}
-
-          <div
-            className="
-              mt-7
-              rounded-xl
-              border
-              border-brand/10
-              bg-[#f7f9fc]
-              p-5
-            "
-          >
-            <label
-              htmlFor="isVisible"
-              className="
-                flex
-                cursor-pointer
-                items-start
-                gap-3
-              "
-            >
-              <input
-                id="isVisible"
-                name="isVisible"
-                type="checkbox"
-                defaultChecked
-                className="
-                  mt-1
-                  h-4
-                  w-4
-                  accent-[#173160]
-                "
-              />
-
-              <span>
-                <span
-                  className="
-                    block
-                    text-sm
-                    font-bold
-                    text-brand-deep
-                  "
-                >
-                  Visible on website
-                </span>
-
-                <span
-                  className="
-                    mt-1
-                    block
-                    text-xs
-                    leading-relaxed
-                    text-slate-500
-                  "
-                >
-                  Turn this off if you want to save the product
-                  without displaying it publicly.
-                </span>
-              </span>
-            </label>
-          </div>
-
-          {/* =================================================
-              BUTTONS
-              ================================================= */}
-
-          <div
-            className="
-              mt-8
-              flex
-              flex-col
-              gap-3
-              border-t
-              border-brand/10
-              pt-6
-              sm:flex-row
-              sm:justify-end
-            "
-          >
-            <Link
-              href="/admin/products"
-              className="
-                inline-flex
-                items-center
-                justify-center
-                rounded-xl
-                border
-                border-brand/15
-                bg-white
-                px-6
-                py-3.5
-                text-xs
-                font-bold
-                uppercase
-                tracking-wider
-                text-brand
-                transition-all
-                hover:border-brand
-                hover:bg-brand/[0.05]
-              "
-            >
-              Cancel
-            </Link>
-
-            <button
-              type="submit"
-              disabled={
-                productCategories.length ===
-                0
-              }
-              className="
-                inline-flex
-                items-center
-                justify-center
-                gap-2
-                rounded-xl
-                bg-brand
-                px-6
-                py-3.5
-                font-display
-                text-xs
-                font-bold
-                uppercase
-                tracking-wider
-                text-white
-                transition-all
-                hover:-translate-y-0.5
-                hover:bg-brand-soft
-                disabled:cursor-not-allowed
-                disabled:bg-slate-300
-              "
-            >
-              <PackagePlus className="h-4 w-4" />
-
-              Save Product
-            </button>
-          </div>
-        </form>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </main>
   );
 }
-
-/* =========================================================
-   FORM FIELD
-   ========================================================= */
-
-function FormField({
-  label,
-  htmlFor,
-  children,
-}: {
-  label: string;
-  htmlFor: string;
-  children: ReactNode;
-}) {
-  return (
-    <div>
-      <label
-        htmlFor={
-          htmlFor
-        }
-        className="
-          mb-2
-          block
-          text-xs
-          font-bold
-          uppercase
-          tracking-wider
-          text-slate-600
-        "
-      >
-        {label}
-      </label>
-
-      {children}
-    </div>
-  );
-}
-
-/* =========================================================
-   INPUT STYLE
-   ========================================================= */
-
-const inputClass = `
-  w-full
-  rounded-xl
-  border
-  border-brand/15
-  bg-[#f7f9fc]
-  px-4
-  py-3.5
-  text-sm
-  text-brand-deep
-  outline-none
-  transition-all
-  placeholder:text-slate-400
-  hover:border-brand/25
-  focus:border-brand/60
-  focus:bg-white
-  focus:shadow-[0_0_0_3px_rgba(23,49,96,0.10)]
-`;

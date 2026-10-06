@@ -3,6 +3,7 @@
 import {
   count,
   eq,
+  inArray,
 } from "drizzle-orm";
 
 import {
@@ -24,50 +25,27 @@ import {
 } from "@/db/schema";
 
 import {
+  catalogSubcategories,
+  productSubcategoryAssignments,
+} from "@/db/catalog-extensions";
+
+import {
   requireAdmin,
 } from "@/lib/admin-auth";
-
-/* =========================================================
-   TYPES
-   ========================================================= */
 
 type CategoryTarget =
   | "product"
   | "build"
   | "both";
 
-/* =========================================================
-   HELPERS
-   ========================================================= */
-
 function getText(
   formData: FormData,
   name: string
 ) {
   return String(
-    formData.get(
-      name
-    ) ?? ""
+    formData.get(name) ?? ""
   ).trim();
 }
-
-/* =========================================================
-   REDIRECT ERROR
-   ========================================================= */
-
-function redirectCategoryError(
-  message: string
-): never {
-  redirect(
-    `/admin/categories?error=${encodeURIComponent(
-      message
-    )}`
-  );
-}
-
-/* =========================================================
-   SLUGIFY
-   ========================================================= */
 
 function slugify(
   value: string
@@ -82,62 +60,50 @@ function slugify(
     .replace(
       /^-+|-+$/g,
       ""
+    )
+    .slice(
+      0,
+      120
     );
 }
-
-/* =========================================================
-   VALID TARGET
-   ========================================================= */
 
 function isValidTarget(
   value: string
 ): value is CategoryTarget {
   return (
-    value ===
-      "product" ||
-    value ===
-      "build" ||
-    value ===
-      "both"
+    value === "product" ||
+    value === "build" ||
+    value === "both"
   );
 }
 
-/* =========================================================
-   PARSE ID
-   ========================================================= */
-
-function parseCategoryId(
-  formData: FormData
+function parseId(
+  formData: FormData,
+  field: string,
+  label: string
 ) {
-  const raw =
-    getText(
-      formData,
-      "categoryId"
-    );
-
-  const id =
+  const value =
     Number.parseInt(
-      raw,
+      getText(
+        formData,
+        field
+      ),
       10
     );
 
   if (
     !Number.isInteger(
-      id
+      value
     ) ||
-    id <= 0
+    value <= 0
   ) {
     redirectCategoryError(
-      "Invalid category."
+      `Invalid ${label}.`
     );
   }
 
-  return id;
+  return value;
 }
-
-/* =========================================================
-   PARSE SORT ORDER
-   ========================================================= */
 
 function parseSortOrder(
   formData: FormData
@@ -169,9 +135,25 @@ function parseSortOrder(
   return value;
 }
 
-/* =========================================================
-   REFRESH
-   ========================================================= */
+function redirectCategoryError(
+  message: string,
+  anchor = "top"
+): never {
+  redirect(
+    `/admin/categories?error=${encodeURIComponent(
+      message
+    )}#${anchor}`
+  );
+}
+
+function redirectCategorySuccess(
+  value: string,
+  anchor = "top"
+): never {
+  redirect(
+    `/admin/categories?${value}=1#${anchor}`
+  );
+}
 
 function refreshCategories() {
   revalidatePath(
@@ -199,20 +181,24 @@ function refreshCategories() {
   );
 
   revalidatePath(
+    "/admin/pc-builder"
+  );
+
+  revalidatePath(
+    "/build-your-rig"
+  );
+
+  revalidatePath(
     "/"
   );
 }
 
-/* =========================================================
-   CHECK CATEGORY USAGE
-   ========================================================= */
-
-async function getCategoryUsage(
+async function categoryUsage(
   slug: string
 ) {
   const [
-    productResult,
-    buildResult,
+    productRows,
+    buildRows,
   ] =
     await Promise.all([
       db
@@ -249,18 +235,109 @@ async function getCategoryUsage(
   return {
     products:
       Number(
-        productResult[0]
+        productRows[0]
           ?.total ??
           0
       ),
 
     builds:
       Number(
-        buildResult[0]
+        buildRows[0]
           ?.total ??
           0
       ),
   };
+}
+
+async function findCategoryById(
+  id: number
+) {
+  const rows =
+    await db
+      .select()
+      .from(
+        catalogCategories
+      )
+      .where(
+        eq(
+          catalogCategories.id,
+          id
+        )
+      )
+      .limit(
+        1
+      );
+
+  return rows[0];
+}
+
+async function ensureUniqueCategorySlug(
+  slug: string,
+  currentId?: number
+) {
+  const rows =
+    await db
+      .select({
+        id:
+          catalogCategories.id,
+      })
+      .from(
+        catalogCategories
+      )
+      .where(
+        eq(
+          catalogCategories.slug,
+          slug
+        )
+      )
+      .limit(
+        1
+      );
+
+  if (
+    rows[0] &&
+    rows[0].id !==
+      currentId
+  ) {
+    redirectCategoryError(
+      "Another category already uses this slug."
+    );
+  }
+}
+
+async function validateCategoryTargetChange({
+  currentSlug,
+  nextTarget,
+}: {
+  currentSlug: string;
+  nextTarget: CategoryTarget;
+}) {
+  const usage =
+    await categoryUsage(
+      currentSlug
+    );
+
+  if (
+    usage.products >
+      0 &&
+    nextTarget ===
+      "build"
+  ) {
+    redirectCategoryError(
+      "This category is used by products, so it cannot be changed to Builds only."
+    );
+  }
+
+  if (
+    usage.builds >
+      0 &&
+    nextTarget ===
+      "product"
+  ) {
+    redirectCategoryError(
+      "This category is used by custom builds, so it cannot be changed to Products only."
+    );
+  }
 }
 
 /* =========================================================
@@ -284,12 +361,6 @@ export async function createCategory(
       "slug"
     );
 
-  const slug =
-    slugify(
-      rawSlug ||
-        name
-    );
-
   const appliesTo =
     getText(
       formData,
@@ -306,41 +377,9 @@ export async function createCategory(
       "isVisible"
     ) === "on";
 
-  /* =======================================================
-     VALIDATION
-     ======================================================= */
-
-  if (
-    !name
-  ) {
+  if (!name) {
     redirectCategoryError(
       "Category name is required."
-    );
-  }
-
-  if (
-    name.length >
-    120
-  ) {
-    redirectCategoryError(
-      "Category name is too long."
-    );
-  }
-
-  if (
-    !slug
-  ) {
-    redirectCategoryError(
-      "Category slug is required."
-    );
-  }
-
-  if (
-    slug.length >
-    120
-  ) {
-    redirectCategoryError(
-      "Category slug is too long."
     );
   }
 
@@ -350,45 +389,25 @@ export async function createCategory(
     )
   ) {
     redirectCategoryError(
-      "Choose where this category should be available."
+      "Please choose where this category is available."
     );
   }
 
-  /* =======================================================
-     UNIQUE SLUG
-     ======================================================= */
+  const slug =
+    slugify(
+      rawSlug ||
+        name
+    );
 
-  const existing =
-    await db
-      .select({
-        id:
-          catalogCategories.id,
-      })
-      .from(
-        catalogCategories
-      )
-      .where(
-        eq(
-          catalogCategories.slug,
-          slug
-        )
-      )
-      .limit(
-        1
-      );
-
-  if (
-    existing.length >
-    0
-  ) {
+  if (!slug) {
     redirectCategoryError(
-      `A category with the slug "${slug}" already exists.`
+      "Category slug is invalid."
     );
   }
 
-  /* =======================================================
-     SAVE
-     ======================================================= */
+  await ensureUniqueCategorySlug(
+    slug
+  );
 
   await db
     .insert(
@@ -396,23 +415,18 @@ export async function createCategory(
     )
     .values({
       name,
-
       slug,
-
       appliesTo,
-
       sortOrder,
-
       isVisible,
-
       isSystem:
         false,
     });
 
   refreshCategories();
 
-  redirect(
-    "/admin/categories?created=1"
+  redirectCategorySuccess(
+    "created"
   );
 }
 
@@ -426,44 +440,22 @@ export async function updateCategory(
   await requireAdmin();
 
   const categoryId =
-    parseCategoryId(
-      formData
+    parseId(
+      formData,
+      "categoryId",
+      "category"
     );
 
-  /* =======================================================
-     CURRENT CATEGORY
-     ======================================================= */
+  const category =
+    await findCategoryById(
+      categoryId
+    );
 
-  const currentRows =
-    await db
-      .select()
-      .from(
-        catalogCategories
-      )
-      .where(
-        eq(
-          catalogCategories.id,
-          categoryId
-        )
-      )
-      .limit(
-        1
-      );
-
-  const current =
-    currentRows[0];
-
-  if (
-    !current
-  ) {
+  if (!category) {
     redirectCategoryError(
       "Category could not be found."
     );
   }
-
-  /* =======================================================
-     READ FORM
-     ======================================================= */
 
   const name =
     getText(
@@ -475,12 +467,6 @@ export async function updateCategory(
     getText(
       formData,
       "slug"
-    );
-
-  const slug =
-    slugify(
-      rawSlug ||
-        name
     );
 
   const appliesTo =
@@ -499,34 +485,9 @@ export async function updateCategory(
       "isVisible"
     ) === "on";
 
-  /* =======================================================
-     VALIDATION
-     ======================================================= */
-
-  if (
-    !name
-  ) {
+  if (!name) {
     redirectCategoryError(
       "Category name is required."
-    );
-  }
-
-  if (
-    name.length >
-    120
-  ) {
-    redirectCategoryError(
-      "Category name is too long."
-    );
-  }
-
-  if (
-    !slug ||
-    slug.length >
-      120
-  ) {
-    redirectCategoryError(
-      "Please enter a valid category slug."
     );
   }
 
@@ -536,90 +497,50 @@ export async function updateCategory(
     )
   ) {
     redirectCategoryError(
-      "Choose where this category should be available."
+      "Please choose where this category is available."
     );
   }
 
-  /* =======================================================
-     DUPLICATE SLUG
-     ======================================================= */
-
-  const duplicateRows =
-    await db
-      .select({
-        id:
-          catalogCategories.id,
-      })
-      .from(
-        catalogCategories
-      )
-      .where(
-        eq(
-          catalogCategories.slug,
-          slug
-        )
-      )
-      .limit(
-        1
-      );
-
-  const duplicate =
-    duplicateRows[0];
-
-  if (
-    duplicate &&
-    duplicate.id !==
-      categoryId
-  ) {
-    redirectCategoryError(
-      `Another category already uses the slug "${slug}".`
-    );
-  }
-
-  /* =======================================================
-     CHECK CURRENT USAGE
-     ======================================================= */
-
-  const usage =
-    await getCategoryUsage(
-      current.slug
+  const slug =
+    slugify(
+      rawSlug ||
+        name
     );
 
-  if (
-    appliesTo ===
-      "build" &&
-    usage.products >
-      0
-  ) {
+  if (!slug) {
     redirectCategoryError(
-      `This category is currently used by ${usage.products} product(s). Change those products first before making it Build-only.`
+      "Category slug is invalid."
     );
   }
 
   if (
-    appliesTo ===
-      "product" &&
-    usage.builds >
-      0
+    category.isSystem &&
+    slug !==
+      category.slug
   ) {
     redirectCategoryError(
-      `This category is currently used by ${usage.builds} build(s). Change those builds first before making it Product-only.`
+      "The system category slug cannot be changed."
     );
   }
 
-  /* =======================================================
-     UPDATE
+  await ensureUniqueCategorySlug(
+    slug,
+    categoryId
+  );
 
-     If slug changes, update Products and Builds too.
-     ======================================================= */
+  await validateCategoryTargetChange({
+    currentSlug:
+      category.slug,
+
+    nextTarget:
+      appliesTo,
+  });
 
   await db.transaction(
-    async (
-      tx
-    ) => {
+    async (tx) => {
       if (
         slug !==
-        current.slug
+        category.slug
       ) {
         await tx
           .update(
@@ -635,7 +556,7 @@ export async function updateCategory(
           .where(
             eq(
               products.category,
-              current.slug
+              category.slug
             )
           );
 
@@ -653,7 +574,7 @@ export async function updateCategory(
           .where(
             eq(
               customBuilds.category,
-              current.slug
+              category.slug
             )
           );
       }
@@ -664,14 +585,14 @@ export async function updateCategory(
         )
         .set({
           name,
-
           slug,
-
           appliesTo,
-
           sortOrder,
 
-          isVisible,
+          isVisible:
+            category.isSystem
+              ? true
+              : isVisible,
 
           updatedAt:
             new Date(),
@@ -687,13 +608,13 @@ export async function updateCategory(
 
   refreshCategories();
 
-  redirect(
-    "/admin/categories?updated=1"
+  redirectCategorySuccess(
+    "updated"
   );
 }
 
 /* =========================================================
-   TOGGLE CATEGORY VISIBILITY
+   TOGGLE CATEGORY
    ========================================================= */
 
 export async function toggleCategoryVisibility(
@@ -702,34 +623,28 @@ export async function toggleCategoryVisibility(
   await requireAdmin();
 
   const categoryId =
-    parseCategoryId(
-      formData
+    parseId(
+      formData,
+      "categoryId",
+      "category"
     );
 
-  const rows =
-    await db
-      .select()
-      .from(
-        catalogCategories
-      )
-      .where(
-        eq(
-          catalogCategories.id,
-          categoryId
-        )
-      )
-      .limit(
-        1
-      );
-
   const category =
-    rows[0];
+    await findCategoryById(
+      categoryId
+    );
 
-  if (
-    !category
-  ) {
+  if (!category) {
     redirectCategoryError(
       "Category could not be found."
+    );
+  }
+
+  if (
+    category.isSystem
+  ) {
+    redirectCategoryError(
+      "The system category must remain visible."
     );
   }
 
@@ -753,8 +668,8 @@ export async function toggleCategoryVisibility(
 
   refreshCategories();
 
-  redirect(
-    "/admin/categories?visibility=1"
+  redirectCategorySuccess(
+    "visibility"
   );
 }
 
@@ -768,43 +683,33 @@ export async function deleteCategory(
   await requireAdmin();
 
   const categoryId =
-    parseCategoryId(
-      formData
+    parseId(
+      formData,
+      "categoryId",
+      "category"
     );
 
-  const rows =
-    await db
-      .select()
-      .from(
-        catalogCategories
-      )
-      .where(
-        eq(
-          catalogCategories.id,
-          categoryId
-        )
-      )
-      .limit(
-        1
-      );
-
   const category =
-    rows[0];
+    await findCategoryById(
+      categoryId
+    );
 
-  if (
-    !category
-  ) {
+  if (!category) {
     redirectCategoryError(
       "Category could not be found."
     );
   }
 
-  /* =======================================================
-     PREVENT DELETING USED CATEGORY
-     ======================================================= */
+  if (
+    category.isSystem
+  ) {
+    redirectCategoryError(
+      "The system category cannot be deleted."
+    );
+  }
 
   const usage =
-    await getCategoryUsage(
+    await categoryUsage(
       category.slug
     );
 
@@ -815,7 +720,7 @@ export async function deleteCategory(
       0
   ) {
     redirectCategoryError(
-      `"${category.name}" cannot be deleted because it is currently used by ${usage.products} product(s) and ${usage.builds} build(s). Change those items to another category first.`
+      `This category is still used by ${usage.products} product(s) and ${usage.builds} build(s). Move those records first.`
     );
   }
 
@@ -832,7 +737,496 @@ export async function deleteCategory(
 
   refreshCategories();
 
-  redirect(
-    "/admin/categories?deleted=1"
+  redirectCategorySuccess(
+    "deleted"
+  );
+}
+
+/* =========================================================
+   SUBCATEGORY HELPERS
+   ========================================================= */
+
+async function findSubcategoryById(
+  id: number
+) {
+  const rows =
+    await db
+      .select()
+      .from(
+        catalogSubcategories
+      )
+      .where(
+        eq(
+          catalogSubcategories.id,
+          id
+        )
+      )
+      .limit(
+        1
+      );
+
+  return rows[0];
+}
+
+async function ensureUniqueSubcategorySlug({
+  categoryId,
+  slug,
+  currentId,
+}: {
+  categoryId: number;
+  slug: string;
+  currentId?: number;
+}) {
+  const rows =
+    await db
+      .select({
+        id:
+          catalogSubcategories.id,
+
+        categoryId:
+          catalogSubcategories.categoryId,
+
+        slug:
+          catalogSubcategories.slug,
+      })
+      .from(
+        catalogSubcategories
+      );
+
+  const duplicate =
+    rows.find(
+      (row) =>
+        row.categoryId ===
+          categoryId &&
+        row.slug ===
+          slug &&
+        row.id !==
+          currentId
+    );
+
+  if (duplicate) {
+    redirectCategoryError(
+      "This category already has a subcategory with that slug.",
+      "subcategories"
+    );
+  }
+}
+
+/* =========================================================
+   CREATE SUBCATEGORY
+   ========================================================= */
+
+export async function createSubcategory(
+  formData: FormData
+) {
+  await requireAdmin();
+
+  const categoryId =
+    parseId(
+      formData,
+      "categoryId",
+      "parent category"
+    );
+
+  const name =
+    getText(
+      formData,
+      "name"
+    );
+
+  const rawSlug =
+    getText(
+      formData,
+      "slug"
+    );
+
+  const sortOrder =
+    parseSortOrder(
+      formData
+    );
+
+  const isVisible =
+    formData.get(
+      "isVisible"
+    ) === "on";
+
+  const parent =
+    await findCategoryById(
+      categoryId
+    );
+
+  if (!parent) {
+    redirectCategoryError(
+      "Parent category could not be found.",
+      "subcategories"
+    );
+  }
+
+  if (
+    parent.appliesTo !==
+      "product" &&
+    parent.appliesTo !==
+      "both"
+  ) {
+    redirectCategoryError(
+      "Subcategories can only be added under a Product or Products + Builds category.",
+      "subcategories"
+    );
+  }
+
+  if (!name) {
+    redirectCategoryError(
+      "Subcategory name is required.",
+      "subcategories"
+    );
+  }
+
+  const slug =
+    slugify(
+      rawSlug ||
+        name
+    );
+
+  if (!slug) {
+    redirectCategoryError(
+      "Subcategory slug is invalid.",
+      "subcategories"
+    );
+  }
+
+  await ensureUniqueSubcategorySlug({
+    categoryId,
+    slug,
+  });
+
+  await db
+    .insert(
+      catalogSubcategories
+    )
+    .values({
+      categoryId,
+      name,
+      slug,
+      sortOrder,
+      isVisible,
+    });
+
+  refreshCategories();
+
+  redirectCategorySuccess(
+    "subcategoryCreated",
+    "subcategories"
+  );
+}
+
+/* =========================================================
+   UPDATE SUBCATEGORY
+   ========================================================= */
+
+export async function updateSubcategory(
+  formData: FormData
+) {
+  await requireAdmin();
+
+  const subcategoryId =
+    parseId(
+      formData,
+      "subcategoryId",
+      "subcategory"
+    );
+
+  const categoryId =
+    parseId(
+      formData,
+      "categoryId",
+      "parent category"
+    );
+
+  const name =
+    getText(
+      formData,
+      "name"
+    );
+
+  const rawSlug =
+    getText(
+      formData,
+      "slug"
+    );
+
+  const sortOrder =
+    parseSortOrder(
+      formData
+    );
+
+  const isVisible =
+    formData.get(
+      "isVisible"
+    ) === "on";
+
+  const [
+    subcategory,
+    parent,
+  ] =
+    await Promise.all([
+      findSubcategoryById(
+        subcategoryId
+      ),
+
+      findCategoryById(
+        categoryId
+      ),
+    ]);
+
+  if (
+    !subcategory ||
+    !parent
+  ) {
+    redirectCategoryError(
+      "Subcategory or parent category could not be found.",
+      "subcategories"
+    );
+  }
+
+  if (
+    parent.appliesTo !==
+      "product" &&
+    parent.appliesTo !==
+      "both"
+  ) {
+    redirectCategoryError(
+      "Subcategories can only be placed under a Product or Products + Builds category.",
+      "subcategories"
+    );
+  }
+
+  if (!name) {
+    redirectCategoryError(
+      "Subcategory name is required.",
+      "subcategories"
+    );
+  }
+
+  const slug =
+    slugify(
+      rawSlug ||
+        name
+    );
+
+  await ensureUniqueSubcategorySlug({
+    categoryId,
+    slug,
+
+    currentId:
+      subcategoryId,
+  });
+
+  await db.transaction(
+    async (tx) => {
+      /*
+       * If a used subcategory is moved under another
+       * main category, update those products' main
+       * category as well.
+       */
+      if (
+        subcategory.categoryId !==
+        categoryId
+      ) {
+        const assignedProducts =
+          await tx
+            .select({
+              productId:
+                productSubcategoryAssignments.productId,
+            })
+            .from(
+              productSubcategoryAssignments
+            )
+            .where(
+              eq(
+                productSubcategoryAssignments.subcategoryId,
+                subcategoryId
+              )
+            );
+
+        const productIds =
+          assignedProducts.map(
+            (row) =>
+              row.productId
+          );
+
+        if (
+          productIds.length >
+          0
+        ) {
+          await tx
+            .update(
+              products
+            )
+            .set({
+              category:
+                parent.slug,
+
+              updatedAt:
+                new Date(),
+            })
+            .where(
+              inArray(
+                products.id,
+                productIds
+              )
+            );
+        }
+      }
+
+      await tx
+        .update(
+          catalogSubcategories
+        )
+        .set({
+          categoryId,
+          name,
+          slug,
+          sortOrder,
+          isVisible,
+
+          updatedAt:
+            new Date(),
+        })
+        .where(
+          eq(
+            catalogSubcategories.id,
+            subcategoryId
+          )
+        );
+    }
+  );
+
+  refreshCategories();
+
+  redirectCategorySuccess(
+    "subcategoryUpdated",
+    "subcategories"
+  );
+}
+
+/* =========================================================
+   TOGGLE SUBCATEGORY
+   ========================================================= */
+
+export async function toggleSubcategoryVisibility(
+  formData: FormData
+) {
+  await requireAdmin();
+
+  const subcategoryId =
+    parseId(
+      formData,
+      "subcategoryId",
+      "subcategory"
+    );
+
+  const subcategory =
+    await findSubcategoryById(
+      subcategoryId
+    );
+
+  if (!subcategory) {
+    redirectCategoryError(
+      "Subcategory could not be found.",
+      "subcategories"
+    );
+  }
+
+  await db
+    .update(
+      catalogSubcategories
+    )
+    .set({
+      isVisible:
+        !subcategory.isVisible,
+
+      updatedAt:
+        new Date(),
+    })
+    .where(
+      eq(
+        catalogSubcategories.id,
+        subcategoryId
+      )
+    );
+
+  refreshCategories();
+
+  redirectCategorySuccess(
+    "subcategoryVisibility",
+    "subcategories"
+  );
+}
+
+/* =========================================================
+   DELETE SUBCATEGORY
+   ========================================================= */
+
+export async function deleteSubcategory(
+  formData: FormData
+) {
+  await requireAdmin();
+
+  const subcategoryId =
+    parseId(
+      formData,
+      "subcategoryId",
+      "subcategory"
+    );
+
+  const usageRows =
+    await db
+      .select({
+        total:
+          count(),
+      })
+      .from(
+        productSubcategoryAssignments
+      )
+      .where(
+        eq(
+          productSubcategoryAssignments.subcategoryId,
+          subcategoryId
+        )
+      );
+
+  const usage =
+    Number(
+      usageRows[0]
+        ?.total ??
+        0
+    );
+
+  if (
+    usage >
+    0
+  ) {
+    redirectCategoryError(
+      `This subcategory is used by ${usage} product(s). Remove those assignments first.`,
+      "subcategories"
+    );
+  }
+
+  await db
+    .delete(
+      catalogSubcategories
+    )
+    .where(
+      eq(
+        catalogSubcategories.id,
+        subcategoryId
+      )
+    );
+
+  refreshCategories();
+
+  redirectCategorySuccess(
+    "subcategoryDeleted",
+    "subcategories"
   );
 }

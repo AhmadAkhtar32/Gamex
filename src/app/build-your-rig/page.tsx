@@ -3,8 +3,10 @@ import type {
 } from "next";
 
 import {
+  and,
   asc,
   eq,
+  or,
 } from "drizzle-orm";
 
 import {
@@ -16,13 +18,19 @@ import {
 } from "@/db";
 
 import {
+  catalogCategories,
   customBuilds,
   navbarLinks as navbarLinksTable,
   navbarSettings as navbarSettingsTable,
-  pcBuilderCategories,
   pcBuilderSettings,
   products,
 } from "@/db/schema";
+
+import {
+  catalogSubcategories,
+  pcBuilderCategorySettings,
+  productSubcategoryAssignments,
+} from "@/db/catalog-extensions";
 
 import {
   Navbar,
@@ -31,15 +39,12 @@ import {
 } from "@/components/Navbar";
 
 import {
-  ScrollProgress,
-} from "@/components/ui";
-
-import {
   PcBuilder,
 } from "@/components/PcBuilder";
 
-const SITE_URL =
-  "https://gamex.pk";
+import {
+  ScrollProgress,
+} from "@/components/ui";
 
 export const dynamic =
   "force-dynamic";
@@ -89,15 +94,11 @@ const DEFAULT_SETTINGS = {
 function homepageHref(
   href: string
 ) {
-  if (
-    href.startsWith(
-      "#"
-    )
-  ) {
-    return `/${href}`;
-  }
-
-  return href;
+  return href.startsWith(
+    "#"
+  )
+    ? `/${href}`
+    : href;
 }
 
 export default async function BuildYourRigPage() {
@@ -105,7 +106,10 @@ export default async function BuildYourRigPage() {
     navbarSettingsRows,
     databaseNavbarLinks,
     settingsRows,
-    categories,
+    catalogCategoryRows,
+    builderCategoryRows,
+    subcategoryRows,
+    assignmentRows,
     catalogProducts,
     builds,
   ] =
@@ -173,6 +177,7 @@ export default async function BuildYourRigPage() {
           asc(
             navbarLinksTable.sortOrder
           ),
+
           asc(
             navbarLinksTable.id
           )
@@ -193,24 +198,80 @@ export default async function BuildYourRigPage() {
           1
         ),
 
+      /*
+       * IMPORTANT:
+       *
+       * Builder categories now come from
+       * catalog_categories.
+       *
+       * No more pcBuilderCategories slug mismatch.
+       */
       db
         .select()
         .from(
-          pcBuilderCategories
+          catalogCategories
+        )
+        .where(
+          and(
+            eq(
+              catalogCategories.isVisible,
+              true
+            ),
+
+            or(
+              eq(
+                catalogCategories.appliesTo,
+                "product"
+              ),
+
+              eq(
+                catalogCategories.appliesTo,
+                "both"
+              )
+            )
+          )
+        )
+        .orderBy(
+          asc(
+            catalogCategories.sortOrder
+          ),
+
+          asc(
+            catalogCategories.id
+          )
+        ),
+
+      db
+        .select()
+        .from(
+          pcBuilderCategorySettings
+        ),
+
+      db
+        .select()
+        .from(
+          catalogSubcategories
         )
         .where(
           eq(
-            pcBuilderCategories.isVisible,
+            catalogSubcategories.isVisible,
             true
           )
         )
         .orderBy(
           asc(
-            pcBuilderCategories.sortOrder
+            catalogSubcategories.sortOrder
           ),
+
           asc(
-            pcBuilderCategories.id
+            catalogSubcategories.id
           )
+        ),
+
+      db
+        .select()
+        .from(
+          productSubcategoryAssignments
         ),
 
       db
@@ -238,6 +299,9 @@ export default async function BuildYourRigPage() {
 
           image:
             products.image,
+
+          sortOrder:
+            products.sortOrder,
         })
         .from(
           products
@@ -252,6 +316,7 @@ export default async function BuildYourRigPage() {
           asc(
             products.sortOrder
           ),
+
           asc(
             products.name
           )
@@ -296,6 +361,7 @@ export default async function BuildYourRigPage() {
           asc(
             customBuilds.sortOrder
           ),
+
           asc(
             customBuilds.name
           )
@@ -311,6 +377,181 @@ export default async function BuildYourRigPage() {
   ) {
     notFound();
   }
+
+  const builderSettingsByCategoryId =
+    new Map(
+      builderCategoryRows.map(
+        (
+          row
+        ) => [
+          row.catalogCategoryId,
+          row,
+        ]
+      )
+    );
+
+  /*
+   * Main Builder categories.
+   *
+   * Every visible PRODUCT category automatically exists.
+   *
+   * Builder-specific settings are optional.
+   */
+  const publicCategories =
+    catalogCategoryRows
+      .map(
+        (
+          category
+        ) => {
+          const builderSettings =
+            builderSettingsByCategoryId.get(
+              category.id
+            );
+
+          return {
+            id:
+              category.id,
+
+            name:
+              category.name,
+
+            slug:
+              category.slug,
+
+            description:
+              builderSettings
+                ?.description ||
+              `Choose your ${category.name.toLowerCase()}.`,
+
+            helpText:
+              builderSettings
+                ?.helpText ||
+              "",
+
+            isRequired:
+              builderSettings
+                ?.isRequired ??
+              false,
+
+            isVisible:
+              builderSettings
+                ?.isVisible ??
+              true,
+
+            sortOrder:
+              builderSettings
+                ?.sortOrder ??
+              category.sortOrder,
+          };
+        }
+      )
+      .filter(
+        (
+          category
+        ) =>
+          category.isVisible
+      )
+      .sort(
+        (
+          a,
+          b
+        ) =>
+          a.sortOrder -
+            b.sortOrder ||
+          a.id -
+            b.id
+      )
+      .map(
+        ({
+          isVisible:
+            _isVisible,
+
+          sortOrder:
+            _sortOrder,
+
+          ...category
+        }) =>
+          category
+      );
+
+  const subcategoryById =
+    new Map(
+      subcategoryRows.map(
+        (
+          row
+        ) => [
+          row.id,
+          row,
+        ]
+      )
+    );
+
+  const assignmentByProductId =
+    new Map(
+      assignmentRows.map(
+        (
+          row
+        ) => [
+          row.productId,
+          row.subcategoryId,
+        ]
+      )
+    );
+
+  const publicProducts =
+    catalogProducts.map(
+      (
+        product
+      ) => {
+        const subcategoryId =
+          assignmentByProductId.get(
+            product.id
+          );
+
+        const subcategory =
+          subcategoryId
+            ? subcategoryById.get(
+                subcategoryId
+              )
+            : undefined;
+
+        return {
+          id:
+            product.id,
+
+          name:
+            product.name,
+
+          category:
+            product.category,
+
+          tag:
+            product.tag,
+
+          price:
+            product.price,
+
+          description:
+            product.description,
+
+          specs:
+            product.specs,
+
+          image:
+            product.image,
+
+          subcategoryId:
+            subcategory
+              ?.id ??
+            null,
+
+          subcategoryName:
+            subcategory
+              ?.name ??
+            "",
+        };
+      }
+    );
 
   const rawNavbarContent =
     navbarSettingsRows[0] ??
@@ -391,32 +632,10 @@ export default async function BuildYourRigPage() {
             settings.showScratchBuilder,
         }}
         categories={
-          categories.map(
-            (
-              category
-            ) => ({
-              id:
-                category.id,
-
-              name:
-                category.name,
-
-              slug:
-                category.slug,
-
-              description:
-                category.description,
-
-              helpText:
-                category.helpText,
-
-              isRequired:
-                category.isRequired,
-            })
-          )
+          publicCategories
         }
         products={
-          catalogProducts
+          publicProducts
         }
         builds={
           builds
