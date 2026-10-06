@@ -9,7 +9,6 @@ import {
   EyeOff,
   Pencil,
   Plus,
-  Trash2,
 } from "lucide-react";
 
 import {
@@ -22,20 +21,30 @@ import {
 } from "@/db/schema";
 
 import {
-  requireAdmin,
-} from "@/lib/admin-auth";
+  catalogSubcategories,
+  productSubcategoryAssignments,
+} from "@/db/catalog-extensions";
 
 import {
   formatPrice,
 } from "@/lib/price";
 
 import {
-  deleteProduct,
+  requireAdmin,
+} from "@/lib/admin-auth";
+
+import {
   toggleProductVisibility,
 } from "./actions";
 
+import DeleteProductButton from "./DeleteProductButton";
+
 export const dynamic =
   "force-dynamic";
+
+/* =========================================================
+   PRODUCTS ADMIN
+   ========================================================= */
 
 export default async function ProductsAdminPage() {
   await requireAdmin();
@@ -43,6 +52,8 @@ export default async function ProductsAdminPage() {
   const [
     productRows,
     categoryRows,
+    subcategoryRows,
+    assignmentRows,
   ] =
     await Promise.all([
       db
@@ -61,6 +72,9 @@ export default async function ProductsAdminPage() {
 
       db
         .select({
+          id:
+            catalogCategories.id,
+
           slug:
             catalogCategories.slug,
 
@@ -70,22 +84,126 @@ export default async function ProductsAdminPage() {
         .from(
           catalogCategories
         ),
+
+      db
+        .select({
+          id:
+            catalogSubcategories.id,
+
+          name:
+            catalogSubcategories.name,
+        })
+        .from(
+          catalogSubcategories
+        )
+        .orderBy(
+          asc(
+            catalogSubcategories.sortOrder
+          ),
+          asc(
+            catalogSubcategories.name
+          )
+        ),
+
+      db
+        .select({
+          productId:
+            productSubcategoryAssignments.productId,
+
+          subcategoryId:
+            productSubcategoryAssignments.subcategoryId,
+        })
+        .from(
+          productSubcategoryAssignments
+        ),
     ]);
 
+  /* =======================================================
+     CATEGORY NAME MAP
+     ======================================================= */
+
   const categoryNames =
-    new Map(
-      categoryRows.map(
-        (
-          category
-        ) => [
-          category.slug,
-          category.name,
-        ]
-      )
+    new Map<
+      string,
+      string
+    >();
+
+  for (
+    const category of
+    categoryRows
+  ) {
+    categoryNames.set(
+      category.slug,
+      category.name
     );
+  }
+
+  /* =======================================================
+     SUBCATEGORY NAME MAP
+     ======================================================= */
+
+  const subcategoryNames =
+    new Map<
+      number,
+      string
+    >();
+
+  for (
+    const subcategory of
+    subcategoryRows
+  ) {
+    subcategoryNames.set(
+      subcategory.id,
+      subcategory.name
+    );
+  }
+
+  /* =======================================================
+     PRODUCT -> SUBCATEGORIES
+     ======================================================= */
+
+  const productSubcategories =
+    new Map<
+      string,
+      string[]
+    >();
+
+  for (
+    const assignment of
+    assignmentRows
+  ) {
+    const name =
+      subcategoryNames.get(
+        assignment.subcategoryId
+      );
+
+    if (
+      !name
+    ) {
+      continue;
+    }
+
+    const existing =
+      productSubcategories.get(
+        assignment.productId
+      ) ?? [];
+
+    existing.push(
+      name
+    );
+
+    productSubcategories.set(
+      assignment.productId,
+      existing
+    );
+  }
 
   return (
     <main className="min-h-screen bg-[#f7f9fc]">
+      {/* =====================================================
+          HEADER
+          ===================================================== */}
+
       <header className="border-b border-brand/10 bg-white">
         <div
           className="
@@ -135,12 +253,17 @@ export default async function ProductsAdminPage() {
               text-brand
               transition-all
               hover:border-brand
+              hover:bg-brand/[0.03]
             "
           >
             Dashboard
           </Link>
         </div>
       </header>
+
+      {/* =====================================================
+          CONTENT
+          ===================================================== */}
 
       <section
         className="
@@ -151,6 +274,10 @@ export default async function ProductsAdminPage() {
           md:px-8
         "
       >
+        {/* ===================================================
+            PAGE HEADING
+            =================================================== */}
+
         <div
           className="
             flex
@@ -187,9 +314,9 @@ export default async function ProductsAdminPage() {
               Products
             </h2>
 
-            <p className="mt-3 text-sm text-slate-500">
-              Products use the exact categories configured in
-              Admin Categories.
+            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-500">
+              Products use the same categories and subcategories
+              throughout the GameX website and Build Your Rig.
             </p>
           </div>
 
@@ -209,6 +336,9 @@ export default async function ProductsAdminPage() {
               uppercase
               tracking-wider
               text-white
+              transition-all
+              hover:-translate-y-0.5
+              hover:bg-brand-soft
             "
           >
             <Plus className="h-4 w-4" />
@@ -216,6 +346,10 @@ export default async function ProductsAdminPage() {
             Add Product
           </Link>
         </div>
+
+        {/* ===================================================
+            TABLE
+            =================================================== */}
 
         <div
           className="
@@ -228,7 +362,7 @@ export default async function ProductsAdminPage() {
           "
         >
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1000px]">
+            <table className="w-full min-w-[1180px]">
               <thead className="bg-[#fff8f8]">
                 <tr
                   className="
@@ -246,6 +380,10 @@ export default async function ProductsAdminPage() {
 
                   <th className="px-5 py-4">
                     Category
+                  </th>
+
+                  <th className="px-5 py-4">
+                    Subcategories
                   </th>
 
                   <th className="px-5 py-4">
@@ -271,244 +409,266 @@ export default async function ProductsAdminPage() {
               </thead>
 
               <tbody>
-                {productRows.map(
-                  (
-                    product
-                  ) => {
-                    const categoryName =
-                      categoryNames.get(
-                        product.category
-                      ) ??
-                      product.category;
+                {productRows.length ===
+                0 ? (
+                  <tr>
+                    <td
+                      colSpan={
+                        8
+                      }
+                      className="
+                        px-5
+                        py-16
+                        text-center
+                        text-sm
+                        text-slate-400
+                      "
+                    >
+                      No products have been added yet.
+                    </td>
+                  </tr>
+                ) : (
+                  productRows.map(
+                    (
+                      product
+                    ) => {
+                      const categoryName =
+                        categoryNames.get(
+                          product.category
+                        ) ??
+                        product.category;
 
-                    return (
-                      <tr
-                        key={
+                      const assignedSubcategories =
+                        productSubcategories.get(
                           product.id
-                        }
-                        className="
-                          border-t
-                          border-brand/10
-                          align-middle
-                        "
-                      >
-                        <td className="px-5 py-5">
-                          <div className="flex items-center gap-4">
-                            <div
-                              className="
-                                h-16
-                                w-16
-                                shrink-0
-                                overflow-hidden
-                                rounded-xl
-                                border
-                                border-brand/10
-                                bg-[#f7f7f7]
-                              "
-                            >
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={
-                                  product.image
-                                }
-                                alt={
-                                  product.name
-                                }
-                                className="
-                                  h-full
-                                  w-full
-                                  object-contain
-                                  p-1
-                                "
-                              />
-                            </div>
+                        ) ??
+                        [];
 
-                            <div className="min-w-0">
-                              <p
+                      return (
+                        <tr
+                          key={
+                            product.id
+                          }
+                          className="
+                            border-t
+                            border-brand/10
+                            align-middle
+                          "
+                        >
+                          {/* ===============================
+                              PRODUCT
+                              =============================== */}
+
+                          <td className="px-5 py-5">
+                            <div className="flex items-center gap-4">
+                              <div
                                 className="
-                                  font-bold
-                                  text-brand-deep
+                                  h-16
+                                  w-16
+                                  shrink-0
+                                  overflow-hidden
+                                  rounded-xl
+                                  border
+                                  border-brand/10
+                                  bg-[#f7f7f7]
                                 "
                               >
-                                {
-                                  product.name
-                                }
-                              </p>
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
 
-                              <p
-                                className="
-                                  mt-1
-                                  text-xs
-                                  text-slate-400
-                                "
-                              >
-                                {
-                                  product.id
-                                }
-                              </p>
+                                <img
+                                  src={
+                                    product.image
+                                  }
+                                  alt={
+                                    product.name
+                                  }
+                                  className="
+                                    h-full
+                                    w-full
+                                    object-contain
+                                    p-1
+                                  "
+                                />
+                              </div>
+
+                              <div className="min-w-0">
+                                <p
+                                  className="
+                                    font-bold
+                                    text-brand-deep
+                                  "
+                                >
+                                  {
+                                    product.name
+                                  }
+                                </p>
+
+                                <p
+                                  className="
+                                    mt-1
+                                    max-w-[220px]
+                                    truncate
+                                    text-xs
+                                    text-slate-400
+                                  "
+                                >
+                                  {
+                                    product.id
+                                  }
+                                </p>
+                              </div>
                             </div>
-                          </div>
-                        </td>
+                          </td>
 
-                        <td className="px-5 py-5">
-                          <div>
-                            <p
-                              className="
-                                text-sm
-                                font-semibold
-                                text-slate-700
-                              "
-                            >
+                          {/* ===============================
+                              CATEGORY
+                              =============================== */}
+
+                          <td className="px-5 py-5">
+                            <p className="text-sm font-semibold text-slate-700">
                               {
                                 categoryName
                               }
                             </p>
 
-                            <p
-                              className="
-                                mt-1
-                                text-[10px]
-                                text-slate-400
-                              "
-                            >
+                            <p className="mt-1 text-[10px] text-slate-400">
                               {
                                 product.category
                               }
                             </p>
-                          </div>
-                        </td>
+                          </td>
 
-                        <td className="px-5 py-5">
-                          <span
-                            className="
-                              rounded-full
-                              bg-red-50
-                              px-3
-                              py-1.5
-                              text-[10px]
-                              font-bold
-                              uppercase
-                              text-brand
-                            "
-                          >
-                            {
-                              product.tag
-                            }
-                          </span>
-                        </td>
+                          {/* ===============================
+                              SUBCATEGORIES
+                              =============================== */}
 
-                        <td
-                          className="
-                            px-5
-                            py-5
-                            text-sm
-                            font-bold
-                            text-brand-deep
-                          "
-                        >
-                          {formatPrice(
-                            product.price
-                          )}
-                        </td>
-
-                        <td
-                          className="
-                            px-5
-                            py-5
-                            text-sm
-                            text-slate-600
-                          "
-                        >
-                          {
-                            product.sortOrder
-                          }
-                        </td>
-
-                        <td className="px-5 py-5">
-                          <span
-                            className={`
-                              inline-flex
-                              items-center
-                              gap-2
-                              rounded-full
-                              px-3
-                              py-1.5
-                              text-[10px]
-                              font-bold
-
-                              ${
-                                product.isVisible
-                                  ? "bg-emerald-50 text-emerald-700"
-                                  : "bg-slate-100 text-slate-500"
-                              }
-                            `}
-                          >
-                            {product.isVisible ? (
-                              <Eye className="h-3.5 w-3.5" />
+                          <td className="px-5 py-5">
+                            {assignedSubcategories.length >
+                            0 ? (
+                              <div className="flex max-w-[230px] flex-wrap gap-1.5">
+                                {assignedSubcategories.map(
+                                  (
+                                    subcategory
+                                  ) => (
+                                    <span
+                                      key={
+                                        subcategory
+                                      }
+                                      className="
+                                        rounded-full
+                                        border
+                                        border-brand/10
+                                        bg-brand/[0.04]
+                                        px-2.5
+                                        py-1
+                                        text-[10px]
+                                        font-semibold
+                                        text-brand-deep
+                                      "
+                                    >
+                                      {
+                                        subcategory
+                                      }
+                                    </span>
+                                  )
+                                )}
+                              </div>
                             ) : (
-                              <EyeOff className="h-3.5 w-3.5" />
+                              <span className="text-xs text-slate-300">
+                                —
+                              </span>
                             )}
+                          </td>
 
-                            {product.isVisible
-                              ? "Visible"
-                              : "Hidden"}
-                          </span>
-                        </td>
+                          {/* ===============================
+                              TAG
+                              =============================== */}
 
-                        <td className="px-5 py-5">
-                          <div
-                            className="
-                              flex
-                              flex-wrap
-                              gap-2
-                            "
-                          >
-                            <Link
-                              href={`/admin/products/${product.id}/edit`}
+                          <td className="px-5 py-5">
+                            <span
                               className="
                                 inline-flex
-                                items-center
-                                gap-2
-                                rounded-lg
-                                border
-                                border-brand/20
+                                rounded-full
+                                bg-red-50
                                 px-3
-                                py-2
-                                text-xs
+                                py-1.5
+                                text-[10px]
                                 font-bold
+                                uppercase
                                 text-brand
                               "
                             >
-                              <Pencil className="h-3.5 w-3.5" />
-
-                              Edit
-                            </Link>
-
-                            <form
-                              action={
-                                toggleProductVisibility
+                              {
+                                product.tag
                               }
+                            </span>
+                          </td>
+
+                          {/* ===============================
+                              PRICE
+                              =============================== */}
+
+                          <td className="px-5 py-5">
+                            <span className="text-sm font-extrabold text-brand-deep">
+                              {formatPrice(
+                                product.price
+                              )}
+                            </span>
+                          </td>
+
+                          {/* ===============================
+                              ORDER
+                              =============================== */}
+
+                          <td className="px-5 py-5 text-sm text-slate-600">
+                            {
+                              product.sortOrder
+                            }
+                          </td>
+
+                          {/* ===============================
+                              STATUS
+                              =============================== */}
+
+                          <td className="px-5 py-5">
+                            <span
+                              className={`
+                                inline-flex
+                                items-center
+                                gap-2
+                                rounded-full
+                                px-3
+                                py-1.5
+                                text-[10px]
+                                font-bold
+
+                                ${
+                                  product.isVisible
+                                    ? "bg-emerald-50 text-emerald-700"
+                                    : "bg-slate-100 text-slate-500"
+                                }
+                              `}
                             >
-                              <input
-                                type="hidden"
-                                name="productId"
-                                value={
-                                  product.id
-                                }
-                              />
+                              {product.isVisible ? (
+                                <Eye className="h-3.5 w-3.5" />
+                              ) : (
+                                <EyeOff className="h-3.5 w-3.5" />
+                              )}
 
-                              <input
-                                type="hidden"
-                                name="nextVisibility"
-                                value={
-                                  String(
-                                    !product.isVisible
-                                  )
-                                }
-                              />
+                              {product.isVisible
+                                ? "Visible"
+                                : "Hidden"}
+                            </span>
+                          </td>
 
-                              <button
-                                type="submit"
+                          {/* ===============================
+                              ACTIONS
+                              =============================== */}
+
+                          <td className="px-5 py-5">
+                            <div className="flex flex-wrap gap-2">
+                              <Link
+                                href={`/admin/products/${product.id}/edit`}
                                 className="
                                   inline-flex
                                   items-center
@@ -516,85 +676,91 @@ export default async function ProductsAdminPage() {
                                   rounded-lg
                                   border
                                   border-brand/20
+                                  bg-white
                                   px-3
                                   py-2
                                   text-xs
                                   font-bold
                                   text-brand
+                                  transition-all
+                                  hover:border-brand
+                                  hover:bg-brand
+                                  hover:text-white
                                 "
                               >
-                                {product.isVisible ? (
-                                  <EyeOff className="h-3.5 w-3.5" />
-                                ) : (
-                                  <Eye className="h-3.5 w-3.5" />
-                                )}
+                                <Pencil className="h-3.5 w-3.5" />
 
-                                {product.isVisible
-                                  ? "Hide"
-                                  : "Show"}
-                              </button>
-                            </form>
+                                Edit
+                              </Link>
 
-                            <form
-                              action={
-                                deleteProduct
-                              }
-                            >
-                              <input
-                                type="hidden"
-                                name="productId"
-                                value={
+                              <form
+                                action={
+                                  toggleProductVisibility
+                                }
+                              >
+                                <input
+                                  type="hidden"
+                                  name="productId"
+                                  value={
+                                    product.id
+                                  }
+                                />
+
+                                <input
+                                  type="hidden"
+                                  name="nextVisibility"
+                                  value={String(
+                                    !product.isVisible
+                                  )}
+                                />
+
+                                <button
+                                  type="submit"
+                                  className="
+                                    inline-flex
+                                    items-center
+                                    gap-2
+                                    rounded-lg
+                                    border
+                                    border-brand/20
+                                    bg-white
+                                    px-3
+                                    py-2
+                                    text-xs
+                                    font-bold
+                                    text-brand
+                                    transition-all
+                                    hover:border-brand
+                                    hover:bg-brand/[0.04]
+                                  "
+                                >
+                                  {product.isVisible ? (
+                                    <EyeOff className="h-3.5 w-3.5" />
+                                  ) : (
+                                    <Eye className="h-3.5 w-3.5" />
+                                  )}
+
+                                  {product.isVisible
+                                    ? "Hide"
+                                    : "Show"}
+                                </button>
+                              </form>
+
+                              <DeleteProductButton
+                                productId={
                                   product.id
                                 }
+                                productName={
+                                  product.name
+                                }
                               />
-
-                              <button
-                                type="submit"
-                                className="
-                                  inline-flex
-                                  items-center
-                                  gap-2
-                                  rounded-lg
-                                  border
-                                  border-red-200
-                                  px-3
-                                  py-2
-                                  text-xs
-                                  font-bold
-                                  text-red-600
-                                "
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-
-                                Delete
-                              </button>
-                            </form>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  }
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    }
+                  )
                 )}
-
-                {productRows.length ===
-                0 ? (
-                  <tr>
-                    <td
-                      colSpan={
-                        7
-                      }
-                      className="
-                        px-5
-                        py-14
-                        text-center
-                        text-sm
-                        text-slate-400
-                      "
-                    >
-                      No products found.
-                    </td>
-                  </tr>
-                ) : null}
               </tbody>
             </table>
           </div>
