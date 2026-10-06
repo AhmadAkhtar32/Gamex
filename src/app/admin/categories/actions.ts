@@ -33,10 +33,18 @@ import {
   requireAdmin,
 } from "@/lib/admin-auth";
 
+/* =========================================================
+   TYPES
+   ========================================================= */
+
 type CategoryTarget =
   | "product"
   | "build"
   | "both";
+
+/* =========================================================
+   BASIC HELPERS
+   ========================================================= */
 
 function getText(
   formData: FormData,
@@ -105,35 +113,9 @@ function parseId(
   return value;
 }
 
-function parseSortOrder(
-  formData: FormData
-) {
-  const raw =
-    getText(
-      formData,
-      "sortOrder"
-    ) || "0";
-
-  const value =
-    Number.parseInt(
-      raw,
-      10
-    );
-
-  if (
-    !Number.isInteger(
-      value
-    ) ||
-    value < 0 ||
-    value > 9999
-  ) {
-    redirectCategoryError(
-      "Display order must be between 0 and 9999."
-    );
-  }
-
-  return value;
-}
+/* =========================================================
+   REDIRECT HELPERS
+   ========================================================= */
 
 function redirectCategoryError(
   message: string,
@@ -154,6 +136,10 @@ function redirectCategorySuccess(
     `/admin/categories?${value}=1#${anchor}`
   );
 }
+
+/* =========================================================
+   REVALIDATION
+   ========================================================= */
 
 function refreshCategories() {
   revalidatePath(
@@ -192,6 +178,76 @@ function refreshCategories() {
     "/"
   );
 }
+
+/* =========================================================
+   ORDER HELPERS
+   ========================================================= */
+
+async function getNextCategoryOrder() {
+  const rows =
+    await db
+      .select({
+        sortOrder:
+          catalogCategories.sortOrder,
+      })
+      .from(
+        catalogCategories
+      );
+
+  if (
+    rows.length === 0
+  ) {
+    return 0;
+  }
+
+  return (
+    Math.max(
+      ...rows.map(
+        (row) =>
+          row.sortOrder
+      )
+    ) + 1
+  );
+}
+
+async function getNextSubcategoryOrder(
+  categoryId: number
+) {
+  const rows =
+    await db
+      .select({
+        sortOrder:
+          catalogSubcategories.sortOrder,
+      })
+      .from(
+        catalogSubcategories
+      )
+      .where(
+        eq(
+          catalogSubcategories.categoryId,
+          categoryId
+        )
+      );
+
+  if (
+    rows.length === 0
+  ) {
+    return 0;
+  }
+
+  return (
+    Math.max(
+      ...rows.map(
+        (row) =>
+          row.sortOrder
+      )
+    ) + 1
+  );
+}
+
+/* =========================================================
+   CATEGORY USAGE
+   ========================================================= */
 
 async function categoryUsage(
   slug: string
@@ -248,6 +304,10 @@ async function categoryUsage(
       ),
   };
 }
+
+/* =========================================================
+   CATEGORY HELPERS
+   ========================================================= */
 
 async function findCategoryById(
   id: number
@@ -342,6 +402,9 @@ async function validateCategoryTargetChange({
 
 /* =========================================================
    CREATE CATEGORY
+
+   New categories are automatically appended to the end.
+   No manual order number is required.
    ========================================================= */
 
 export async function createCategory(
@@ -365,11 +428,6 @@ export async function createCategory(
     getText(
       formData,
       "appliesTo"
-    );
-
-  const sortOrder =
-    parseSortOrder(
-      formData
     );
 
   const isVisible =
@@ -409,6 +467,9 @@ export async function createCategory(
     slug
   );
 
+  const sortOrder =
+    await getNextCategoryOrder();
+
   await db
     .insert(
       catalogCategories
@@ -419,6 +480,7 @@ export async function createCategory(
       appliesTo,
       sortOrder,
       isVisible,
+
       isSystem:
         false,
     });
@@ -432,6 +494,9 @@ export async function createCategory(
 
 /* =========================================================
    UPDATE CATEGORY
+
+   sortOrder is intentionally NOT changed here.
+   Drag-and-drop controls the order.
    ========================================================= */
 
 export async function updateCategory(
@@ -473,11 +538,6 @@ export async function updateCategory(
     getText(
       formData,
       "appliesTo"
-    );
-
-  const sortOrder =
-    parseSortOrder(
-      formData
     );
 
   const isVisible =
@@ -587,7 +647,6 @@ export async function updateCategory(
           name,
           slug,
           appliesTo,
-          sortOrder,
 
           isVisible:
             category.isSystem
@@ -611,6 +670,115 @@ export async function updateCategory(
   redirectCategorySuccess(
     "updated"
   );
+}
+
+/* =========================================================
+   DRAG REORDER MAIN CATEGORIES
+   ========================================================= */
+
+export async function reorderCategories(
+  categoryIds: number[]
+) {
+  await requireAdmin();
+
+  if (
+    !Array.isArray(
+      categoryIds
+    ) ||
+    categoryIds.length ===
+      0
+  ) {
+    return {
+      success:
+        true,
+    };
+  }
+
+  const uniqueIds =
+    Array.from(
+      new Set(
+        categoryIds
+      )
+    );
+
+  if (
+    uniqueIds.length !==
+      categoryIds.length ||
+    uniqueIds.some(
+      (id) =>
+        !Number.isInteger(
+          id
+        ) ||
+        id <= 0
+    )
+  ) {
+    throw new Error(
+      "Invalid category order."
+    );
+  }
+
+  const existing =
+    await db
+      .select({
+        id:
+          catalogCategories.id,
+      })
+      .from(
+        catalogCategories
+      )
+      .where(
+        inArray(
+          catalogCategories.id,
+          uniqueIds
+        )
+      );
+
+  if (
+    existing.length !==
+    uniqueIds.length
+  ) {
+    throw new Error(
+      "One or more categories could not be found."
+    );
+  }
+
+  await db.transaction(
+    async (tx) => {
+      for (
+        let index = 0;
+        index <
+        categoryIds.length;
+        index += 1
+      ) {
+        await tx
+          .update(
+            catalogCategories
+          )
+          .set({
+            sortOrder:
+              index,
+
+            updatedAt:
+              new Date(),
+          })
+          .where(
+            eq(
+              catalogCategories.id,
+              categoryIds[
+                index
+              ]
+            )
+          );
+      }
+    }
+  );
+
+  refreshCategories();
+
+  return {
+    success:
+      true,
+  };
 }
 
 /* =========================================================
@@ -814,6 +982,8 @@ async function ensureUniqueSubcategorySlug({
 
 /* =========================================================
    CREATE SUBCATEGORY
+
+   Automatically appended to the end of its parent.
    ========================================================= */
 
 export async function createSubcategory(
@@ -838,11 +1008,6 @@ export async function createSubcategory(
     getText(
       formData,
       "slug"
-    );
-
-  const sortOrder =
-    parseSortOrder(
-      formData
     );
 
   const isVisible =
@@ -899,6 +1064,11 @@ export async function createSubcategory(
     slug,
   });
 
+  const sortOrder =
+    await getNextSubcategoryOrder(
+      categoryId
+    );
+
   await db
     .insert(
       catalogSubcategories
@@ -921,6 +1091,9 @@ export async function createSubcategory(
 
 /* =========================================================
    UPDATE SUBCATEGORY
+
+   Existing order is preserved.
+   Moving to another parent places it at the end.
    ========================================================= */
 
 export async function updateSubcategory(
@@ -952,11 +1125,6 @@ export async function updateSubcategory(
     getText(
       formData,
       "slug"
-    );
-
-  const sortOrder =
-    parseSortOrder(
-      formData
     );
 
   const isVisible =
@@ -1013,6 +1181,13 @@ export async function updateSubcategory(
         name
     );
 
+  if (!slug) {
+    redirectCategoryError(
+      "Subcategory slug is invalid.",
+      "subcategories"
+    );
+  }
+
   await ensureUniqueSubcategorySlug({
     categoryId,
     slug,
@@ -1021,16 +1196,21 @@ export async function updateSubcategory(
       subcategoryId,
   });
 
+  const movingParent =
+    subcategory.categoryId !==
+    categoryId;
+
+  const sortOrder =
+    movingParent
+      ? await getNextSubcategoryOrder(
+          categoryId
+        )
+      : subcategory.sortOrder;
+
   await db.transaction(
     async (tx) => {
-      /*
-       * If a used subcategory is moved under another
-       * main category, update those products' main
-       * category as well.
-       */
       if (
-        subcategory.categoryId !==
-        categoryId
+        movingParent
       ) {
         const assignedProducts =
           await tx
@@ -1107,6 +1287,138 @@ export async function updateSubcategory(
     "subcategoryUpdated",
     "subcategories"
   );
+}
+
+/* =========================================================
+   DRAG REORDER SUBCATEGORIES
+
+   Reordering is restricted to one parent category.
+   ========================================================= */
+
+export async function reorderSubcategories(
+  categoryId: number,
+  subcategoryIds: number[]
+) {
+  await requireAdmin();
+
+  if (
+    !Number.isInteger(
+      categoryId
+    ) ||
+    categoryId <=
+      0
+  ) {
+    throw new Error(
+      "Invalid parent category."
+    );
+  }
+
+  if (
+    !Array.isArray(
+      subcategoryIds
+    ) ||
+    subcategoryIds.length ===
+      0
+  ) {
+    return {
+      success:
+        true,
+    };
+  }
+
+  const uniqueIds =
+    Array.from(
+      new Set(
+        subcategoryIds
+      )
+    );
+
+  if (
+    uniqueIds.length !==
+      subcategoryIds.length ||
+    uniqueIds.some(
+      (id) =>
+        !Number.isInteger(
+          id
+        ) ||
+        id <= 0
+    )
+  ) {
+    throw new Error(
+      "Invalid subcategory order."
+    );
+  }
+
+  const rows =
+    await db
+      .select({
+        id:
+          catalogSubcategories.id,
+
+        categoryId:
+          catalogSubcategories.categoryId,
+      })
+      .from(
+        catalogSubcategories
+      )
+      .where(
+        inArray(
+          catalogSubcategories.id,
+          uniqueIds
+        )
+      );
+
+  if (
+    rows.length !==
+    uniqueIds.length ||
+    rows.some(
+      (row) =>
+        row.categoryId !==
+        categoryId
+    )
+  ) {
+    throw new Error(
+      "One or more subcategories do not belong to this category."
+    );
+  }
+
+  await db.transaction(
+    async (tx) => {
+      for (
+        let index = 0;
+        index <
+        subcategoryIds.length;
+        index += 1
+      ) {
+        await tx
+          .update(
+            catalogSubcategories
+          )
+          .set({
+            sortOrder:
+              index,
+
+            updatedAt:
+              new Date(),
+          })
+          .where(
+            eq(
+              catalogSubcategories.id,
+              subcategoryIds[
+                index
+              ]
+            )
+          );
+      }
+    }
+  );
+
+  refreshCategories();
+
+  return {
+    success:
+      true,
+  };
 }
 
 /* =========================================================

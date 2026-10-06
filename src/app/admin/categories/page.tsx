@@ -11,12 +11,7 @@ import {
 import {
   ArrowLeft,
   Boxes,
-  Eye,
-  EyeOff,
-  Layers3,
   Plus,
-  Save,
-  Trash2,
 } from "lucide-react";
 
 import {
@@ -41,13 +36,13 @@ import {
 import {
   createCategory,
   createSubcategory,
-  deleteCategory,
-  deleteSubcategory,
-  toggleCategoryVisibility,
-  toggleSubcategoryVisibility,
-  updateCategory,
-  updateSubcategory,
 } from "./actions";
+
+import CategoryOrderManager from "./CategoryOrderManager";
+
+/* =========================================================
+   STYLE
+   ========================================================= */
 
 const inputClass = `
   w-full
@@ -66,6 +61,10 @@ const inputClass = `
   focus:shadow-[0_0_0_4px_rgba(230,0,0,0.08)]
 `;
 
+/* =========================================================
+   TYPES
+   ========================================================= */
+
 type CategoriesPageProps = {
   searchParams: Promise<{
     error?: string;
@@ -79,6 +78,10 @@ type CategoriesPageProps = {
     subcategoryVisibility?: string;
   }>;
 };
+
+/* =========================================================
+   PAGE
+   ========================================================= */
 
 export default async function CategoriesPage({
   searchParams,
@@ -155,6 +158,10 @@ export default async function CategoriesPage({
         ),
     ]);
 
+  /* =======================================================
+     COUNTS
+     ======================================================= */
+
   const productCounts =
     new Map<
       string,
@@ -174,8 +181,8 @@ export default async function CategoriesPage({
     >();
 
   for (
-    const row
-    of productRows
+    const row of
+    productRows
   ) {
     productCounts.set(
       row.category,
@@ -189,8 +196,8 @@ export default async function CategoriesPage({
   }
 
   for (
-    const row
-    of buildRows
+    const row of
+    buildRows
   ) {
     buildCounts.set(
       row.category,
@@ -204,8 +211,8 @@ export default async function CategoriesPage({
   }
 
   for (
-    const row
-    of assignmentRows
+    const row of
+    assignmentRows
   ) {
     subcategoryCounts.set(
       row.subcategoryId,
@@ -218,17 +225,45 @@ export default async function CategoriesPage({
     );
   }
 
-  const categoryById =
-    new Map(
-      categories.map(
-        (
-          category
-        ) => [
-          category.id,
-          category,
+  const productCountObject =
+    Object.fromEntries(
+      productCounts
+    );
+
+  const buildCountObject =
+    Object.fromEntries(
+      buildCounts
+    );
+
+  const subcategoryCountObject =
+    Object.fromEntries(
+      Array.from(
+        subcategoryCounts.entries()
+      ).map(
+        ([
+          id,
+          count,
+        ]) => [
+          String(
+            id
+          ),
+          count,
         ]
       )
     );
+
+  const productCategories =
+    categories.filter(
+      (category) =>
+        category.appliesTo ===
+          "product" ||
+        category.appliesTo ===
+          "both"
+    );
+
+  /* =======================================================
+     SUCCESS MESSAGE
+     ======================================================= */
 
   const successMessage =
     params.created ===
@@ -262,6 +297,8 @@ export default async function CategoriesPage({
       id="top"
       className="min-h-screen bg-[#f7f9fc]"
     >
+      {/* HEADER */}
+
       <header className="border-b border-brand/10 bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 md:px-8">
           <div>
@@ -284,6 +321,8 @@ export default async function CategoriesPage({
         </div>
       </header>
 
+      {/* CONTENT */}
+
       <div className="mx-auto max-w-7xl px-5 py-10 md:px-8 md:py-14">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
@@ -297,8 +336,9 @@ export default async function CategoriesPage({
 
             <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-500">
               Main categories are the single source of truth for
-              Products and Build Your Rig. Subcategories give you
-              a second level such as Accessories → Cooling Fans.
+              Products and Build Your Rig. Drag categories to set
+              their order. Subcategories can also be reordered
+              inside their parent category.
             </p>
           </div>
 
@@ -311,19 +351,27 @@ export default async function CategoriesPage({
           </Link>
         </div>
 
+        {/* MESSAGES */}
+
         {params.error ? (
           <div className="mt-6 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-semibold text-red-700">
-            {params.error}
+            {
+              params.error
+            }
           </div>
         ) : null}
 
         {successMessage ? (
           <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-semibold text-emerald-700">
-            {successMessage}
+            {
+              successMessage
+            }
           </div>
         ) : null}
 
-        {/* ADD MAIN CATEGORY */}
+        {/* ===================================================
+            ADD MAIN CATEGORY
+            =================================================== */}
 
         <section className="mt-8 rounded-2xl border border-brand/10 bg-white p-6 md:p-7">
           <div className="flex items-center gap-3">
@@ -337,8 +385,9 @@ export default async function CategoriesPage({
               </h2>
 
               <p className="mt-1 text-xs text-slate-500">
-                New product categories automatically become
-                available in Build Your Rig.
+                New categories are added to the bottom
+                automatically. Drag them afterwards to change
+                their position.
               </p>
             </div>
           </div>
@@ -347,7 +396,7 @@ export default async function CategoriesPage({
             action={
               createCategory
             }
-            className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-5"
+            className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_220px]"
           >
             <Field label="Name">
               <input
@@ -392,18 +441,6 @@ export default async function CategoriesPage({
               </select>
             </Field>
 
-            <Field label="Order">
-              <input
-                name="sortOrder"
-                type="number"
-                min="0"
-                defaultValue="0"
-                className={
-                  inputClass
-                }
-              />
-            </Field>
-
             <div className="flex items-end gap-3">
               <label className="flex h-[46px] flex-1 items-center gap-2 rounded-xl border border-brand/10 px-3 text-xs font-bold text-slate-600">
                 <input
@@ -412,6 +449,7 @@ export default async function CategoriesPage({
                   defaultChecked
                   className="h-4 w-4 accent-[#e60000]"
                 />
+
                 Visible
               </label>
 
@@ -425,249 +463,31 @@ export default async function CategoriesPage({
           </form>
         </section>
 
-        {/* CATEGORY LIST */}
+        {/* ===================================================
+            DRAG CATEGORY MANAGER
+            =================================================== */}
 
-        <section className="mt-8">
-          <div className="flex items-center gap-3">
-            <Layers3 className="h-5 w-5 text-brand" />
+        <CategoryOrderManager
+          categories={
+            categories
+          }
+          subcategories={
+            subcategories
+          }
+          productCounts={
+            productCountObject
+          }
+          buildCounts={
+            buildCountObject
+          }
+          subcategoryCounts={
+            subcategoryCountObject
+          }
+        />
 
-            <h2 className="font-display text-xl font-extrabold uppercase text-brand-deep">
-              Main Categories
-            </h2>
-          </div>
-
-          <div className="mt-4 space-y-4">
-            {categories.map(
-              (
-                category
-              ) => (
-                <div
-                  key={
-                    category.id
-                  }
-                  className="rounded-2xl border border-brand/10 bg-white p-5"
-                >
-                  <form
-                    action={
-                      updateCategory
-                    }
-                    className="grid gap-4 xl:grid-cols-[1.1fr_1.1fr_1fr_120px_170px]"
-                  >
-                    <input
-                      type="hidden"
-                      name="categoryId"
-                      value={
-                        category.id
-                      }
-                    />
-
-                    <Field label="Name">
-                      <input
-                        name="name"
-                        required
-                        defaultValue={
-                          category.name
-                        }
-                        className={
-                          inputClass
-                        }
-                      />
-                    </Field>
-
-                    <Field label="Slug">
-                      <input
-                        name="slug"
-                        required
-                        defaultValue={
-                          category.slug
-                        }
-                        disabled={
-                          category.isSystem
-                        }
-                        className={`${inputClass} disabled:bg-slate-100`}
-                      />
-
-                      {category.isSystem ? (
-                        <input
-                          type="hidden"
-                          name="slug"
-                          value={
-                            category.slug
-                          }
-                        />
-                      ) : null}
-                    </Field>
-
-                    <Field label="Available For">
-                      <select
-                        name="appliesTo"
-                        defaultValue={
-                          category.appliesTo
-                        }
-                        className={
-                          inputClass
-                        }
-                      >
-                        <option value="product">
-                          Products
-                        </option>
-
-                        <option value="build">
-                          Custom Builds
-                        </option>
-
-                        <option value="both">
-                          Products + Builds
-                        </option>
-                      </select>
-                    </Field>
-
-                    <Field label="Order">
-                      <input
-                        name="sortOrder"
-                        type="number"
-                        min="0"
-                        defaultValue={
-                          category.sortOrder
-                        }
-                        className={
-                          inputClass
-                        }
-                      />
-                    </Field>
-
-                    <div className="flex items-end gap-2">
-                      <label className="flex h-[46px] flex-1 items-center gap-2 rounded-xl border border-brand/10 px-3 text-xs font-bold text-slate-600">
-                        <input
-                          name="isVisible"
-                          type="checkbox"
-                          defaultChecked={
-                            category.isVisible
-                          }
-                          disabled={
-                            category.isSystem
-                          }
-                          className="h-4 w-4 accent-[#e60000]"
-                        />
-
-                        Visible
-                      </label>
-
-                      <button
-                        type="submit"
-                        className="grid h-[46px] w-[46px] place-items-center rounded-xl bg-brand text-white"
-                      >
-                        <Save className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </form>
-
-                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-brand/10 pt-4">
-                    <div className="flex flex-wrap gap-2 text-[11px] font-semibold text-slate-500">
-                      <span className="rounded-full bg-slate-100 px-3 py-1.5">
-                        Products:{" "}
-                        {
-                          productCounts.get(
-                            category.slug
-                          ) ??
-                          0
-                        }
-                      </span>
-
-                      <span className="rounded-full bg-slate-100 px-3 py-1.5">
-                        Builds:{" "}
-                        {
-                          buildCounts.get(
-                            category.slug
-                          ) ??
-                          0
-                        }
-                      </span>
-
-                      <span className="rounded-full bg-slate-100 px-3 py-1.5">
-                        Subcategories:{" "}
-                        {
-                          subcategories.filter(
-                            (
-                              item
-                            ) =>
-                              item.categoryId ===
-                              category.id
-                          ).length
-                        }
-                      </span>
-
-                      <span className="rounded-full bg-brand/[0.06] px-3 py-1.5 text-brand">
-                        {
-                          category.slug
-                        }
-                      </span>
-                    </div>
-
-                    <div className="flex gap-2">
-                      {!category.isSystem ? (
-                        <form
-                          action={
-                            toggleCategoryVisibility
-                          }
-                        >
-                          <input
-                            type="hidden"
-                            name="categoryId"
-                            value={
-                              category.id
-                            }
-                          />
-
-                          <button
-                            type="submit"
-                            className="inline-flex items-center gap-2 rounded-lg border border-brand/15 px-3 py-2 text-xs font-bold text-brand"
-                          >
-                            {category.isVisible ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
-
-                            {category.isVisible
-                              ? "Hide"
-                              : "Show"}
-                          </button>
-                        </form>
-                      ) : null}
-
-                      {!category.isSystem ? (
-                        <form
-                          action={
-                            deleteCategory
-                          }
-                        >
-                          <input
-                            type="hidden"
-                            name="categoryId"
-                            value={
-                              category.id
-                            }
-                          />
-
-                          <button
-                            type="submit"
-                            className="inline-flex items-center gap-2 rounded-lg border border-red-200 px-3 py-2 text-xs font-bold text-red-600"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            Delete
-                          </button>
-                        </form>
-                      ) : null}
-                    </div>
-                  </div>
-                </div>
-              )
-            )}
-          </div>
-        </section>
-
-        {/* SUBCATEGORIES */}
+        {/* ===================================================
+            ADD SUBCATEGORY
+            =================================================== */}
 
         <section
           id="subcategories"
@@ -679,13 +499,13 @@ export default async function CategoriesPage({
             </p>
 
             <h2 className="mt-2 font-display text-2xl font-extrabold uppercase text-brand-deep">
-              Subcategories
+              Add Subcategory
             </h2>
 
             <p className="mt-2 max-w-3xl text-sm text-slate-500">
-              Example: Accessories → Cooling Fans, Controllers,
-              RGB Cables. A product keeps its main category and
-              can optionally have one subcategory.
+              Example: Accessories → Cooling Fans, Controllers or
+              RGB Cables. New subcategories are automatically
+              placed at the end of their parent category.
             </p>
           </div>
 
@@ -694,7 +514,7 @@ export default async function CategoriesPage({
               action={
                 createSubcategory
               }
-              className="grid gap-4 md:grid-cols-2 xl:grid-cols-5"
+              className="grid gap-4 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_220px]"
             >
               <Field label="Parent Category">
                 <select
@@ -712,34 +532,24 @@ export default async function CategoriesPage({
                     Select category
                   </option>
 
-                  {categories
-                    .filter(
-                      (
-                        category
-                      ) =>
-                        category.appliesTo ===
-                          "product" ||
-                        category.appliesTo ===
-                          "both"
+                  {productCategories.map(
+                    (
+                      category
+                    ) => (
+                      <option
+                        key={
+                          category.id
+                        }
+                        value={
+                          category.id
+                        }
+                      >
+                        {
+                          category.name
+                        }
+                      </option>
                     )
-                    .map(
-                      (
-                        category
-                      ) => (
-                        <option
-                          key={
-                            category.id
-                          }
-                          value={
-                            category.id
-                          }
-                        >
-                          {
-                            category.name
-                          }
-                        </option>
-                      )
-                    )}
+                  )}
                 </select>
               </Field>
 
@@ -758,18 +568,6 @@ export default async function CategoriesPage({
                 <input
                   name="slug"
                   placeholder="cooling-fans"
-                  className={
-                    inputClass
-                  }
-                />
-              </Field>
-
-              <Field label="Order">
-                <input
-                  name="sortOrder"
-                  type="number"
-                  min="0"
-                  defaultValue="0"
                   className={
                     inputClass
                   }
@@ -797,239 +595,15 @@ export default async function CategoriesPage({
               </div>
             </form>
           </div>
-
-          <div className="mt-5 space-y-3">
-            {subcategories.length >
-            0 ? (
-              subcategories.map(
-                (
-                  subcategory
-                ) => {
-                  const parent =
-                    categoryById.get(
-                      subcategory.categoryId
-                    );
-
-                  return (
-                    <div
-                      key={
-                        subcategory.id
-                      }
-                      className="rounded-2xl border border-brand/10 bg-white p-5"
-                    >
-                      <form
-                        action={
-                          updateSubcategory
-                        }
-                        className="grid gap-4 xl:grid-cols-[1.1fr_1.1fr_1.1fr_120px_170px]"
-                      >
-                        <input
-                          type="hidden"
-                          name="subcategoryId"
-                          value={
-                            subcategory.id
-                          }
-                        />
-
-                        <Field label="Parent Category">
-                          <select
-                            name="categoryId"
-                            defaultValue={
-                              subcategory.categoryId
-                            }
-                            className={
-                              inputClass
-                            }
-                          >
-                            {categories
-                              .filter(
-                                (
-                                  category
-                                ) =>
-                                  category.appliesTo ===
-                                    "product" ||
-                                  category.appliesTo ===
-                                    "both"
-                              )
-                              .map(
-                                (
-                                  category
-                                ) => (
-                                  <option
-                                    key={
-                                      category.id
-                                    }
-                                    value={
-                                      category.id
-                                    }
-                                  >
-                                    {
-                                      category.name
-                                    }
-                                  </option>
-                                )
-                              )}
-                          </select>
-                        </Field>
-
-                        <Field label="Name">
-                          <input
-                            name="name"
-                            required
-                            defaultValue={
-                              subcategory.name
-                            }
-                            className={
-                              inputClass
-                            }
-                          />
-                        </Field>
-
-                        <Field label="Slug">
-                          <input
-                            name="slug"
-                            required
-                            defaultValue={
-                              subcategory.slug
-                            }
-                            className={
-                              inputClass
-                            }
-                          />
-                        </Field>
-
-                        <Field label="Order">
-                          <input
-                            name="sortOrder"
-                            type="number"
-                            min="0"
-                            defaultValue={
-                              subcategory.sortOrder
-                            }
-                            className={
-                              inputClass
-                            }
-                          />
-                        </Field>
-
-                        <div className="flex items-end gap-2">
-                          <label className="flex h-[46px] flex-1 items-center gap-2 rounded-xl border border-brand/10 px-3 text-xs font-bold text-slate-600">
-                            <input
-                              name="isVisible"
-                              type="checkbox"
-                              defaultChecked={
-                                subcategory.isVisible
-                              }
-                              className="h-4 w-4 accent-[#e60000]"
-                            />
-
-                            Visible
-                          </label>
-
-                          <button
-                            type="submit"
-                            className="grid h-[46px] w-[46px] place-items-center rounded-xl bg-brand text-white"
-                          >
-                            <Save className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </form>
-
-                      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-brand/10 pt-4">
-                        <div className="flex flex-wrap gap-2 text-[11px] font-semibold text-slate-500">
-                          <span className="rounded-full bg-slate-100 px-3 py-1.5">
-                            Parent:{" "}
-                            {
-                              parent?.name ??
-                              "Unknown"
-                            }
-                          </span>
-
-                          <span className="rounded-full bg-slate-100 px-3 py-1.5">
-                            Products:{" "}
-                            {
-                              subcategoryCounts.get(
-                                subcategory.id
-                              ) ??
-                              0
-                            }
-                          </span>
-
-                          <span className="rounded-full bg-brand/[0.06] px-3 py-1.5 text-brand">
-                            {
-                              subcategory.slug
-                            }
-                          </span>
-                        </div>
-
-                        <div className="flex gap-2">
-                          <form
-                            action={
-                              toggleSubcategoryVisibility
-                            }
-                          >
-                            <input
-                              type="hidden"
-                              name="subcategoryId"
-                              value={
-                                subcategory.id
-                              }
-                            />
-
-                            <button
-                              type="submit"
-                              className="inline-flex items-center gap-2 rounded-lg border border-brand/15 px-3 py-2 text-xs font-bold text-brand"
-                            >
-                              {subcategory.isVisible ? (
-                                <EyeOff className="h-4 w-4" />
-                              ) : (
-                                <Eye className="h-4 w-4" />
-                              )}
-
-                              {subcategory.isVisible
-                                ? "Hide"
-                                : "Show"}
-                            </button>
-                          </form>
-
-                          <form
-                            action={
-                              deleteSubcategory
-                            }
-                          >
-                            <input
-                              type="hidden"
-                              name="subcategoryId"
-                              value={
-                                subcategory.id
-                              }
-                            />
-
-                            <button
-                              type="submit"
-                              className="inline-flex items-center gap-2 rounded-lg border border-red-200 px-3 py-2 text-xs font-bold text-red-600"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                              Delete
-                            </button>
-                          </form>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                }
-              )
-            ) : (
-              <div className="rounded-2xl border border-dashed border-brand/20 bg-white px-6 py-12 text-center text-sm text-slate-500">
-                No subcategories yet.
-              </div>
-            )}
-          </div>
         </section>
       </div>
     </main>
   );
 }
+
+/* =========================================================
+   FIELD
+   ========================================================= */
 
 function Field({
   label,

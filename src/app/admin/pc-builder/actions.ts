@@ -3,6 +3,7 @@
 import {
   and,
   eq,
+  inArray,
   or,
 } from "drizzle-orm";
 
@@ -31,8 +32,16 @@ import {
   requireAdmin,
 } from "@/lib/admin-auth";
 
+/* =========================================================
+   CONSTANTS
+   ========================================================= */
+
 const SETTINGS_ID =
   "main";
+
+/* =========================================================
+   HELPERS
+   ========================================================= */
 
 function getText(
   formData: FormData,
@@ -43,30 +52,6 @@ function getText(
       name
     ) ?? ""
   ).trim();
-}
-
-function parseInteger(
-  value: string,
-  label: string
-) {
-  const parsed =
-    Number.parseInt(
-      value,
-      10
-    );
-
-  if (
-    !Number.isInteger(
-      parsed
-    ) ||
-    parsed < 0
-  ) {
-    redirectBuilderError(
-      `${label} must be 0 or greater.`
-    );
-  }
-
-  return parsed;
 }
 
 function parseCategoryId(
@@ -302,6 +287,9 @@ export async function saveBuilderSettings(
 
 /* =========================================================
    CATEGORY BUILDER SETTINGS
+
+   sortOrder is NOT submitted manually anymore.
+   Existing order is preserved.
    ========================================================= */
 
 export async function saveBuilderCategorySettings(
@@ -325,6 +313,9 @@ export async function saveBuilderCategorySettings(
 
         slug:
           catalogCategories.slug,
+
+        sortOrder:
+          catalogCategories.sortOrder,
       })
       .from(
         catalogCategories
@@ -363,6 +354,28 @@ export async function saveBuilderCategorySettings(
     );
   }
 
+  const existingRows =
+    await db
+      .select({
+        sortOrder:
+          pcBuilderCategorySettings.sortOrder,
+      })
+      .from(
+        pcBuilderCategorySettings
+      )
+      .where(
+        eq(
+          pcBuilderCategorySettings.catalogCategoryId,
+          catalogCategoryId
+        )
+      )
+      .limit(
+        1
+      );
+
+  const existing =
+    existingRows[0];
+
   const description =
     getText(
       formData,
@@ -373,16 +386,6 @@ export async function saveBuilderCategorySettings(
     getText(
       formData,
       "helpText"
-    );
-
-  const sortOrder =
-    parseInteger(
-      getText(
-        formData,
-        "sortOrder"
-      ) || "0",
-
-      "Display order"
     );
 
   const isRequired =
@@ -415,6 +418,11 @@ export async function saveBuilderCategorySettings(
     );
   }
 
+  const sortOrder =
+    existing
+      ?.sortOrder ??
+    category.sortOrder;
+
   await db
     .insert(
       pcBuilderCategorySettings
@@ -436,7 +444,6 @@ export async function saveBuilderCategorySettings(
         helpText,
         isRequired,
         isVisible,
-        sortOrder,
 
         updatedAt:
           new Date(),
@@ -449,4 +456,141 @@ export async function saveBuilderCategorySettings(
     "category",
     "builder-categories"
   );
+}
+
+/* =========================================================
+   DRAG REORDER BUILDER CATEGORIES
+   ========================================================= */
+
+export async function reorderBuilderCategories(
+  categoryIds: number[]
+) {
+  await requireAdmin();
+
+  if (
+    !Array.isArray(
+      categoryIds
+    ) ||
+    categoryIds.length ===
+      0
+  ) {
+    return {
+      success:
+        true,
+    };
+  }
+
+  const uniqueIds =
+    Array.from(
+      new Set(
+        categoryIds
+      )
+    );
+
+  if (
+    uniqueIds.length !==
+      categoryIds.length ||
+    uniqueIds.some(
+      (id) =>
+        !Number.isInteger(
+          id
+        ) ||
+        id <= 0
+    )
+  ) {
+    throw new Error(
+      "Invalid Builder category order."
+    );
+  }
+
+  const validCategories =
+    await db
+      .select({
+        id:
+          catalogCategories.id,
+      })
+      .from(
+        catalogCategories
+      )
+      .where(
+        and(
+          inArray(
+            catalogCategories.id,
+            uniqueIds
+          ),
+
+          eq(
+            catalogCategories.isVisible,
+            true
+          ),
+
+          or(
+            eq(
+              catalogCategories.appliesTo,
+              "product"
+            ),
+
+            eq(
+              catalogCategories.appliesTo,
+              "both"
+            )
+          )
+        )
+      );
+
+  if (
+    validCategories.length !==
+    uniqueIds.length
+  ) {
+    throw new Error(
+      "One or more Builder categories are invalid."
+    );
+  }
+
+  await db.transaction(
+    async (tx) => {
+      for (
+        let index = 0;
+        index <
+        categoryIds.length;
+        index += 1
+      ) {
+        const categoryId =
+          categoryIds[
+            index
+          ];
+
+        await tx
+          .insert(
+            pcBuilderCategorySettings
+          )
+          .values({
+            catalogCategoryId:
+              categoryId,
+
+            sortOrder:
+              index,
+          })
+          .onConflictDoUpdate({
+            target:
+              pcBuilderCategorySettings.catalogCategoryId,
+
+            set: {
+              sortOrder:
+                index,
+
+              updatedAt:
+                new Date(),
+            },
+          });
+      }
+    }
+  );
+
+  refreshBuilder();
+
+  return {
+    success:
+      true,
+  };
 }
