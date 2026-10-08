@@ -753,14 +753,14 @@ export default function Products({
 
                           <div
                             className="
-                              relative
-                              mt-3
-                              overflow-hidden
-                              rounded-xl
-                              bg-brand
-                              px-4
-                              py-2.5
-                              shadow-[0_12px_30px_-18px_rgba(230,0,0,0.7)]
+                               relative
+  mt-3
+  overflow-hidden
+  rounded-lg
+  bg-brand
+  px-3
+  py-2
+                              // shadow-[0_12px_30px_-18px_rgba(230,0,0,0.7)]
                             "
                           >
                             <div
@@ -809,7 +809,7 @@ export default function Products({
                                 relative
                                 mt-0.5
                                 font-display
-                                text-xl
+                                text-lg
                                 font-extrabold
                                 leading-tight
                                 text-white
