@@ -625,7 +625,10 @@ export const products = pgTable(
       length: 1000,
 
     }).notNull(),
-
+images: text("images")
+  .array()
+  .default([])
+  .notNull(),
 
 
     /*
@@ -870,11 +873,14 @@ export const customBuilds = pgTable(
 
      */
 
-    image: varchar("image", {
+image: varchar("image", {
+  length: 1000,
+}).notNull(),
 
-      length: 1000,
-
-    }).notNull(),
+images: text("images")
+  .array()
+  .default([])
+  .notNull(),
 
 
 

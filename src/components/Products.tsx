@@ -71,14 +71,14 @@ function getProductLimit() {
     typeof window ===
     "undefined"
   ) {
-    return 8;
+    return 10;
   }
 
   if (
     window.innerWidth >=
     1280
   ) {
-    return 8;
+    return 10;
   }
 
   if (
@@ -481,14 +481,13 @@ export default function Products({
           <motion.div
             layout
             className="
-              mt-9
-              grid
-              auto-rows-fr
-              gap-5
-              sm:grid-cols-2
-              lg:grid-cols-3
-              xl:grid-cols-4
-            "
+  grid
+  auto-rows-fr
+  gap-4
+  sm:grid-cols-2
+  lg:grid-cols-3
+  xl:grid-cols-5
+"
           >
             <AnimatePresence mode="popLayout">
               {visibleProducts.map(
