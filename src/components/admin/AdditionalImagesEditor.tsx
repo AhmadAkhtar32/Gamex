@@ -26,13 +26,12 @@ type ImageEntry =
       preview: string;
     };
 
-type Props = {
-  existingImages?: string[];
-};
-
+/** Additional images only; the existing cover-image field remains the primary photo. */
 export function AdditionalImagesEditor({
   existingImages = [],
-}: Props) {
+}: {
+  existingImages?: string[];
+}) {
   const [
     entries,
     setEntries,
@@ -45,12 +44,9 @@ export function AdditionalImagesEditor({
           url,
           index
         ) => ({
-          id:
-            `existing-${index}`,
-
+          id: `existing-${index}`,
           type:
-            "url" as const,
-
+            "url",
           url,
         })
       )
@@ -74,55 +70,50 @@ export function AdditionalImagesEditor({
     );
 
   const previewUrls =
-    useRef<
-      string[]
-    >([]);
+    useRef<string[]>(
+      []
+    );
 
-  useEffect(
-    () => {
+  useEffect(() => {
+    if (
+      !inputRef.current
+    ) {
+      return;
+    }
+
+    const dt =
+      new DataTransfer();
+
+    for (
+      const entry
+      of entries
+    ) {
       if (
-        !inputRef.current
+        entry.type ===
+        "file"
       ) {
-        return;
+        dt.items.add(
+          entry.file
+        );
       }
+    }
 
-      const dataTransfer =
-        new DataTransfer();
-
-      for (
-        const entry of
-        entries
-      ) {
-        if (
-          entry.type ===
-          "file"
-        ) {
-          dataTransfer.items.add(
-            entry.file
-          );
-        }
-      }
-
-      inputRef.current.files =
-        dataTransfer.files;
-    },
-    [
-      entries,
-    ]
-  );
+    inputRef.current.files =
+      dt.files;
+  }, [
+    entries,
+  ]);
 
   useEffect(
-    () => {
-      return () => {
-        previewUrls.current.forEach(
-          (
+    () => () => {
+      previewUrls.current.forEach(
+        (
+          preview
+        ) =>
+          URL.revokeObjectURL(
             preview
-          ) =>
-            URL.revokeObjectURL(
-              preview
-            )
-        );
-      };
+          )
+      );
     },
     []
   );
@@ -131,43 +122,35 @@ export function AdditionalImagesEditor({
     entries.map(
       (
         entry
-      ) => {
-        if (
-          entry.type ===
-          "url"
-        ) {
-          return {
-            type:
-              "url",
-            url:
-              entry.url,
-          };
-        }
-
-        return {
-          type:
-            "file",
-
-          index:
-            entries
-              .filter(
-                (
-                  current
-                ) =>
-                  current.type ===
-                  "file"
-              )
-              .indexOf(
-                entry
-              ),
-        };
-      }
+      ) =>
+        entry.type ===
+        "url"
+          ? {
+              type:
+                "url",
+              url:
+                entry.url,
+            }
+          : {
+              type:
+                "file",
+              index:
+                entries
+                  .filter(
+                    (
+                      current
+                    ) =>
+                      current.type ===
+                      "file"
+                  )
+                  .indexOf(
+                    entry
+                  ),
+            }
     );
 
   function addFiles(
-    files:
-      FileList |
-      null
+    files: FileList | null
   ) {
     if (
       !files?.length
@@ -180,7 +163,7 @@ export function AdditionalImagesEditor({
         files
       );
 
-    const invalid =
+    if (
       selected.some(
         (
           file
@@ -196,10 +179,7 @@ export function AdditionalImagesEditor({
             5 *
               1024 *
               1024
-      );
-
-    if (
-      invalid
+      )
     ) {
       setError(
         "Only JPG, PNG or WebP files up to 5 MB each are allowed."
@@ -220,8 +200,7 @@ export function AdditionalImagesEditor({
       return;
     }
 
-    const additions:
-      ImageEntry[] =
+    const additions: ImageEntry[] =
       selected.map(
         (
           file
@@ -238,12 +217,9 @@ export function AdditionalImagesEditor({
           return {
             id:
               crypto.randomUUID(),
-
             type:
               "file",
-
             file,
-
             preview,
           };
         }
@@ -287,7 +263,7 @@ export function AdditionalImagesEditor({
       }
     } catch {
       setError(
-        "Enter a valid http/https image URL."
+        "Enter a valid http/https image URL (maximum 1000 characters)."
       );
 
       return;
@@ -312,10 +288,8 @@ export function AdditionalImagesEditor({
         {
           id:
             crypto.randomUUID(),
-
           type:
             "url",
-
           url:
             candidate,
         },
@@ -339,33 +313,23 @@ export function AdditionalImagesEditor({
       (
         current
       ) => {
-        const copy = [
-          ...current,
-        ];
-
-        const newIndex =
-          index +
-          step;
-
-        if (
-          newIndex <
-            0 ||
-          newIndex >=
-            copy.length
-        ) {
-          return copy;
-        }
+        const copy =
+          [
+            ...current,
+          ];
 
         [
           copy[
             index
           ],
           copy[
-            newIndex
+            index +
+              step
           ],
         ] = [
           copy[
-            newIndex
+            index +
+              step
           ],
           copy[
             index
@@ -378,80 +342,31 @@ export function AdditionalImagesEditor({
   }
 
   return (
-    <section
-      className="
-        mt-6
-        rounded-2xl
-        border
-        border-brand/15
-        bg-white
-        p-4
-        md:p-5
-      "
-    >
-      <h3
-        className="
-          font-display
-          text-sm
-          font-bold
-          uppercase
-          text-brand-deep
-        "
-      >
-        Additional Gallery Photos
+    <section className="mt-6 rounded-2xl border border-brand/15 bg-white p-4 md:p-5">
+      <h3 className="font-display text-sm font-bold uppercase text-brand-deep">
+        Additional gallery photos
       </h3>
 
-      <p
-        className="
-          mt-1
-          text-xs
-          text-slate-500
-        "
-      >
-        Your normal
-        product/build image
-        remains the cover
-        image. Add up to 9
-        extra images here.
+      <p className="mt-1 text-xs text-slate-500">
+        The cover image above shows first. Add up to 9 more
+        photos, remove them or change their display order.
       </p>
 
       <input
         type="hidden"
         name="galleryManifest"
-        value={JSON.stringify(
-          manifest
-        )}
+        value={
+          JSON.stringify(
+            manifest
+          )
+        }
         readOnly
       />
 
-      <label
-        className="
-          mt-4
-          block
-          cursor-pointer
-          rounded-xl
-          border
-          border-dashed
-          border-brand/30
-          bg-[#fff8f8]
-          px-4
-          py-4
-          text-center
-          text-sm
-          font-semibold
-          text-brand
-        "
-      >
-        <ImagePlus
-          className="
-            mr-2
-            inline
-            h-5
-            w-5
-          "
-        />
+      <label className="mt-4 block cursor-pointer rounded-xl border border-dashed border-brand/30 bg-[#fff8f8] px-4 py-4 text-center text-sm font-semibold text-brand">
+        <ImagePlus className="mr-2 inline h-5 w-5" />
 
-        Select Multiple Images
+        Select multiple images
 
         <input
           ref={
@@ -474,13 +389,7 @@ export function AdditionalImagesEditor({
         />
       </label>
 
-      <div
-        className="
-          mt-3
-          flex
-          gap-2
-        "
-      >
+      <div className="mt-3 flex gap-2">
         <input
           type="url"
           value={
@@ -499,16 +408,7 @@ export function AdditionalImagesEditor({
             1000
           }
           placeholder="Or paste another image URL"
-          className="
-            min-w-0
-            flex-1
-            rounded-lg
-            border
-            border-brand/15
-            px-3
-            py-2
-            text-sm
-          "
+          className="min-w-0 flex-1 rounded-lg border border-brand/15 px-3 py-2 text-sm"
         />
 
         <button
@@ -516,15 +416,7 @@ export function AdditionalImagesEditor({
           onClick={
             addUrl
           }
-          className="
-            rounded-lg
-            bg-brand
-            px-4
-            py-2
-            text-xs
-            font-bold
-            text-white
-          "
+          className="rounded-lg bg-brand px-4 py-2 text-xs font-bold text-white"
         >
           Add URL
         </button>
@@ -533,11 +425,7 @@ export function AdditionalImagesEditor({
       {error ? (
         <p
           role="alert"
-          className="
-            mt-2
-            text-sm
-            text-red-600
-          "
+          className="mt-2 text-sm text-red-600"
         >
           {
             error
@@ -547,16 +435,7 @@ export function AdditionalImagesEditor({
 
       {entries.length >
       0 ? (
-        <div
-          className="
-            mt-4
-            grid
-            grid-cols-2
-            gap-3
-            sm:grid-cols-3
-            md:grid-cols-4
-          "
-        >
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
           {entries.map(
             (
               entry,
@@ -566,15 +445,9 @@ export function AdditionalImagesEditor({
                 key={
                   entry.id
                 }
-                className="
-                  rounded-xl
-                  border
-                  border-brand/10
-                  p-2
-                "
+                className="rounded-xl border border-brand/10 p-2"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-
                 <img
                   src={
                     entry.type ===
@@ -586,23 +459,10 @@ export function AdditionalImagesEditor({
                     index +
                     2
                   }`}
-                  className="
-                    h-24
-                    w-full
-                    rounded-lg
-                    bg-slate-50
-                    object-contain
-                  "
+                  className="h-24 w-full rounded-lg bg-slate-50 object-contain"
                 />
 
-                <p
-                  className="
-                    mt-1
-                    truncate
-                    text-[11px]
-                    text-slate-500
-                  "
-                >
+                <p className="mt-1 truncate text-[11px] text-slate-500">
                   Photo{" "}
                   {
                     index +
@@ -610,16 +470,10 @@ export function AdditionalImagesEditor({
                   }
                 </p>
 
-                <div
-                  className="
-                    mt-2
-                    flex
-                    justify-between
-                    gap-1
-                  "
-                >
+                <div className="mt-2 flex justify-between gap-1">
                   <button
                     type="button"
+                    aria-label="Move photo earlier"
                     disabled={
                       index ===
                       0
@@ -630,12 +484,7 @@ export function AdditionalImagesEditor({
                         -1
                       )
                     }
-                    className="
-                      rounded-md
-                      border
-                      p-1
-                      disabled:opacity-30
-                    "
+                    className="rounded-md border p-1 disabled:opacity-30"
                   >
                     <ArrowUp
                       size={
@@ -646,6 +495,7 @@ export function AdditionalImagesEditor({
 
                   <button
                     type="button"
+                    aria-label="Move photo later"
                     disabled={
                       index ===
                       entries.length -
@@ -657,12 +507,7 @@ export function AdditionalImagesEditor({
                         1
                       )
                     }
-                    className="
-                      rounded-md
-                      border
-                      p-1
-                      disabled:opacity-30
-                    "
+                    className="rounded-md border p-1 disabled:opacity-30"
                   >
                     <ArrowDown
                       size={
@@ -673,6 +518,7 @@ export function AdditionalImagesEditor({
 
                   <button
                     type="button"
+                    aria-label="Remove photo"
                     onClick={() =>
                       setEntries(
                         (
@@ -687,12 +533,7 @@ export function AdditionalImagesEditor({
                           )
                       )
                     }
-                    className="
-                      rounded-md
-                      border
-                      p-1
-                      text-red-600
-                    "
+                    className="rounded-md border p-1 text-red-600"
                   >
                     <Trash2
                       size={

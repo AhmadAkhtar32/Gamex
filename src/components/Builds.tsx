@@ -12,6 +12,7 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
+  Images,
 } from "lucide-react";
 
 import {
@@ -38,14 +39,64 @@ import {
 
 export type PublicBuild = {
   id: string;
+
   name: string;
+
   role: string;
+
   badge: string;
-  price: number | null;
+
+  price:
+    | number
+    | null;
+
   description: string;
+
   specs: string[];
+
+  /*
+   * Existing primary image.
+   */
   image: string;
+
+  /*
+   * Optional additional images.
+   */
+  images?: string[];
 };
+
+/* =========================================================
+   IMAGE HELPERS
+   ========================================================= */
+
+function getBuildImages(
+  build: PublicBuild
+) {
+  const values = [
+    build.image,
+    ...(build.images ?? []),
+  ]
+    .map(
+      (
+        value
+      ) =>
+        value?.trim()
+    )
+    .filter(
+      (
+        value
+      ): value is string =>
+        Boolean(
+          value
+        )
+    );
+
+  return Array.from(
+    new Set(
+      values
+    )
+  );
+}
 
 /* =========================================================
    TWO ROW LIMIT
@@ -97,13 +148,17 @@ export function Builds({
     showAll,
     setShowAll,
   ] =
-    useState(false);
+    useState(
+      false
+    );
 
   const [
     initialLimit,
     setInitialLimit,
   ] =
-    useState(6);
+    useState(
+      6
+    );
 
   /* =======================================================
      RESPONSIVE LIMIT
@@ -197,7 +252,9 @@ export function Builds({
           md:py-20
         "
       >
-        {/* BACKGROUND */}
+        {/* ===================================================
+            BACKGROUND
+            =================================================== */}
 
         <div
           aria-hidden="true"
@@ -228,6 +285,10 @@ export function Builds({
             blur-[140px]
           "
         />
+
+        {/* ===================================================
+            CONTENT
+            =================================================== */}
 
         <div
           className="
@@ -264,469 +325,500 @@ export function Builds({
                   (
                     build,
                     index
-                  ) => (
-                    <BlurReveal
-                      key={
-                        build.id
-                      }
-                      delay={
-                        index *
-                        0.06
-                      }
-                      className="h-full"
-                    >
-                      <div
-                        role="button"
-                        tabIndex={
-                          0
-                        }
-                        aria-label={`View details for ${build.name}`}
-                        onClick={() =>
-                          setSelectedBuild(
-                            build
-                          )
-                        }
-                        onKeyDown={(
-                          event
-                        ) => {
-                          if (
-                            event.key ===
-                              "Enter" ||
-                            event.key ===
-                              " "
-                          ) {
-                            event.preventDefault();
+                  ) => {
+                    const buildImages =
+                      getBuildImages(
+                        build
+                      );
 
+                    const mainImage =
+                      buildImages[0] ??
+                      build.image;
+
+                    return (
+                      <BlurReveal
+                        key={
+                          build.id
+                        }
+                        delay={
+                          index *
+                          0.06
+                        }
+                        className="h-full"
+                      >
+                        <div
+                          role="button"
+                          tabIndex={
+                            0
+                          }
+                          aria-label={`View details for ${build.name}`}
+                          onClick={() =>
                             setSelectedBuild(
                               build
-                            );
+                            )
                           }
-                        }}
-                        className="
-                          h-full
-                          cursor-pointer
-                          rounded-2xl
-                          focus:outline-none
-                          focus-visible:ring-4
-                          focus-visible:ring-brand/15
-                        "
-                      >
-                        <SpotlightCard
+                          onKeyDown={(
+                            event
+                          ) => {
+                            if (
+                              event.key ===
+                                "Enter" ||
+                              event.key ===
+                                " "
+                            ) {
+                              event.preventDefault();
+
+                              setSelectedBuild(
+                                build
+                              );
+                            }
+                          }}
                           className="
-                            group
-                            flex
                             h-full
-                            flex-col
-                            overflow-hidden
+                            cursor-pointer
                             rounded-2xl
-                            border
-                            border-black/[0.07]
-                            bg-white
-                            shadow-[0_20px_55px_-38px_rgba(0,0,0,0.28)]
-                            transition-all
-                            duration-300
-                            hover:-translate-y-1
-                            hover:border-brand/25
-                            hover:shadow-[0_26px_65px_-38px_rgba(230,0,0,0.34)]
+                            focus:outline-none
+                            focus-visible:ring-4
+                            focus-visible:ring-brand/15
                           "
                         >
-                          {/* IMAGE */}
-
-                          <div
+                          <SpotlightCard
                             className="
-                              relative
-                              aspect-[4/3]
-                              overflow-hidden
-                              border-b
-                              border-black/[0.05]
-                              bg-[#f4f4f4]
-                            "
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-
-                            <img
-                              src={
-                                build.image
-                              }
-                              alt={`${build.name} custom gaming PC build at GameX Pakistan`}
-                              loading="lazy"
-                              className="
-                                absolute
-                                inset-0
-                                h-full
-                                w-full
-                                object-cover
-                                object-center
-                                transition-transform
-                                duration-500
-                                ease-out
-                                group-hover:scale-[1.045]
-                              "
-                            />
-
-                            <div
-                              aria-hidden="true"
-                              className="
-                                pointer-events-none
-                                absolute
-                                inset-0
-                                bg-gradient-to-t
-                                from-brand/[0.055]
-                                via-transparent
-                                to-transparent
-                              "
-                            />
-
-                            <div
-                              aria-hidden="true"
-                              className="
-                                pointer-events-none
-                                absolute
-                                inset-0
-                                ring-1
-                                ring-inset
-                                ring-black/[0.025]
-                              "
-                            />
-
-                            <span
-                              className="
-                                absolute
-                                left-3
-                                top-3
-                                z-20
-                                rounded-full
-                                border
-                                border-brand/20
-                                bg-white/95
-                                px-3
-                                py-1.5
-                                text-[10px]
-                                font-extrabold
-                                uppercase
-                                tracking-wider
-                                text-brand
-                                shadow-[0_8px_22px_-16px_rgba(230,0,0,0.5)]
-                                backdrop-blur-md
-                              "
-                            >
-                              {
-                                build.badge
-                              }
-                            </span>
-                          </div>
-
-                          {/* CONTENT */}
-
-                          <div
-                            className="
+                              group
                               flex
-                              flex-1
+                              h-full
                               flex-col
-                              p-5
+                              overflow-hidden
+                              rounded-2xl
+                              border
+                              border-black/[0.07]
+                              bg-white
+                              shadow-[0_20px_55px_-38px_rgba(0,0,0,0.28)]
+                              transition-all
+                              duration-300
+                              hover:-translate-y-1
+                              hover:border-brand/25
+                              hover:shadow-[0_26px_65px_-38px_rgba(230,0,0,0.34)]
                             "
                           >
-                            <h3
-                              className="
-                                font-display
-                                text-2xl
-                                font-extrabold
-                                leading-tight
-                                text-brand-deep
-                                transition-colors
-                                group-hover:text-brand
-                              "
-                            >
-                              {
-                                build.name
-                              }
-                            </h3>
-
-                            <p
-                              className="
-                                mt-1
-                                text-xs
-                                font-bold
-                                uppercase
-                                tracking-[0.16em]
-                                text-slate-500
-                              "
-                            >
-                              {
-                                build.role
-                              }
-                            </p>
-
-                            {/* PRICE */}
+                            {/* =================================
+                                IMAGE
+                                ================================= */}
 
                             <div
                               className="
                                 relative
-                                mt-4
+                                aspect-[4/3]
                                 overflow-hidden
-                                rounded-xl
-                                bg-brand
-                                px-4
-                                py-3
-                                shadow-[0_14px_32px_-18px_rgba(230,0,0,0.72)]
+                                border-b
+                                border-black/[0.05]
+                                bg-[#f4f4f4]
                               "
                             >
-                              <div
-                                aria-hidden="true"
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+
+                              <img
+                                src={
+                                  mainImage
+                                }
+                                alt={`${build.name} custom gaming PC build at GameX Pakistan`}
+                                loading="lazy"
                                 className="
                                   absolute
-                                  -right-8
-                                  -top-8
-                                  h-24
-                                  w-24
-                                  rotate-45
-                                  border
-                                  border-white/15
+                                  inset-0
+                                  h-full
+                                  w-full
+                                  object-cover
+                                  object-center
+                                  transition-transform
+                                  duration-500
+                                  ease-out
+                                  group-hover:scale-[1.045]
                                 "
                               />
 
                               <div
                                 aria-hidden="true"
                                 className="
+                                  pointer-events-none
                                   absolute
-                                  right-4
-                                  top-1/2
-                                  h-9
-                                  w-1
-                                  -translate-y-1/2
+                                  inset-0
+                                  bg-gradient-to-t
+                                  from-brand/[0.055]
+                                  via-transparent
+                                  to-transparent
+                                "
+                              />
+
+                              <div
+                                aria-hidden="true"
+                                className="
+                                  pointer-events-none
+                                  absolute
+                                  inset-0
+                                  ring-1
+                                  ring-inset
+                                  ring-black/[0.025]
+                                "
+                              />
+
+                              {/* BADGE */}
+
+                              <span
+                                className="
+                                  absolute
+                                  left-3
+                                  top-3
+                                  z-20
                                   rounded-full
-                                  bg-white/15
-                                "
-                              />
-
-                              <p
-                                className="
-                                  relative
-                                  text-[9px]
-                                  font-extrabold
-                                  uppercase
-                                  tracking-[0.22em]
-                                  text-white/65
-                                "
-                              >
-                                Starting Price
-                              </p>
-
-                              <p
-                                className="
-                                  relative
-                                  mt-1
-                                  font-display
-                                  text-2xl
-                                  font-extrabold
-                                  leading-none
-                                  text-white
-                                "
-                              >
-                                {formatPrice(
-                                  build.price
-                                )}
-                              </p>
-                            </div>
-
-                            {/* DESCRIPTION */}
-
-                            <p
-                              className="
-                                mt-3
-                                line-clamp-3
-                                text-sm
-                                leading-relaxed
-                                text-slate-600
-                              "
-                            >
-                              {
-                                build.description
-                              }
-                            </p>
-
-                            {/* SPECS */}
-
-                            <ul
-                              className="
-                                mt-4
-                                space-y-2
-                                border-t
-                                border-black/[0.06]
-                                pt-3
-                              "
-                            >
-                              {build.specs
-                                .slice(
-                                  0,
-                                  4
-                                )
-                                .map(
-                                  (
-                                    spec,
-                                    specIndex
-                                  ) => (
-                                    <li
-                                      key={`${build.id}-${specIndex}`}
-                                      className="
-                                        flex
-                                        items-start
-                                        gap-2.5
-                                        text-sm
-                                        font-medium
-                                        text-slate-600
-                                      "
-                                    >
-                                      <span
-                                        className="
-                                          mt-0.5
-                                          grid
-                                          h-5
-                                          w-5
-                                          shrink-0
-                                          place-items-center
-                                          rounded-full
-                                          bg-brand/[0.08]
-                                          text-brand
-                                        "
-                                      >
-                                        <Check className="h-3 w-3" />
-                                      </span>
-
-                                      <span>
-                                        {
-                                          spec
-                                        }
-                                      </span>
-                                    </li>
-                                  )
-                                )}
-                            </ul>
-
-                            {build.specs.length >
-                            4 ? (
-                              <p
-                                className="
-                                  mt-2.5
-                                  text-[10px]
-                                  font-bold
-                                  uppercase
-                                  tracking-wider
-                                  text-brand/70
-                                "
-                              >
-                                +
-                                {build.specs.length -
-                                  4}{" "}
-                                more specifications
-                              </p>
-                            ) : null}
-
-                            {/* ACTIONS */}
-
-                            <div
-                              className="
-                                mt-auto
-                                grid
-                                gap-2
-                                pt-4
-                              "
-                            >
-                              <button
-                                type="button"
-                                onClick={(
-                                  event
-                                ) => {
-                                  event.stopPropagation();
-
-                                  setSelectedBuild(
-                                    build
-                                  );
-                                }}
-                                className="
-                                  inline-flex
-                                  w-full
-                                  items-center
-                                  justify-between
-                                  rounded-xl
-                                  border
-                                  border-black/[0.08]
-                                  bg-[#fff8f8]
-                                  px-4
-                                  py-3
-                                  font-display
-                                  text-xs
-                                  font-bold
-                                  uppercase
-                                  tracking-wider
-                                  text-brand-deep
-                                  transition-all
-                                  duration-300
-                                  hover:border-brand
-                                  hover:bg-brand
-                                  hover:text-white
-                                "
-                              >
-                                View Build Details
-
-                                <ArrowRight className="h-4 w-4" />
-                              </button>
-
-                              <Link
-                                href={`/build/${build.id}`}
-                                onClick={(
-                                  event
-                                ) => {
-                                  event.stopPropagation();
-                                }}
-                                onKeyDown={(
-                                  event
-                                ) => {
-                                  event.stopPropagation();
-                                }}
-                                aria-label={`Open build page for ${build.name}`}
-                                className="
-                                  inline-flex
-                                  w-full
-                                  items-center
-                                  justify-between
-                                  rounded-xl
                                   border
                                   border-brand/20
-                                  bg-white
-                                  px-4
-                                  py-3
-                                  font-display
-                                  text-xs
-                                  font-bold
+                                  bg-white/95
+                                  px-3
+                                  py-1.5
+                                  text-[10px]
+                                  font-extrabold
                                   uppercase
                                   tracking-wider
                                   text-brand
-                                  transition-all
-                                  duration-300
-                                  hover:border-brand
-                                  hover:bg-brand/[0.04]
+                                  shadow-[0_8px_22px_-16px_rgba(230,0,0,0.5)]
+                                  backdrop-blur-md
                                 "
                               >
-                                Build Page
+                                {
+                                  build.badge
+                                }
+                              </span>
 
-                                <ArrowRight className="h-4 w-4" />
-                              </Link>
+                              {/* IMAGE COUNT */}
+
+                              {buildImages.length >
+                              1 ? (
+                                <span
+                                  className="
+                                    absolute
+                                    right-3
+                                    top-3
+                                    z-20
+                                    inline-flex
+                                    items-center
+                                    gap-1.5
+                                    rounded-full
+                                    bg-black/70
+                                    px-2.5
+                                    py-1.5
+                                    text-[9px]
+                                    font-bold
+                                    text-white
+                                    backdrop-blur-md
+                                  "
+                                >
+                                  <Images className="h-3 w-3" />
+
+                                  {
+                                    buildImages.length
+                                  }
+                                </span>
+                              ) : null}
                             </div>
-                          </div>
-                        </SpotlightCard>
-                      </div>
-                    </BlurReveal>
-                  )
+
+                            {/* =================================
+                                CONTENT
+                                ================================= */}
+
+                            <div
+                              className="
+                                flex
+                                flex-1
+                                flex-col
+                                p-5
+                              "
+                            >
+                              <h3
+                                className="
+                                  font-display
+                                  text-2xl
+                                  font-extrabold
+                                  leading-tight
+                                  text-brand-deep
+                                  transition-colors
+                                  group-hover:text-brand
+                                "
+                              >
+                                {
+                                  build.name
+                                }
+                              </h3>
+
+                              <p
+                                className="
+                                  mt-1
+                                  text-xs
+                                  font-bold
+                                  uppercase
+                                  tracking-[0.16em]
+                                  text-slate-500
+                                "
+                              >
+                                {
+                                  build.role
+                                }
+                              </p>
+
+                              {/* =================================
+                                  SMALLER PRICE BOX
+                                  ================================= */}
+
+                              <div
+                                className="
+                                  relative
+                                  mt-4
+                                  overflow-hidden
+                                  rounded-xl
+                                  bg-brand
+                                  px-4
+                                  py-2.5
+                                  shadow-[0_12px_28px_-18px_rgba(230,0,0,0.72)]
+                                "
+                              >
+                                <div
+                                  aria-hidden="true"
+                                  className="
+                                    absolute
+                                    -right-8
+                                    -top-8
+                                    h-20
+                                    w-20
+                                    rotate-45
+                                    border
+                                    border-white/15
+                                  "
+                                />
+
+                                <div
+                                  aria-hidden="true"
+                                  className="
+                                    absolute
+                                    right-4
+                                    top-1/2
+                                    h-7
+                                    w-1
+                                    -translate-y-1/2
+                                    rounded-full
+                                    bg-white/15
+                                  "
+                                />
+
+                                <p
+                                  className="
+                                    relative
+                                    text-[8px]
+                                    font-extrabold
+                                    uppercase
+                                    tracking-[0.2em]
+                                    text-white/65
+                                  "
+                                >
+                                  Starting Price
+                                </p>
+
+                                <p
+                                  className="
+                                    relative
+                                    mt-0.5
+                                    font-display
+                                    text-xl
+                                    font-extrabold
+                                    leading-none
+                                    text-white
+                                  "
+                                >
+                                  {formatPrice(
+                                    build.price
+                                  )}
+                                </p>
+                              </div>
+
+                              {/* DESCRIPTION */}
+
+                              <p
+                                className="
+                                  mt-3
+                                  line-clamp-3
+                                  text-sm
+                                  leading-relaxed
+                                  text-slate-600
+                                "
+                              >
+                                {
+                                  build.description
+                                }
+                              </p>
+
+                              {/* SPECS */}
+
+                              <ul
+                                className="
+                                  mt-4
+                                  space-y-2
+                                  border-t
+                                  border-black/[0.06]
+                                  pt-3
+                                "
+                              >
+                                {build.specs
+                                  .slice(
+                                    0,
+                                    4
+                                  )
+                                  .map(
+                                    (
+                                      spec,
+                                      specIndex
+                                    ) => (
+                                      <li
+                                        key={`${build.id}-${specIndex}`}
+                                        className="
+                                          flex
+                                          items-start
+                                          gap-2
+                                          text-xs
+                                          leading-relaxed
+                                          text-slate-600
+                                        "
+                                      >
+                                        <span
+                                          className="
+                                            mt-0.5
+                                            grid
+                                            h-4
+                                            w-4
+                                            shrink-0
+                                            place-items-center
+                                            rounded-full
+                                            bg-brand/[0.08]
+                                            text-brand
+                                          "
+                                        >
+                                          <Check className="h-2.5 w-2.5" />
+                                        </span>
+
+                                        <span
+                                          className="
+                                            min-w-0
+                                            flex-1
+                                          "
+                                        >
+                                          {
+                                            spec
+                                          }
+                                        </span>
+                                      </li>
+                                    )
+                                  )}
+                              </ul>
+
+                              {/* ACTIONS */}
+
+                              <div
+                                className="
+                                  mt-auto
+                                  grid
+                                  gap-2
+                                  pt-5
+                                "
+                              >
+                                <button
+                                  type="button"
+                                  onClick={(
+                                    event
+                                  ) => {
+                                    event.stopPropagation();
+
+                                    setSelectedBuild(
+                                      build
+                                    );
+                                  }}
+                                  className="
+                                    inline-flex
+                                    w-full
+                                    items-center
+                                    justify-between
+                                    rounded-xl
+                                    border
+                                    border-brand/15
+                                    bg-[#fff8f8]
+                                    px-4
+                                    py-3
+                                    text-xs
+                                    font-bold
+                                    uppercase
+                                    tracking-wider
+                                    text-brand-deep
+                                    transition-all
+                                    hover:border-brand
+                                    hover:bg-brand
+                                    hover:text-white
+                                  "
+                                >
+                                  View Details
+
+                                  <ArrowRight className="h-4 w-4" />
+                                </button>
+
+                                <Link
+                                  href={`/build/${build.id}`}
+                                  onClick={(
+                                    event
+                                  ) => {
+                                    event.stopPropagation();
+                                  }}
+                                  onKeyDown={(
+                                    event
+                                  ) => {
+                                    event.stopPropagation();
+                                  }}
+                                  className="
+                                    inline-flex
+                                    w-full
+                                    items-center
+                                    justify-between
+                                    rounded-xl
+                                    bg-brand
+                                    px-4
+                                    py-3
+                                    text-xs
+                                    font-bold
+                                    uppercase
+                                    tracking-wider
+                                    text-white
+                                    transition-all
+                                    hover:-translate-y-0.5
+                                    hover:bg-brand-soft
+                                  "
+                                >
+                                  Build Page
+
+                                  <ArrowRight className="h-4 w-4" />
+                                </Link>
+                              </div>
+                            </div>
+                          </SpotlightCard>
+                        </div>
+                      </BlurReveal>
+                    );
+                  }
                 )}
               </ScrollSkew>
 
-              {/* VIEW MORE */}
+              {/* =============================================
+                  VIEW MORE
+                  ============================================= */}
 
               {canToggle ? (
                 <div
                   className="
-                    mt-8
+                    mt-9
                     flex
                     justify-center
                   "
@@ -762,41 +854,26 @@ export function Builds({
                       hover:border-brand
                       hover:bg-brand
                       hover:text-white
-                      hover:shadow-[0_15px_34px_-20px_rgba(230,0,0,0.65)]
                     "
                   >
+                    {showAll
+                      ? "Show Less"
+                      : "View More"}
+
                     {showAll ? (
-                      <>
-                        Show Less
-
-                        <ChevronUp
-                          className="
-                            h-4
-                            w-4
-                            transition-transform
-                            group-hover:-translate-y-0.5
-                          "
-                        />
-                      </>
+                      <ChevronUp className="h-4 w-4" />
                     ) : (
-                      <>
-                        View More
-
-                        <ChevronDown
-                          className="
-                            h-4
-                            w-4
-                            transition-transform
-                            group-hover:translate-y-0.5
-                          "
-                        />
-                      </>
+                      <ChevronDown className="h-4 w-4" />
                     )}
                   </button>
                 </div>
               ) : null}
             </>
           ) : (
+            /* ===============================================
+               EMPTY
+               =============================================== */
+
             <div
               className="
                 mt-9
@@ -806,17 +883,19 @@ export function Builds({
                 border-brand/20
                 bg-white
                 px-6
-                py-10
+                py-14
                 text-center
               "
             >
               <div
                 className="
                   mx-auto
-                  h-1
-                  w-14
-                  rounded-full
-                  bg-brand
+                  h-12
+                  w-12
+                  rounded-2xl
+                  border
+                  border-brand/15
+                  bg-brand/[0.06]
                 "
               />
 
@@ -837,7 +916,9 @@ export function Builds({
         </div>
       </section>
 
-      {/* DETAILS MODAL */}
+      {/* =====================================================
+          DETAILS MODAL
+          ===================================================== */}
 
       <DetailsModal
         item={
@@ -869,6 +950,11 @@ export function Builds({
 
                 image:
                   selectedBuild.image,
+
+                images:
+                  getBuildImages(
+                    selectedBuild
+                  ),
               }
             : null
         }

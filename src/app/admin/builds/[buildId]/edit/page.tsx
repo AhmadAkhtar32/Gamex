@@ -1,5 +1,9 @@
 /* eslint-disable @next/next/no-img-element */
 
+import {
+  AdditionalImagesEditor,
+} from "@/components/admin/AdditionalImagesEditor";
+
 import type {
   ReactNode,
 } from "react";
@@ -82,7 +86,9 @@ export default async function EditBuildPage({
           buildId
         )
       )
-      .limit(1);
+      .limit(
+        1
+      );
 
   const build =
     rows[0];
@@ -161,7 +167,16 @@ export default async function EditBuildPage({
     >
       <AdminHeader />
 
-      <div className="mx-auto max-w-5xl px-5 py-10 md:px-8 md:py-14">
+      <div
+        className="
+          mx-auto
+          max-w-5xl
+          px-5
+          py-10
+          md:px-8
+          md:py-14
+        "
+      >
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.24em] text-brand">
             Signature Systems
@@ -459,6 +474,18 @@ export default async function EditBuildPage({
             }
           />
 
+          <AdditionalImagesEditor
+            existingImages={
+              build.images.filter(
+                (
+                  url
+                ) =>
+                  url !==
+                  build.image
+              )
+            }
+          />
+
           <VisibilityBox
             defaultChecked={
               build.isVisible
@@ -730,4 +757,4 @@ const secondaryButtonClass =
   "inline-flex items-center justify-center rounded-xl border border-brand/15 bg-white px-6 py-3.5 text-xs font-bold uppercase tracking-wider text-brand transition-all hover:border-brand hover:bg-brand/[0.05]";
 
 const primaryButtonClass =
-  "inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-6 py-3.5 font-display text-xs font-bold uppercase tracking-wider text-white transition-all hover:-translate-y-0.5 hover:bg-brand-soft";
+  "inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-6 py-3.5 font-display text-xs font-bold uppercase tracking-wider text-white transition-all hover:-translate-y-0.5 hover:bg-brand-soft";s

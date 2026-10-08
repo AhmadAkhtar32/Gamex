@@ -1,10 +1,9 @@
+/** Server-only gallery parser, shared by products and custom builds. */
 export async function resolveGalleryImages(
   formData: FormData,
   primary: string,
   previous: string[],
-  upload: (
-    file: File
-  ) => Promise<string>
+  upload: (file: File) => Promise<string>
 ): Promise<string[]> {
   const raw =
     formData.get(
@@ -18,9 +17,7 @@ export async function resolveGalleryImages(
     return [
       primary,
       ...previous.filter(
-        (
-          url
-        ) =>
+        (url) =>
           url &&
           url !==
             primary
@@ -28,8 +25,7 @@ export async function resolveGalleryImages(
     ];
   }
 
-  let manifest:
-    unknown;
+  let manifest: unknown;
 
   try {
     manifest =
@@ -69,12 +65,12 @@ export async function resolveGalleryImages(
             0
       );
 
-  const additional:
-    string[] = [];
+  const additional: string[] =
+    [];
 
   for (
-    const entry of
-    manifest
+    const entry
+    of manifest
   ) {
     if (
       !entry ||
@@ -86,8 +82,7 @@ export async function resolveGalleryImages(
       );
     }
 
-    let image:
-      string;
+    let image: string;
 
     if (
       "type" in
@@ -137,11 +132,11 @@ export async function resolveGalleryImages(
         "file" &&
       "index" in
         entry &&
-      typeof entry.index ===
-        "number" &&
       Number.isInteger(
         entry.index
       ) &&
+      typeof entry.index ===
+        "number" &&
       entry.index >=
         0 &&
       entry.index <
