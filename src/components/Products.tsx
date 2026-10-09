@@ -1702,107 +1702,13 @@ export default function Products({
 
                           <div
 
-                            className="
-
-                              relative
-
-                              mt-2.5
-
-                              w-fit
-
-                              max-w-full
-
-                              self-start
-
-                              overflow-hidden
-
-                              rounded-lg
-
-                              bg-brand
-
-                              px-2.5
-
-                              py-1.5
-
-                              shadow-[0_10px_24px_-16px_rgba(230,0,0,0.72)]
-
-                            "
+                            className="mt-3 min-w-0"
 
                           >
 
-                            <div
-
-                              aria-hidden="true"
-
-                              className="
-
-                                absolute
-
-                                -right-6
-
-                                -top-7
-
-                                h-16
-
-                                w-16
-
-                                rotate-45
-
-                                border
-
-                                border-white/15
-
-                              "
-
-                            />
-
-
-
-                            <div
-
-                              aria-hidden="true"
-
-                              className="
-
-                                absolute
-
-                                right-1.5
-
-                                top-1/2
-
-                                h-4
-
-                                w-[3px]
-
-                                -translate-y-1/2
-
-                                rounded-full
-
-                                bg-white/15
-
-                              "
-
-                            />
-
-
-
                             <p
 
-                              className="
-
-                                relative
-
-                                text-[9px]
-
-                                font-extrabold
-
-                                uppercase
-
-                                tracking-[0.12em]
-
-                                text-white/80
-
-                              "
+                              className="font-sans text-[10px] font-medium leading-4 text-slate-500"
 
                             >
 
@@ -1814,27 +1720,7 @@ export default function Products({
 
                             <p
 
-                              className="
-
-                                relative
-
-                                mt-0.5
-
-                                font-display
-
-                                text-sm
-
-                                tabular-nums
-
-                                font-extrabold
-
-                                leading-snug
-
-                                break-words
-
-                                text-white
-
-                              "
+                              className="mt-0.5 break-words font-sans text-lg font-bold leading-6 tracking-tight text-slate-900 tabular-nums"
 
                             >
 
