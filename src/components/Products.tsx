@@ -56,14 +56,6 @@ import {
 
 import {
 
-  SpotlightCard,
-
-} from "@/components/ui";
-
-
-
-import {
-
   formatPrice,
 
 } from "@/lib/price";
@@ -1324,7 +1316,7 @@ export default function Products({
 
                     >
 
-                      <SpotlightCard
+                      <div
 
                         className="
 
@@ -1355,10 +1347,6 @@ export default function Products({
                           duration-300
 
                           hover:-translate-y-1
-
-                          hover:border-brand/25
-
-                          hover:shadow-[0_25px_60px_-38px_rgba(230,0,0,0.34)]
 
                         "
 
@@ -1674,8 +1662,6 @@ export default function Products({
 
                                 transition-colors
 
-                                group-hover:text-brand
-
                               "
 
                             >
@@ -1702,13 +1688,13 @@ export default function Products({
 
                           <div
 
-                            className="mt-3 min-w-0"
+                            className="mt-3 w-full min-w-0 rounded-lg bg-brand px-3 py-2.5"
 
                           >
 
                             <p
 
-                              className="font-sans text-[10px] font-medium leading-4 text-slate-500"
+                              className="font-sans text-[10px] font-semibold leading-4 text-white/80"
 
                             >
 
@@ -1720,7 +1706,7 @@ export default function Products({
 
                             <p
 
-                              className="mt-0.5 break-words font-sans text-lg font-bold leading-6 tracking-tight text-slate-900 tabular-nums"
+                              className="mt-0.5 break-words font-sans text-lg font-bold leading-6 tracking-tight text-white tabular-nums"
 
                             >
 
@@ -2132,7 +2118,7 @@ export default function Products({
 
                         </div>
 
-                      </SpotlightCard>
+                      </div>
 
                     </motion.div>
 

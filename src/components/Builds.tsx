@@ -52,8 +52,6 @@ import {
 
   SectionHeading,
 
-  SpotlightCard,
-
 } from "./ui";
 
 
@@ -774,7 +772,7 @@ export function Builds({
 
                         >
 
-                          <SpotlightCard
+                          <div
 
                             className="
 
@@ -805,10 +803,6 @@ export function Builds({
                               duration-300
 
                               hover:-translate-y-1
-
-                              hover:border-brand/25
-
-                              hover:shadow-[0_26px_65px_-38px_rgba(230,0,0,0.34)]
 
                             "
 
@@ -1098,8 +1092,6 @@ export function Builds({
 
                                   transition-colors
 
-                                  group-hover:text-brand
-
                                 "
 
                               >
@@ -1154,13 +1146,13 @@ export function Builds({
 
                               <div
 
-                                className="mt-3 min-w-0"
+                                className="mt-3 w-full min-w-0 rounded-lg bg-brand px-3 py-2.5"
 
                               >
 
                                 <p
 
-                                  className="font-sans text-[10px] font-medium leading-4 text-slate-500"
+                                  className="font-sans text-[10px] font-semibold leading-4 text-white/80"
 
                                 >
 
@@ -1172,7 +1164,7 @@ export function Builds({
 
                                 <p
 
-                                  className="mt-0.5 break-words font-sans text-lg font-bold leading-6 tracking-tight text-slate-900 tabular-nums"
+                                  className="mt-0.5 break-words font-sans text-lg font-bold leading-6 tracking-tight text-white tabular-nums"
 
                                 >
 
@@ -1540,7 +1532,7 @@ export function Builds({
 
                             </div>
 
-                          </SpotlightCard>
+                          </div>
 
                         </div>
 
