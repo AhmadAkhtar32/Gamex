@@ -1,4 +1,3 @@
-
 /**
  * GameX - Admin Gallery Handler
  *
@@ -18,9 +17,20 @@ type GalleryEntry =
 
 const MAX_TOTAL_IMAGES = 10;
 const MAX_ADDITIONAL_IMAGES = MAX_TOTAL_IMAGES - 1;
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+
+const ALLOWED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+];
 
 function isValidImageUrl(value: string): boolean {
-  if (!value || value.length > 1000) {
+  if (
+    !value ||
+    value.length > 1000 ||
+    /[\\\u0000-\u0020\u007f]/.test(value)
+  ) {
     return false;
   }
 
@@ -106,7 +116,7 @@ function parseGalleryManifest(
       item.type === "file" &&
       "index" in item &&
       typeof item.index === "number" &&
-      Number.isInteger(item.index) &&
+      Number.isSafeInteger(item.index) &&
       item.index >= 0
     ) {
       entries.push({
@@ -143,6 +153,12 @@ export async function resolveGalleryImages(
 ): Promise<string[]> {
   const coverImage = primary?.trim() ?? "";
 
+  if (!isValidImageUrl(coverImage)) {
+    throw new Error(
+      "A valid cover image is required."
+    );
+  }
+
   const existingImages = Array.isArray(previous)
     ? previous
         .filter(
@@ -159,27 +175,76 @@ export async function resolveGalleryImages(
 
   // Backward compatibility for forms without
   // the additional-images editor.
-  if (typeof manifestValue !== "string") {
-    return Array.from(
+  if (manifestValue === null) {
+    const preservedImages = Array.from(
       new Set(
         [coverImage, ...existingImages].filter(Boolean)
       )
-    ).slice(0, MAX_TOTAL_IMAGES);
+    );
+
+    // Do not silently discard existing photos.
+    if (preservedImages.length > MAX_TOTAL_IMAGES) {
+      throw new Error(
+        `Maximum ${MAX_TOTAL_IMAGES} images are allowed, including the cover. Remove extra images using the gallery editor.`
+      );
+    }
+
+    return preservedImages;
+  }
+
+  if (typeof manifestValue !== "string") {
+    throw new Error(
+      "Invalid gallery data. Please try again."
+    );
   }
 
   const manifest = parseGalleryManifest(
     manifestValue
   );
 
-  const uploadedFiles = formData
-    .getAll("galleryFiles")
-    .filter(
-      (value): value is File =>
-        value instanceof File &&
-        value.size > 0
-    );
+  // Keep original positions so manifest indexes
+  // cannot shift when an invalid file is submitted.
+  const uploadedFiles = formData.getAll(
+    "galleryFiles"
+  );
+
+  const selectedFiles = new Map<number, File>();
+
+  // Validate every referenced file before starting
+  // any additional-image uploads.
+  for (const entry of manifest) {
+    if (entry.type !== "file") {
+      continue;
+    }
+
+    const selectedFile = uploadedFiles[entry.index];
+
+    if (
+      !(selectedFile instanceof File) ||
+      selectedFile.size === 0
+    ) {
+      throw new Error(
+        "A gallery image file is missing or empty. Please select it again."
+      );
+    }
+
+    if (!ALLOWED_IMAGE_TYPES.includes(selectedFile.type)) {
+      throw new Error(
+        "Only JPG, PNG and WebP images are allowed."
+      );
+    }
+
+    if (selectedFile.size > MAX_IMAGE_SIZE) {
+      throw new Error(
+        "Each gallery image must be 5 MB or smaller."
+      );
+    }
+
+    selectedFiles.set(entry.index, selectedFile);
+  }
 
   const additionalImages: string[] = [];
+  const uploadedUrls = new Map<number, string>();
 
   for (const entry of manifest) {
     let imageUrl: string;
@@ -187,24 +252,32 @@ export async function resolveGalleryImages(
     if (entry.type === "url") {
       imageUrl = entry.url;
     } else {
-      const selectedFile =
-        uploadedFiles[entry.index];
+      const cachedUrl = uploadedUrls.get(entry.index);
 
-      if (!selectedFile) {
-        throw new Error(
-          "A gallery image file is missing. Please select it again."
-        );
+      if (cachedUrl !== undefined) {
+        imageUrl = cachedUrl;
+      } else {
+        const selectedFile = selectedFiles.get(entry.index);
+
+        if (!selectedFile) {
+          throw new Error(
+            "A gallery image file is missing. Please select it again."
+          );
+        }
+
+        imageUrl = await upload(selectedFile);
+
+        if (
+          typeof imageUrl !== "string" ||
+          !isValidImageUrl(imageUrl.trim())
+        ) {
+          throw new Error(
+            "A gallery image upload returned an invalid URL. Please try again."
+          );
+        }
+
+        uploadedUrls.set(entry.index, imageUrl);
       }
-
-      if (
-        !selectedFile.type.startsWith("image/")
-      ) {
-        throw new Error(
-          "Only image files can be uploaded."
-        );
-      }
-
-      imageUrl = await upload(selectedFile);
     }
 
     const normalizedUrl = imageUrl.trim();
@@ -228,7 +301,7 @@ export async function resolveGalleryImages(
   }
 
   return [
-    ...(coverImage ? [coverImage] : []),
+    coverImage,
     ...additionalImages,
   ];
 }
