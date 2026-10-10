@@ -108,8 +108,6 @@ export const dynamic =
 
 type ProductSearchParams = Record<string, string | string[] | undefined>;
 
-
-
 function readFilter(params: ProductSearchParams, key: string): string {
 
   const value = params[key];
@@ -117,8 +115,6 @@ function readFilter(params: ProductSearchParams, key: string): string {
   return (Array.isArray(value) ? value[0] ?? "" : value ?? "").trim();
 
 }
-
-
 
 const addedDateFormatter = new Intl.DateTimeFormat("en-PK", {
 
@@ -132,8 +128,6 @@ const addedDateFormatter = new Intl.DateTimeFormat("en-PK", {
 
 });
 
-
-
 export default async function ProductsAdminPage({
 
   searchParams,
@@ -143,6 +137,7 @@ export default async function ProductsAdminPage({
   searchParams: Promise<ProductSearchParams>;
 
 }) {
+
 
   await requireAdmin();
 
@@ -186,8 +181,6 @@ export default async function ProductsAdminPage({
 
   };
 
-
-
   function sortUrl(field: string): string {
 
     const nextDirection = sort === field
@@ -211,8 +204,6 @@ export default async function ProductsAdminPage({
     return `/admin/products?${query.toString()}`;
 
   }
-
-
 
   const clearQuery = new URLSearchParams({ sort, direction });
 
@@ -305,8 +296,6 @@ export default async function ProductsAdminPage({
           name:
 
             catalogSubcategories.name,
-
-
 
           categoryId:
 
@@ -530,8 +519,6 @@ export default async function ProductsAdminPage({
 
      ======================================================= */
 
-
-
   const categoryOptions = Array.from(
 
     new Set([
@@ -546,11 +533,7 @@ export default async function ProductsAdminPage({
 
     .sort((left, right) => left.label.localeCompare(right.label, "en", { sensitivity: "base", numeric: true }));
 
-
-
   const selectedCategoryId = categoryRows.find((category) => category.slug === categoryFilter)?.id;
-
-
 
   const subcategoryOptions = subcategoryRows
 
@@ -568,15 +551,11 @@ export default async function ProductsAdminPage({
 
     }));
 
-
-
   const tagOptions = Array.from(new Set(productRows.map((product) => product.tag).filter(Boolean)))
 
     .sort((left, right) => left.localeCompare(right, "en", { sensitivity: "base" }))
 
     .map((tag) => ({ value: tag, label: tag }));
-
-
 
   const productSubcategoryIds = new Map<string, Set<number>>();
 
@@ -590,11 +569,7 @@ export default async function ProductsAdminPage({
 
   }
 
-
-
   const query = search.toLocaleLowerCase("en");
-
-
 
   const filteredProducts = productRows.filter((product) => {
 
@@ -628,11 +603,7 @@ export default async function ProductsAdminPage({
 
   });
 
-
-
   const multiplier = direction === "desc" ? -1 : 1;
-
-
 
   filteredProducts.sort((left, right) => {
 
@@ -976,8 +947,6 @@ export default async function ProductsAdminPage({
 
             =================================================== */}
 
-
-
         <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 
           <form
@@ -1082,7 +1051,29 @@ export default async function ProductsAdminPage({
 
           <div className="overflow-x-auto">
 
-            <table className="w-full min-w-[1080px]">
+            <table className="w-full min-w-[1240px] table-fixed">
+
+              <colgroup>
+
+                <col style={{ width: 280 }} />
+
+                <col style={{ width: 120 }} />
+
+                <col style={{ width: 150 }} />
+
+                <col style={{ width: 90 }} />
+
+                <col style={{ width: 140 }} />
+
+                <col style={{ width: 120 }} />
+
+                <col style={{ width: 80 }} />
+
+                <col style={{ width: 120 }} />
+
+                <col style={{ width: 140 }} />
+
+              </colgroup>
 
               <thead className="bg-[#fff8f8]">
 
@@ -1112,15 +1103,11 @@ export default async function ProductsAdminPage({
 
                   </th>
 
-
-
                   <th scope="col" className="px-4 py-4">
 
                     <FilterHeading title="Category" field="category" value={categoryFilter} options={categoryOptions} filters={currentFilters} />
 
                   </th>
-
-
 
                   <th scope="col" className="px-4 py-4">
 
@@ -1128,15 +1115,11 @@ export default async function ProductsAdminPage({
 
                   </th>
 
-
-
                   <th scope="col" className="px-4 py-4">
 
                     <FilterHeading title="Tag" field="tag" value={tagFilter} options={tagOptions} filters={currentFilters} />
 
                   </th>
-
-
 
                   <th scope="col" aria-sort={sort === "price" ? direction === "asc" ? "ascending" : "descending" : "none"} className="px-4 py-4">
 
@@ -1144,15 +1127,11 @@ export default async function ProductsAdminPage({
 
                   </th>
 
-
-
                   <th scope="col" aria-sort={sort === "date" ? direction === "asc" ? "ascending" : "descending" : "none"} className="px-4 py-4">
 
                     <SortHeading label="Date added" href={sortUrl("date")} active={sort === "date"} direction={direction} />
 
                   </th>
-
-
 
                   <th scope="col" aria-sort={sort === "order" ? direction === "asc" ? "ascending" : "descending" : "none"} className="px-4 py-4">
 
@@ -1160,13 +1139,19 @@ export default async function ProductsAdminPage({
 
                   </th>
 
+                  <th
+                    scope="col"
+                    className="sticky right-[140px] z-20 w-[120px] min-w-[120px] whitespace-nowrap bg-[#fff8f8] px-4 py-4 shadow-[-8px_0_12px_-10px_rgba(15,23,42,0.35)]"
+                  >
+                    Status
+                  </th>
 
-
-                  <th scope="col" className="px-4 py-4">Status</th>
-
-
-
-                  <th scope="col" className="px-4 py-4">Actions</th>
+                  <th
+                    scope="col"
+                    className="sticky right-0 z-20 w-[140px] min-w-[140px] bg-[#fff8f8] px-4 py-4 shadow-[-8px_0_12px_-10px_rgba(15,23,42,0.35)]"
+                  >
+                    Actions
+                  </th>
 
                 </tr>
 
@@ -1350,6 +1335,8 @@ export default async function ProductsAdminPage({
 
                                   className="
 
+                                    break-words
+
                                     font-bold
 
                                     text-brand-deep
@@ -1412,7 +1399,7 @@ export default async function ProductsAdminPage({
 
                           <td className="px-4 py-5">
 
-                            <p className="text-sm font-semibold text-slate-700">
+                            <p className="break-words text-sm font-semibold text-slate-700">
 
                               {
 
@@ -1600,8 +1587,6 @@ export default async function ProductsAdminPage({
 
                               =============================== */}
 
-
-
                           <td className="whitespace-nowrap px-4 py-5 text-xs text-slate-500">
 
                             {addedDateFormatter.format(new Date(product.createdAt))}
@@ -1638,7 +1623,7 @@ export default async function ProductsAdminPage({
 
 
 
-                          <td className="px-4 py-5">
+                          <td className="sticky right-[140px] z-10 w-[120px] min-w-[120px] whitespace-nowrap bg-white px-4 py-5 shadow-[-8px_0_12px_-10px_rgba(15,23,42,0.35)]">
 
                             <span
 
@@ -1708,9 +1693,9 @@ export default async function ProductsAdminPage({
 
 
 
-                          <td className="px-4 py-5">
+                          <td className="sticky right-0 z-10 w-[140px] min-w-[140px] bg-white px-4 py-5 shadow-[-8px_0_12px_-10px_rgba(15,23,42,0.35)]">
 
-                            <div className="flex flex-wrap gap-2">
+                            <div className="flex min-w-[108px] flex-col items-start gap-2 whitespace-nowrap">
 
                               <Link
 
@@ -1916,15 +1901,11 @@ export default async function ProductsAdminPage({
 
 }
 
-
-
 /* =========================================================
 
    TABLE HEADER CONTROLS
 
    ========================================================= */
-
-
 
 function SortHeading({
 
@@ -1983,8 +1964,6 @@ function SortHeading({
   );
 
 }
-
-
 
 function FilterHeading({
 

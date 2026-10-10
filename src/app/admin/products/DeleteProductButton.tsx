@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { Trash2, X } from "lucide-react";
 
 import { deleteProduct } from "./actions";
@@ -56,7 +57,7 @@ export default function DeleteProductButton({
           CONFIRMATION MODAL
           =============================================== */}
 
-      {isOpen ? (
+      {isOpen && typeof document !== "undefined" ? createPortal(
         <div
           className="
             fixed
@@ -239,7 +240,8 @@ export default function DeleteProductButton({
               </form>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       ) : null}
     </>
   );
