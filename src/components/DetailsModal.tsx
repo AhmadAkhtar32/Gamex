@@ -270,7 +270,7 @@ export function DetailsModal({
             "
           >
             <FaWhatsapp className="shrink-0" />
-            Inquire on WhatsApp
+            Order on WhatsApp
           </a>
         </div>
       </section>
