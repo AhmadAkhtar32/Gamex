@@ -22,7 +22,15 @@ import {
 
   Search,
 
-  SlidersHorizontal,
+  ChevronDown,
+
+  ArrowUpDown,
+
+  ArrowUp,
+
+  ArrowDown,
+
+  X,
 
 } from "lucide-react";
 
@@ -98,59 +106,15 @@ export const dynamic =
 
 
 
-type ProductSearchParams = Record<
-
-  string,
-
-  string | string[] | undefined
-
->;
+type ProductSearchParams = Record<string, string | string[] | undefined>;
 
 
 
-function readFilter(
-
-  params: ProductSearchParams,
-
-  key: string
-
-): string {
+function readFilter(params: ProductSearchParams, key: string): string {
 
   const value = params[key];
 
   return (Array.isArray(value) ? value[0] ?? "" : value ?? "").trim();
-
-}
-
-
-
-function parsePriceFilter(value: string): number | null {
-
-  if (!value) return null;
-
-  const amount = Number(value);
-
-  return Number.isFinite(amount) && amount >= 0 ? amount : null;
-
-}
-
-
-
-function parseDateFilter(value: string): Date | null {
-
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
-
-  const calendarDate = new Date(`${value}T00:00:00.000Z`);
-
-  if (
-
-    !Number.isFinite(calendarDate.getTime()) ||
-
-    calendarDate.toISOString().slice(0, 10) !== value
-
-  ) return null;
-
-  return new Date(`${value}T00:00:00+05:00`);
 
 }
 
@@ -194,30 +158,6 @@ export default async function ProductsAdminPage({
 
   const tagFilter = readFilter(params, "tag");
 
-  const rawPriceMode = readFilter(params, "priceMode");
-
-  const priceMode = ["priced", "request"].includes(rawPriceMode)
-
-    ? rawPriceMode
-
-    : "";
-
-  const rawMinPrice = readFilter(params, "minPrice");
-
-  const rawMaxPrice = readFilter(params, "maxPrice");
-
-  const minPrice = parsePriceFilter(rawMinPrice);
-
-  const maxPrice = parsePriceFilter(rawMaxPrice);
-
-  const rawDateFrom = readFilter(params, "dateFrom");
-
-  const rawDateTo = readFilter(params, "dateTo");
-
-  const dateFrom = parseDateFilter(rawDateFrom);
-
-  const dateTo = parseDateFilter(rawDateTo);
-
   const rawSort = readFilter(params, "sort");
 
   const sort = ["order", "name", "date", "price"].includes(rawSort)
@@ -226,55 +166,57 @@ export default async function ProductsAdminPage({
 
     : "order";
 
-  const direction = readFilter(params, "direction") === "desc"
+  const direction = readFilter(params, "direction") === "desc" ? "desc" : "asc";
 
-    ? "desc"
+  const activeFilters = Boolean(search || categoryFilter || subcategoryFilter || tagFilter);
 
-    : "asc";
+  const currentFilters: Record<string, string> = {
 
-  const filterErrors: string[] = [];
+    q: search,
 
-  if (rawMinPrice && minPrice === null) {
+    category: categoryFilter,
 
-    filterErrors.push("Minimum price must be a valid non-negative number.");
+    subcategory: subcategoryFilter,
 
-  }
+    tag: tagFilter,
 
-  if (rawMaxPrice && maxPrice === null) {
+    sort,
 
-    filterErrors.push("Maximum price must be a valid non-negative number.");
+    direction,
 
-  }
+  };
 
-  if (minPrice !== null && maxPrice !== null && minPrice > maxPrice) {
 
-    filterErrors.push("Minimum price cannot be greater than maximum price.");
 
-  }
+  function sortUrl(field: string): string {
 
-  if (rawDateFrom && !dateFrom) {
+    const nextDirection = sort === field
 
-    filterErrors.push("Enter a valid start date.");
+      ? direction === "asc" ? "desc" : "asc"
 
-  }
+      : field === "date" ? "desc" : "asc";
 
-  if (rawDateTo && !dateTo) {
+    const query = new URLSearchParams();
 
-    filterErrors.push("Enter a valid end date.");
+    for (const [key, value] of Object.entries(currentFilters)) {
 
-  }
+      if (value && key !== "sort" && key !== "direction") query.set(key, value);
 
-  if (dateFrom && dateTo && dateFrom > dateTo) {
+    }
 
-    filterErrors.push("Start date cannot be after end date.");
+    query.set("sort", field);
 
-  }
+    query.set("direction", nextDirection);
 
-  if (priceMode === "request" && (minPrice !== null || maxPrice !== null)) {
-
-    filterErrors.push("Clear the price range to filter products with Price on request.");
+    return `/admin/products?${query.toString()}`;
 
   }
+
+
+
+  const clearQuery = new URLSearchParams({ sort, direction });
+
+  const clearUrl = `/admin/products?${clearQuery.toString()}`;
 
 
 
@@ -584,7 +526,7 @@ export default async function ProductsAdminPage({
 
   /* =======================================================
 
-     FILTER OPTIONS AND SORTED RESULTS
+     SEARCH, HEADER FILTERS AND SORTING
 
      ======================================================= */
 
@@ -600,25 +542,41 @@ export default async function ProductsAdminPage({
 
     ])
 
-  ).sort((left, right) =>
+  ).map((slug) => ({ value: slug, label: categoryNames.get(slug) ?? slug }))
 
-    (categoryNames.get(left) ?? left).localeCompare(
+    .sort((left, right) => left.label.localeCompare(right.label, "en", { sensitivity: "base", numeric: true }));
 
-      categoryNames.get(right) ?? right,
 
-      "en",
 
-      { sensitivity: "base", numeric: true }
+  const selectedCategoryId = categoryRows.find((category) => category.slug === categoryFilter)?.id;
 
-    )
 
-  );
 
-  const tagOptions = Array.from(
+  const subcategoryOptions = subcategoryRows
 
-    new Set(productRows.map((product) => product.tag).filter(Boolean))
+    .filter((subcategory) => !categoryFilter || subcategory.categoryId === selectedCategoryId)
 
-  ).sort((left, right) => left.localeCompare(right, "en", { sensitivity: "base" }));
+    .map((subcategory) => ({
+
+      value: String(subcategory.id),
+
+      label: categoryFilter
+
+        ? subcategory.name
+
+        : `${categoryRows.find((category) => category.id === subcategory.categoryId)?.name ?? "Category"} / ${subcategory.name}`,
+
+    }));
+
+
+
+  const tagOptions = Array.from(new Set(productRows.map((product) => product.tag).filter(Boolean)))
+
+    .sort((left, right) => left.localeCompare(right, "en", { sensitivity: "base" }))
+
+    .map((tag) => ({ value: tag, label: tag }));
+
+
 
   const productSubcategoryIds = new Map<string, Set<number>>();
 
@@ -632,91 +590,49 @@ export default async function ProductsAdminPage({
 
   }
 
+
+
   const query = search.toLocaleLowerCase("en");
 
-  const selectedSubcategoryId = Number(subcategoryFilter);
 
-  const dateToExclusive = dateTo
 
-    ? dateTo.getTime() + 24 * 60 * 60 * 1000
+  const filteredProducts = productRows.filter((product) => {
 
-    : null;
+    if (categoryFilter && product.category !== categoryFilter) return false;
 
-  const filteredProducts = filterErrors.length > 0
+    if (subcategoryFilter && !productSubcategoryIds.get(product.id)?.has(Number(subcategoryFilter))) return false;
 
-    ? []
+    if (tagFilter && product.tag !== tagFilter) return false;
 
-    : productRows.filter((product) => {
+    if (!query) return true;
 
-        if (categoryFilter && product.category !== categoryFilter) return false;
+    return [
 
-        if (
+      product.name,
 
-          subcategoryFilter &&
+      product.id,
 
-          !productSubcategoryIds.get(product.id)?.has(selectedSubcategoryId)
+      product.description,
 
-        ) return false;
+      product.category,
 
-        if (tagFilter && product.tag !== tagFilter) return false;
+      categoryNames.get(product.category) ?? "",
 
-        if (priceMode === "priced" && product.price === null) return false;
+      product.tag,
 
-        if (priceMode === "request" && product.price !== null) return false;
+      ...product.specs,
 
-        if (
+      ...(productSubcategories.get(product.id) ?? []),
 
-          minPrice !== null &&
+    ].join(" ").toLocaleLowerCase("en").includes(query);
 
-          (product.price === null || product.price < minPrice)
+  });
 
-        ) return false;
 
-        if (
 
-          maxPrice !== null &&
+  const multiplier = direction === "desc" ? -1 : 1;
 
-          (product.price === null || product.price > maxPrice)
 
-        ) return false;
-
-        const createdAt = new Date(product.createdAt).getTime();
-
-        if (dateFrom && createdAt < dateFrom.getTime()) return false;
-
-        if (dateToExclusive !== null && createdAt >= dateToExclusive) return false;
-
-        if (query) {
-
-          const searchableText = [
-
-            product.name,
-
-            product.id,
-
-            product.description,
-
-            product.category,
-
-            categoryNames.get(product.category) ?? "",
-
-            product.tag,
-
-            ...product.specs,
-
-            ...(productSubcategories.get(product.id) ?? []),
-
-          ].join(" ").toLocaleLowerCase("en");
-
-          if (!searchableText.includes(query)) return false;
-
-        }
-
-        return true;
-
-      });
-
-  const sortMultiplier = direction === "desc" ? -1 : 1;
 
   filteredProducts.sort((left, right) => {
 
@@ -724,7 +640,7 @@ export default async function ProductsAdminPage({
 
     if (sort === "price") {
 
-      // Products without a price remain last in either direction.
+      // Keep products without a price last in both directions.
 
       if (left.price === null && right.price !== null) return 1;
 
@@ -738,13 +654,7 @@ export default async function ProductsAdminPage({
 
     } else if (sort === "name") {
 
-      comparison = left.name.localeCompare(right.name, "en", {
-
-        sensitivity: "base",
-
-        numeric: true,
-
-      });
+      comparison = left.name.localeCompare(right.name, "en", { sensitivity: "base", numeric: true });
 
     } else {
 
@@ -752,21 +662,13 @@ export default async function ProductsAdminPage({
 
     }
 
-    return comparison * sortMultiplier ||
+    return comparison * multiplier ||
 
       left.name.localeCompare(right.name, "en", { sensitivity: "base", numeric: true }) ||
 
       left.id.localeCompare(right.id);
 
   });
-
-  const filterInputClass =
-
-    "min-h-11 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-2.5 font-sans text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/10";
-
-  const filterLabelClass =
-
-    "mb-2 block font-sans text-xs font-semibold text-slate-600";
 
 
 
@@ -1070,251 +972,83 @@ export default async function ProductsAdminPage({
 
         {/* ===================================================
 
-            SEARCH, FILTERS AND SORTING
+            COMPACT SEARCH
 
             =================================================== */}
 
 
 
-        <form
+        <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 
-          key={JSON.stringify(params)}
+          <form
 
-          action="/admin/products"
+            key={JSON.stringify(currentFilters)}
 
-          method="get"
+            action="/admin/products"
 
-          className="mt-8 rounded-2xl border border-brand/10 bg-white p-5 sm:p-6"
+            method="get"
 
-        >
+            className="flex w-full min-w-0 gap-2 sm:max-w-xl"
 
-          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          >
 
-            <div className="flex items-center gap-2">
+            {Object.entries(currentFilters).filter(([key, value]) => key !== "q" && value).map(([key, value]) => (
 
-              <SlidersHorizontal aria-hidden="true" className="h-4 w-4 text-brand" />
+              <input key={key} type="hidden" name={key} value={value} />
 
-              <h3 className="font-sans text-sm font-bold text-slate-900">
+            ))}
 
-                Search and filter products
+            <div className="relative min-w-0 flex-1">
 
-              </h3>
+              <label htmlFor="product-search" className="sr-only">Search products</label>
 
-            </div>
+              <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
 
-            <Link
+              <input
 
-              href="/admin/products"
+                id="product-search"
 
-              className="font-sans text-xs font-semibold text-brand hover:underline"
+                name="q"
 
-            >
+                type="search"
 
-              Clear filters
+                defaultValue={search}
 
-            </Link>
+                placeholder="Search products..."
 
-          </div>
+                className="min-h-11 w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-3 font-sans text-sm text-slate-700 outline-none focus:border-brand focus:ring-2 focus:ring-brand/10"
 
-          <label htmlFor="product-search" className={filterLabelClass}>
-
-            Search products
-
-          </label>
-
-          <div className="relative">
-
-            <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-
-            <input
-
-              id="product-search"
-
-              name="q"
-
-              type="search"
-
-              defaultValue={search}
-
-              placeholder="Search by product name, ID, tag, category or specifications..."
-
-              className={`${filterInputClass} pl-10`}
-
-            />
-
-          </div>
-
-          <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-
-            <div className="min-w-0">
-
-              <label htmlFor="product-category" className={filterLabelClass}>Category</label>
-
-              <select id="product-category" name="category" defaultValue={categoryFilter} className={filterInputClass}>
-
-                <option value="">All categories</option>
-
-                {categoryOptions.map((slug) => (
-
-                  <option key={slug} value={slug}>{categoryNames.get(slug) ?? slug}</option>
-
-                ))}
-
-              </select>
+              />
 
             </div>
 
-            <div className="min-w-0">
+            <button type="submit" className="min-h-11 shrink-0 rounded-xl bg-brand px-4 font-sans text-sm font-semibold text-white hover:bg-brand-soft">
 
-              <label htmlFor="product-subcategory" className={filterLabelClass}>Subcategory</label>
-
-              <select id="product-subcategory" name="subcategory" defaultValue={subcategoryFilter} className={filterInputClass}>
-
-                <option value="">All subcategories</option>
-
-                {subcategoryRows.map((subcategory) => (
-
-                  <option key={subcategory.id} value={subcategory.id}>
-
-                    {categoryRows.find((category) => category.id === subcategory.categoryId)?.name ?? "Category"} / {subcategory.name}
-
-                  </option>
-
-                ))}
-
-              </select>
-
-            </div>
-
-            <div className="min-w-0">
-
-              <label htmlFor="product-tag" className={filterLabelClass}>Tag</label>
-
-              <select id="product-tag" name="tag" defaultValue={tagFilter} className={filterInputClass}>
-
-                <option value="">All tags</option>
-
-                {tagOptions.map((tag) => (
-
-                  <option key={tag} value={tag}>{tag}</option>
-
-                ))}
-
-              </select>
-
-            </div>
-
-            <div className="min-w-0">
-
-              <label htmlFor="product-price-mode" className={filterLabelClass}>Price availability</label>
-
-              <select id="product-price-mode" name="priceMode" defaultValue={priceMode} className={filterInputClass}>
-
-                <option value="">All products</option>
-
-                <option value="priced">With a price</option>
-
-                <option value="request">Price on request</option>
-
-              </select>
-
-            </div>
-
-            <div className="min-w-0">
-
-              <label htmlFor="product-min-price" className={filterLabelClass}>Minimum price (Rs.)</label>
-
-              <input id="product-min-price" name="minPrice" type="number" min="0" step="any" defaultValue={rawMinPrice} placeholder="No minimum" className={filterInputClass} />
-
-            </div>
-
-            <div className="min-w-0">
-
-              <label htmlFor="product-max-price" className={filterLabelClass}>Maximum price (Rs.)</label>
-
-              <input id="product-max-price" name="maxPrice" type="number" min="0" step="any" defaultValue={rawMaxPrice} placeholder="No maximum" className={filterInputClass} />
-
-            </div>
-
-            <div className="min-w-0">
-
-              <label htmlFor="product-date-from" className={filterLabelClass}>Date added — from</label>
-
-              <input id="product-date-from" name="dateFrom" type="date" defaultValue={rawDateFrom} className={filterInputClass} />
-
-            </div>
-
-            <div className="min-w-0">
-
-              <label htmlFor="product-date-to" className={filterLabelClass}>Date added — to</label>
-
-              <input id="product-date-to" name="dateTo" type="date" defaultValue={rawDateTo} className={filterInputClass} />
-
-            </div>
-
-            <div className="min-w-0">
-
-              <label htmlFor="product-sort" className={filterLabelClass}>Sort by</label>
-
-              <select id="product-sort" name="sort" defaultValue={sort} className={filterInputClass}>
-
-                <option value="order">Display order</option>
-
-                <option value="name">Product name</option>
-
-                <option value="date">Date added</option>
-
-                <option value="price">Price</option>
-
-              </select>
-
-            </div>
-
-            <div className="min-w-0">
-
-              <label htmlFor="product-direction" className={filterLabelClass}>Sort direction</label>
-
-              <select id="product-direction" name="direction" defaultValue={direction} className={filterInputClass}>
-
-                <option value="asc">Ascending — A–Z / oldest / lowest</option>
-
-                <option value="desc">Descending — Z–A / newest / highest</option>
-
-              </select>
-
-            </div>
-
-          </div>
-
-          {filterErrors.length > 0 && (
-
-            <ul role="alert" className="mt-4 space-y-1 rounded-xl border border-red-100 bg-red-50 p-3 font-sans text-sm text-red-700">
-
-              {filterErrors.map((error) => <li key={error}>{error}</li>)}
-
-            </ul>
-
-          )}
-
-          <div className="mt-5 flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
-
-            <p aria-live="polite" className="font-sans text-sm text-slate-500">
-
-              Showing <strong className="text-slate-900">{filteredProducts.length}</strong> of {productRows.length} products
-
-            </p>
-
-            <button type="submit" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 font-sans text-sm font-semibold text-white hover:bg-brand-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
-
-              <Search aria-hidden="true" className="h-4 w-4 shrink-0" />
-
-              Apply filters
+              Search
 
             </button>
 
+          </form>
+
+          <div className="flex flex-wrap items-center gap-3 font-sans text-xs text-slate-500">
+
+            <span>{filteredProducts.length} of {productRows.length} products</span>
+
+            {activeFilters && (
+
+              <Link href={clearUrl} className="inline-flex items-center gap-1 font-semibold text-brand hover:underline">
+
+                <X aria-hidden="true" className="h-3.5 w-3.5" />
+
+                Clear filters
+
+              </Link>
+
+            )}
+
           </div>
 
-        </form>
+        </div>
 
 
 
@@ -1330,7 +1064,7 @@ export default async function ProductsAdminPage({
 
           className="
 
-            mt-8
+            mt-4
 
             overflow-hidden
 
@@ -1348,7 +1082,7 @@ export default async function ProductsAdminPage({
 
           <div className="overflow-x-auto">
 
-            <table className="w-full min-w-[1280px]">
+            <table className="w-full min-w-[1080px]">
 
               <thead className="bg-[#fff8f8]">
 
@@ -1372,75 +1106,67 @@ export default async function ProductsAdminPage({
 
                 >
 
-                  <th className="px-5 py-4">
+                  <th scope="col" aria-sort={sort === "name" ? direction === "asc" ? "ascending" : "descending" : "none"} className="px-4 py-4">
 
-                    Product
-
-                  </th>
-
-
-
-                  <th className="px-5 py-4">
-
-                    Category
+                    <SortHeading label="Product" href={sortUrl("name")} active={sort === "name"} direction={direction} />
 
                   </th>
 
 
 
-                  <th className="px-5 py-4">
+                  <th scope="col" className="px-4 py-4">
 
-                    Subcategories
-
-                  </th>
-
-
-
-                  <th className="px-5 py-4">
-
-                    Tag
+                    <FilterHeading title="Category" field="category" value={categoryFilter} options={categoryOptions} filters={currentFilters} />
 
                   </th>
 
 
 
-                  <th className="px-5 py-4">
+                  <th scope="col" className="px-4 py-4">
 
-                    Price
-
-                  </th>
-
-
-
-                  <th className="px-5 py-4">
-
-                    Date added
+                    <FilterHeading title="Subcategories" field="subcategory" value={subcategoryFilter} options={subcategoryOptions} filters={currentFilters} />
 
                   </th>
 
 
 
-                  <th className="px-5 py-4">
+                  <th scope="col" className="px-4 py-4">
 
-                    Order
-
-                  </th>
-
-
-
-                  <th className="px-5 py-4">
-
-                    Status
+                    <FilterHeading title="Tag" field="tag" value={tagFilter} options={tagOptions} filters={currentFilters} />
 
                   </th>
 
 
 
-                  <th className="px-5 py-4">
+                  <th scope="col" aria-sort={sort === "price" ? direction === "asc" ? "ascending" : "descending" : "none"} className="px-4 py-4">
 
-                    Actions
+                    <SortHeading label="Price" href={sortUrl("price")} active={sort === "price"} direction={direction} />
 
                   </th>
+
+
+
+                  <th scope="col" aria-sort={sort === "date" ? direction === "asc" ? "ascending" : "descending" : "none"} className="px-4 py-4">
+
+                    <SortHeading label="Date added" href={sortUrl("date")} active={sort === "date"} direction={direction} />
+
+                  </th>
+
+
+
+                  <th scope="col" aria-sort={sort === "order" ? direction === "asc" ? "ascending" : "descending" : "none"} className="px-4 py-4">
+
+                    <SortHeading label="Order" href={sortUrl("order")} active={sort === "order"} direction={direction} />
+
+                  </th>
+
+
+
+                  <th scope="col" className="px-4 py-4">Status</th>
+
+
+
+                  <th scope="col" className="px-4 py-4">Actions</th>
 
                 </tr>
 
@@ -1484,11 +1210,7 @@ export default async function ProductsAdminPage({
 
                         ? "No products have been added yet."
 
-                        : filterErrors.length > 0
-
-                          ? "Correct the filter values above to see matching products."
-
-                          : "No products match your search and filters."}
+                        : "No products match your search and filters."}
 
                     </td>
 
@@ -1558,7 +1280,7 @@ export default async function ProductsAdminPage({
 
 
 
-                          <td className="px-5 py-5">
+                          <td className="px-4 py-5">
 
                             <div className="flex items-center gap-4">
 
@@ -1688,7 +1410,7 @@ export default async function ProductsAdminPage({
 
 
 
-                          <td className="px-5 py-5">
+                          <td className="px-4 py-5">
 
                             <p className="text-sm font-semibold text-slate-700">
 
@@ -1724,7 +1446,7 @@ export default async function ProductsAdminPage({
 
 
 
-                          <td className="px-5 py-5">
+                          <td className="px-4 py-5">
 
                             {assignedSubcategories.length >
 
@@ -1808,7 +1530,7 @@ export default async function ProductsAdminPage({
 
 
 
-                          <td className="px-5 py-5">
+                          <td className="px-4 py-5">
 
                             <span
 
@@ -1856,9 +1578,9 @@ export default async function ProductsAdminPage({
 
 
 
-                          <td className="px-5 py-5">
+                          <td className="px-4 py-5">
 
-                            <span className="text-sm font-extrabold text-brand-deep">
+                            <span className="whitespace-nowrap text-sm font-extrabold text-brand-deep">
 
                               {formatPrice(
 
@@ -1880,7 +1602,7 @@ export default async function ProductsAdminPage({
 
 
 
-                          <td className="whitespace-nowrap px-5 py-5 text-xs text-slate-500">
+                          <td className="whitespace-nowrap px-4 py-5 text-xs text-slate-500">
 
                             {addedDateFormatter.format(new Date(product.createdAt))}
 
@@ -1896,7 +1618,7 @@ export default async function ProductsAdminPage({
 
 
 
-                          <td className="px-5 py-5 text-sm text-slate-600">
+                          <td className="px-4 py-5 text-sm text-slate-600">
 
                             {
 
@@ -1916,7 +1638,7 @@ export default async function ProductsAdminPage({
 
 
 
-                          <td className="px-5 py-5">
+                          <td className="px-4 py-5">
 
                             <span
 
@@ -1986,7 +1708,7 @@ export default async function ProductsAdminPage({
 
 
 
-                          <td className="px-5 py-5">
+                          <td className="px-4 py-5">
 
                             <div className="flex flex-wrap gap-2">
 
@@ -2189,6 +1911,184 @@ export default async function ProductsAdminPage({
       </section>
 
     </main>
+
+  );
+
+}
+
+
+
+/* =========================================================
+
+   TABLE HEADER CONTROLS
+
+   ========================================================= */
+
+
+
+function SortHeading({
+
+  label,
+
+  href,
+
+  active,
+
+  direction,
+
+}: {
+
+  label: string;
+
+  href: string;
+
+  active: boolean;
+
+  direction: string;
+
+}) {
+
+  return (
+
+    <Link
+
+      href={href}
+
+      scroll={false}
+
+      title={`Sort by ${label.toLowerCase()} ${active ? direction === "asc" ? "descending" : "ascending" : label === "Date added" ? "descending" : "ascending"}`}
+
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-md py-1 font-sans text-[11px] font-semibold uppercase tracking-wide hover:text-brand focus-visible:outline-2 focus-visible:outline-brand ${active ? "text-brand" : "text-slate-500"}`}
+
+    >
+
+      {label}
+
+      {active ? (
+
+        direction === "asc"
+
+          ? <ArrowUp aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
+
+          : <ArrowDown aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
+
+      ) : (
+
+        <ArrowUpDown aria-hidden="true" className="h-3.5 w-3.5 shrink-0 opacity-60" />
+
+      )}
+
+    </Link>
+
+  );
+
+}
+
+
+
+function FilterHeading({
+
+  title,
+
+  field,
+
+  value,
+
+  options,
+
+  filters,
+
+}: {
+
+  title: string;
+
+  field: string;
+
+  value: string;
+
+  options: { value: string; label: string }[];
+
+  filters: Record<string, string>;
+
+}) {
+
+  const popoverId = `product-filter-${field}`;
+
+  return (
+
+    <>
+
+      <button
+
+        type="button"
+
+        popoverTarget={popoverId}
+
+        aria-label={`Filter ${title.toLowerCase()}`}
+
+        className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-md py-1 font-sans text-[11px] font-semibold uppercase tracking-wide hover:text-brand focus-visible:outline-2 focus-visible:outline-brand ${value ? "text-brand" : "text-slate-500"}`}
+
+      >
+
+        {title}
+
+        <ChevronDown aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
+
+        {value && <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-brand" />}
+
+      </button>
+
+      <div
+
+        id={popoverId}
+
+        popover="auto"
+
+        className="fixed inset-0 m-auto h-fit w-[min(360px,calc(100vw-2rem))] rounded-2xl border border-brand/15 bg-white p-5 font-sans text-left normal-case tracking-normal text-slate-700 shadow-2xl backdrop:bg-black/10"
+
+      >
+
+        <div className="mb-4 flex items-center justify-between gap-3">
+
+          <p className="text-sm font-bold text-slate-900">Filter by {title.toLowerCase()}</p>
+
+          <button type="button" popoverTarget={popoverId} popoverTargetAction="hide" aria-label={`Close ${title.toLowerCase()} filter`} className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-slate-50 text-slate-500 hover:bg-slate-100">
+
+            <X aria-hidden="true" className="h-4 w-4" />
+
+          </button>
+
+        </div>
+
+        <form key={`${field}:${value}`} action="/admin/products" method="get">
+
+          {Object.entries(filters)
+
+            .filter(([key, entry]) => entry && key !== field && !(field === "category" && key === "subcategory"))
+
+            .map(([key, entry]) => <input key={key} type="hidden" name={key} value={entry} />)}
+
+          <label htmlFor={`${popoverId}-select`} className="sr-only">{title}</label>
+
+          <select id={`${popoverId}-select`} name={field} defaultValue={value} className="min-h-11 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-normal outline-none focus:border-brand focus:ring-2 focus:ring-brand/10">
+
+            <option value="">All {title.toLowerCase()}</option>
+
+            {options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+
+          </select>
+
+          <button type="submit" className="mt-4 min-h-11 w-full rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-soft">
+
+            Apply
+
+          </button>
+
+        </form>
+
+      </div>
+
+    </>
 
   );
 
