@@ -86,6 +86,14 @@ import {
 
 import {
 
+  SpecificationsTextarea,
+
+} from "@/components/admin/SpecificationsTextarea";
+
+
+
+import {
+
   createProduct,
 
 } from "../actions";
@@ -1426,7 +1434,19 @@ export default async function NewProductPage({
 
                 placeholder="Describe the product..."
 
-                className={`${inputClass} resize-y`}
+                className={`${inputClass} resize-y font-sans leading-6 tracking-normal whitespace-pre-wrap`}
+
+                style={{
+
+                  lineHeight: "1.5",
+
+                  letterSpacing: "normal",
+
+                  wordSpacing: "normal",
+
+                  textTransform: "none",
+
+                }}
 
               />
 
@@ -1480,7 +1500,7 @@ export default async function NewProductPage({
 
 
 
-                <textarea
+                <SpecificationsTextarea
 
                   id="specs"
 
@@ -1494,17 +1514,21 @@ export default async function NewProductPage({
 
                   }
 
-                  placeholder={`Socket: AM4
+                  placeholder={[
 
-Cores: 6
+                    "Socket: AM4",
 
-Threads: 12
+                    "Cores: 6",
 
-Base Clock: 3.5 GHz
+                    "Threads: 12",
 
-Boost Clock: 4.4 GHz`}
+                    "Base Clock: 3.5 GHz",
 
-                  className={`${inputClass} resize-y pl-11`}
+                    "Boost Clock: 4.4 GHz",
+
+                  ].join("\n")}
+
+                  className={`${inputClass} resize-y pl-11 font-sans leading-6 tracking-normal whitespace-pre-wrap`}
 
                 />
 
@@ -1514,7 +1538,9 @@ Boost Clock: 4.4 GHz`}
 
               <p className="mt-2 text-xs text-slate-400">
 
-                Enter one specification per line.
+                Enter one specification per line. Extra blank lines
+
+                and spaces are removed when pasting or leaving this field.
 
               </p>
 
