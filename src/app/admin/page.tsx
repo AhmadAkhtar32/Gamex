@@ -90,15 +90,6 @@ export default async function AdminPage() {
             />
 
             <DashboardCard
-              href="/admin/categories"
-              icon={
-                <Tags className="h-6 w-6" />
-              }
-              title="Categories"
-              description="Manage categories and subcategories."
-            />
-
-            <DashboardCard
               href="/admin/builds"
               icon={
                 <Monitor className="h-6 w-6" />
@@ -114,6 +105,15 @@ export default async function AdminPage() {
               }
               title="Build Your Rig"
               description="Manage PC Builder settings, order, required slots and visibility."
+            />
+
+            <DashboardCard
+              href="/admin/categories"
+              icon={
+                <Tags className="h-6 w-6" />
+              }
+              title="Categories"
+              description="Manage categories and subcategories."
             />
           </div>
         </section>
