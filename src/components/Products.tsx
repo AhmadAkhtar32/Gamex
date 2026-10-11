@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
@@ -10,24 +9,23 @@ import {
   ChevronUp,
   Images,
   Package,
+  Plus,
+  Minus,
   SlidersHorizontal,
 } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 import { DetailsModal } from "@/components/DetailsModal";
 import { formatPrice } from "@/lib/price";
 import { createWhatsAppUrl } from "@/lib/whatsapp";
-
 export type PublicCategory = {
   id: string;
   label: string;
 };
-
 export type PublicSubcategory = {
   id: number;
   category: string;
   label: string;
 };
-
 export type PublicProduct = {
   id: string;
   name: string;
@@ -41,7 +39,6 @@ export type PublicProduct = {
   images?: string[];
   subcategoryIds?: number[];
 };
-
 function getProductImages(product: PublicProduct) {
   return Array.from(new Set(
     [product.image, ...(product.images ?? [])]
@@ -49,7 +46,6 @@ function getProductImages(product: PublicProduct) {
       .filter((value): value is string => Boolean(value))
   ));
 }
-
 function getProductLimit(hasSidebar = false) {
   if (typeof window === "undefined") return hasSidebar ? 8 : 10;
   if (window.innerWidth >= 1280) return hasSidebar ? 8 : 10;
@@ -57,14 +53,41 @@ function getProductLimit(hasSidebar = false) {
   if (window.innerWidth >= 640) return 4;
   return 2;
 }
-
 function getCondition(tag: string): "new" | "used" | "other" {
   const normalized = tag.trim().toLowerCase();
   if (normalized === "new") return "new";
   if (normalized === "used") return "used";
   return "other";
 }
-
+function SubcategoryCards({ options, value, onChange }: {
+  options: PublicSubcategory[];
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const selected = options.find((option) => String(option.id) === value);
+  const firstOptions = options.slice(0, 3);
+  const collapsedOptions = selected && !firstOptions.some((option) => option.id === selected.id)
+    ? [...firstOptions.slice(0, 2), selected]
+    : firstOptions;
+  const visibleOptions = expanded ? options : collapsedOptions;
+  const cardClass = (isSelected: boolean) => `inline-flex max-w-full items-center justify-center rounded-full border px-2.5 py-1.5 text-center text-[11px] font-semibold leading-4 tracking-normal transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${isSelected ? "border-brand bg-brand text-white shadow-sm" : "border-slate-200 bg-white text-slate-600 hover:border-brand/40 hover:bg-brand/[0.04] hover:text-brand"}`;
+  return (
+    <div role="group" aria-label="Filter by subcategory" className="flex flex-wrap items-center gap-1.5">
+      <button type="button" aria-pressed={!value} onClick={() => onChange("")} className={cardClass(!value)}>All</button>
+      {visibleOptions.map((option) => (
+        <button key={option.id} type="button" aria-pressed={value === String(option.id)} onClick={() => onChange(String(option.id))} className={cardClass(value === String(option.id))}>
+          <span className="min-w-0 break-words">{option.label}</span>
+        </button>
+      ))}
+      {options.length > 3 && (
+        <button type="button" aria-expanded={expanded} aria-label={expanded ? "Show fewer subcategories" : `Show ${options.length - collapsedOptions.length} more subcategories`} title={expanded ? "Show fewer" : "Show more"} onClick={() => setExpanded((previous) => !previous)} className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-brand/20 bg-brand/[0.04] text-brand transition-colors hover:border-brand/40 hover:bg-brand/[0.08] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
+          {expanded ? <Minus aria-hidden="true" className="h-3.5 w-3.5" /> : <Plus aria-hidden="true" className="h-3.5 w-3.5" />}
+        </button>
+      )}
+    </div>
+  );
+}
 export default function Products({
   products,
   categories,
@@ -87,16 +110,13 @@ export default function Products({
   const [maximumPrice, setMaximumPrice] = useState<number | null>(null);
   const [priceSort, setPriceSort] = useState("featured");
   const [conditionFilter, setConditionFilter] = useState("all");
-
   const hasSidebar = active !== "all";
-
   useEffect(() => {
     const updateLimit = () => setInitialLimit(getProductLimit(hasSidebar));
     updateLimit();
     window.addEventListener("resize", updateLimit);
     return () => window.removeEventListener("resize", updateLimit);
   }, [hasSidebar]);
-
   useEffect(() => {
     if (active === "all") return;
     if (!categories.some((category) => category.id === active)) {
@@ -109,32 +129,26 @@ export default function Products({
       setConditionFilter("all");
     }
   }, [active, categories]);
-
   const categoryProducts = active === "all"
     ? products
     : products.filter((product) => product.category === active);
-
   const prices = categoryProducts
     .map((product) => product.price)
     .filter((price): price is number => typeof price === "number" && Number.isFinite(price));
-
   const priceFloor = prices.length ? Math.min(...prices) : 0;
   const priceCeiling = prices.length ? Math.max(...prices) : 0;
   const selectedMinimum = Math.min(priceCeiling, Math.max(priceFloor, minimumPrice ?? priceFloor));
   const selectedMaximum = Math.max(selectedMinimum, Math.min(priceCeiling, maximumPrice ?? priceCeiling));
   const priceRangeActive = selectedMinimum > priceFloor || selectedMaximum < priceCeiling;
   const availableSubcategories = subcategories.filter((subcategory) => subcategory.category === active);
-  const subcategoryHint = availableSubcategories.slice(0, 2).map((subcategory) => subcategory.label).join(" / ");
   const filtersActive = Boolean(subcategoryFilter || priceRangeActive || priceSort !== "featured" || conditionFilter !== "all");
   const activeLabel = categories.find((category) => category.id === active)?.label ?? active;
-
   const filteredProducts = categoryProducts.filter((product) => {
     if (subcategoryFilter && !product.subcategoryIds?.includes(Number(subcategoryFilter))) return false;
     if (categoryPage && conditionFilter !== "all" && getCondition(product.tag) !== conditionFilter) return false;
     if (priceRangeActive && (product.price === null || product.price < selectedMinimum || product.price > selectedMaximum)) return false;
     return true;
   });
-
   if (priceSort !== "featured") {
     filteredProducts.sort((left, right) => {
       if (left.price === null && right.price !== null) return 1;
@@ -143,10 +157,8 @@ export default function Products({
       return (priceSort === "high" ? -difference : difference) || left.name.localeCompare(right.name);
     });
   }
-
   const visibleProducts = showAll ? filteredProducts : filteredProducts.slice(0, initialLimit);
   const canToggle = filteredProducts.length > initialLimit;
-
   function resetFilters() {
     setSubcategoryFilter("");
     setMinimumPrice(null);
@@ -155,12 +167,10 @@ export default function Products({
     setConditionFilter("all");
     setShowAll(false);
   }
-
   function changeCategory(categoryId: string) {
     setActive(categoryId);
     resetFilters();
   }
-
   function toggleProducts() {
     if (showAll) {
       setShowAll(false);
@@ -171,15 +181,12 @@ export default function Products({
     }
     setShowAll(true);
   }
-
   const inputClass = "min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 font-sans text-sm text-slate-700 outline-none focus:border-brand focus:ring-2 focus:ring-brand/10";
-
   return (
     <>
       <section id="products" className="relative overflow-hidden bg-white pb-8 pt-5 md:pb-10 md:pt-6">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_18%,rgba(230,0,0,0.06),transparent_29%),radial-gradient(circle_at_88%_80%,rgba(255,42,42,0.045),transparent_31%)]" />
         <div aria-hidden="true" className="bg-grid pointer-events-none absolute inset-0 opacity-20 [mask-image:radial-gradient(ellipse_80%_70%_at_50%_50%,black,transparent)]" />
-
         <div className="relative mx-auto max-w-[1480px] px-5 md:px-8">
           <div className="text-center">
             <div className="inline-flex items-center gap-2 rounded-full border border-brand/25 bg-brand/[0.04] px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-brand">
@@ -192,7 +199,6 @@ export default function Products({
               <span className="h-[3px] w-2 rounded-full bg-brand/40" />
             </div>
           </div>
-
           {/* Mobile catalogue: categories replace individual product cards. */}
           {!categoryPage && (
             <div className="mt-6 lg:hidden">
@@ -227,7 +233,6 @@ export default function Products({
               )}
             </div>
           )}
-
           {/* Desktop category tabs retain the current catalogue navigation. */}
           {!categoryPage && (
             <div className="mt-5 hidden flex-wrap items-center justify-center gap-2 lg:flex">
@@ -238,25 +243,18 @@ export default function Products({
               ))}
             </div>
           )}
-
           <div className={`${categoryPage ? "block" : "hidden lg:block"} mt-6`}>
             {categoryPage && availableSubcategories.length > 0 && (
               <div className="mb-5 rounded-2xl border border-slate-200 bg-white p-4 font-sans shadow-sm lg:hidden">
                 <div className="mb-3 flex items-center justify-between gap-3">
-                  <label htmlFor="catalogue-mobile-subcategory" className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900">
+                  <h2 className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900">
                     <SlidersHorizontal className="h-4 w-4 text-brand" /> Filter by subcategory
-                  </label>
+                  </h2>
                   {subcategoryFilter && (
                     <button type="button" onClick={() => { setSubcategoryFilter(""); setShowAll(false); }} className="min-h-11 px-2 text-xs font-semibold text-brand">Clear</button>
                   )}
                 </div>
-                <div className="relative">
-                  <select id="catalogue-mobile-subcategory" value={subcategoryFilter} onChange={(event) => { setSubcategoryFilter(event.target.value); setShowAll(false); }} className={`${inputClass} appearance-none pr-10`}>
-                    <option value="">{subcategoryHint}</option>
-                    {availableSubcategories.map((subcategory) => <option key={subcategory.id} value={subcategory.id}>{subcategory.label}</option>)}
-                  </select>
-                  <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-                </div>
+                <SubcategoryCards key={`${active}:mobile`} options={availableSubcategories} value={subcategoryFilter} onChange={(value) => { setSubcategoryFilter(value); setShowAll(false); }} />
                 <p aria-live="polite" className="mt-3 text-xs text-slate-500">{filteredProducts.length} of {categoryProducts.length} products{subcategoryFilter ? "" : " · Showing all subcategories"}</p>
               </div>
             )}
@@ -268,18 +266,12 @@ export default function Products({
                     {filtersActive && <button type="button" onClick={resetFilters} className="text-xs font-semibold text-brand hover:underline">Reset</button>}
                   </div>
                   <p className="mt-2 text-xs leading-5 text-slate-500">{filteredProducts.length} of {categoryProducts.length} products</p>
-
                   {availableSubcategories.length > 0 && (
                     <div className="mt-5 border-t border-slate-100 pt-5">
-                      <label htmlFor="catalogue-subcategory" className="mb-2 block text-xs font-semibold text-slate-700">Subcategory</label>
-                      <select id="catalogue-subcategory" value={subcategoryFilter} onChange={(event) => { setSubcategoryFilter(event.target.value); setShowAll(false); }} className={inputClass}>
-                        <option value="">{subcategoryHint}</option>
-                        {availableSubcategories.map((subcategory) => <option key={subcategory.id} value={subcategory.id}>{subcategory.label}</option>)}
-                      </select>
-                      <p className="mt-2 text-[11px] leading-5 text-slate-500">{subcategoryFilter ? "Choose another subcategory or reset to show all." : "Showing all subcategories. Choose one to filter."}</p>
+                      <h3 className="mb-3 text-xs font-semibold text-slate-700">Subcategory</h3>
+                      <SubcategoryCards key={`${active}:desktop`} options={availableSubcategories} value={subcategoryFilter} onChange={(value) => { setSubcategoryFilter(value); setShowAll(false); }} />
                     </div>
                   )}
-
                   <div className="mt-5 border-t border-slate-100 pt-5">
                     <h3 className="text-xs font-semibold text-slate-700">Price range</h3>
                     {prices.length > 0 ? (
@@ -299,7 +291,6 @@ export default function Products({
                       <option value="high">Price: high to low</option>
                     </select>
                   </div>
-
                   {categoryPage && (
                     <div className="mt-5 border-t border-slate-100 pt-5">
                       <label htmlFor="catalogue-condition" className="mb-2 block text-xs font-semibold text-slate-700">Condition</label>
@@ -312,7 +303,6 @@ export default function Products({
                   )}
                 </aside>
               )}
-
               <div className="min-w-0">
                 <motion.div layout className={`grid auto-rows-fr gap-4 sm:grid-cols-2 ${hasSidebar ? "lg:grid-cols-2 xl:grid-cols-4" : "lg:grid-cols-3 xl:grid-cols-5"}`}>
                   <AnimatePresence mode="popLayout">
@@ -323,7 +313,6 @@ export default function Products({
                       const remainingSpecs = Math.max(product.specs.length - 3, 0);
                       const productImages = getProductImages(product);
                       const mainImage = productImages[0] ?? product.image;
-
                       return (
                         <motion.div layout key={product.id} role="button" tabIndex={0} aria-label={`View details for ${product.name}`} onClick={() => setSelectedProduct(product)} onKeyDown={(event) => {
                           if (event.target !== event.currentTarget) return;
@@ -344,7 +333,6 @@ export default function Products({
                                 <div className="absolute right-3 top-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-black/70 px-2.5 py-1.5 text-[9px] font-bold text-white backdrop-blur-md"><Images className="h-3 w-3" />{productImages.length}</div>
                               )}
                             </div>
-
                             <div className="flex min-w-0 flex-1 flex-col p-4">
                               <p className="text-[9px] font-extrabold uppercase tracking-[0.18em] text-brand">{categoryLabel}</p>
                               <div className="mt-1.5 min-h-[2.8rem]">
@@ -379,7 +367,6 @@ export default function Products({
                     })}
                   </AnimatePresence>
                 </motion.div>
-
                 {filteredProducts.length === 0 && (
                   <div className="mt-8 rounded-2xl border border-dashed border-brand/20 bg-[#fff8f8] px-6 py-12 text-center">
                     <p className="font-display text-lg font-extrabold uppercase text-brand-deep">No Products Found</p>
@@ -387,7 +374,6 @@ export default function Products({
                     {filtersActive && <button type="button" onClick={resetFilters} className="mt-4 rounded-xl bg-brand px-5 py-3 font-sans text-sm font-semibold text-white">Reset filters</button>}
                   </div>
                 )}
-
                 {canToggle && (
                   <div className="mt-8 flex justify-center">
                     <button type="button" onClick={toggleProducts} className="group inline-flex min-w-[175px] items-center justify-center gap-2.5 rounded-xl border border-brand/20 bg-white px-6 py-3.5 font-display text-xs font-bold uppercase tracking-[0.14em] text-brand shadow-[0_12px_32px_-22px_rgba(230,0,0,0.5)] transition-all duration-300 hover:-translate-y-0.5 hover:border-brand hover:bg-brand hover:text-white">
@@ -401,7 +387,6 @@ export default function Products({
           </div>
         </div>
       </section>
-
       <DetailsModal item={selectedProduct ? {
         kind: "product",
         name: selectedProduct.name,
