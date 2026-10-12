@@ -2,7 +2,7 @@
 import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { Check, CheckCircle2, ChevronRight, CircleDollarSign, Cpu, ExternalLink, ImageIcon, Minus, Package, Plus, RotateCcw, ShoppingCart, Trash2, X } from "lucide-react";
+import { Check, CheckCircle2, ChevronRight, Cpu, ExternalLink, ImageIcon, Minus, Package, Plus, RotateCcw, ShoppingCart, Trash2, X } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 import { formatPrice } from "@/lib/price";
 const SITE_URL = "https://gamex.pk";
@@ -640,7 +640,7 @@ function BuildSummary({
             <p className="text-[9px] font-bold uppercase text-slate-400">Estimated Build Total</p>
             <p className="break-words font-sans text-2xl font-bold text-brand-deep tabular-nums">{formatPrice(total)}</p>
           </div>
-          <CircleDollarSign className="h-7 w-7 shrink-0 text-brand/30" />
+          <span aria-label="Pakistani rupees" className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-brand/20 bg-brand/[0.05] font-sans text-xs font-bold text-brand">Rs</span>
         </div>
         <p className="mt-2 text-[11px] leading-5 text-slate-500">
           Unpriced items are excluded. Custom prices are estimates; GameX will confirm availability, compatibility and final pricing.
