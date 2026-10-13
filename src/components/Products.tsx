@@ -177,8 +177,6 @@ export default function Products({
   const inputClass = "min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 font-sans text-sm text-slate-700 outline-none focus:border-brand focus:ring-2 focus:ring-brand/10";
   return (
     <section id="products" className="relative overflow-hidden bg-white pb-8 pt-5 md:pb-10 md:pt-6">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_18%,rgba(230,0,0,0.06),transparent_29%),radial-gradient(circle_at_88%_80%,rgba(255,42,42,0.045),transparent_31%)]" />
-      <div aria-hidden="true" className="bg-grid pointer-events-none absolute inset-0 opacity-20 [mask-image:radial-gradient(ellipse_80%_70%_at_50%_50%,black,transparent)]" />
       <div className="relative mx-auto max-w-[1480px] px-5 md:px-8">
         <div className="text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-brand/25 bg-brand/[0.04] px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-brand">
@@ -237,12 +235,8 @@ export default function Products({
           {categoryPage && availableSubcategories.length > 0 && (
             <div className="mb-5 rounded-2xl border border-slate-200 bg-white p-4 font-sans shadow-sm lg:hidden">
               <div className="mb-3 flex items-center justify-between gap-3">
-                <h2 className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900">
-                  <SlidersHorizontal className="h-4 w-4 text-brand" />Filter by subcategory
-                </h2>
-                {subcategoryFilter && (
-                  <button type="button" onClick={() => { setSubcategoryFilter(""); setShowAll(false); }} className="min-h-11 px-2 text-xs font-semibold text-brand">Clear</button>
-                )}
+                <h2 className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900"><SlidersHorizontal className="h-4 w-4 text-brand" />Filter by subcategory</h2>
+                {subcategoryFilter && <button type="button" onClick={() => { setSubcategoryFilter(""); setShowAll(false); }} className="min-h-11 px-2 text-xs font-semibold text-brand">Clear</button>}
               </div>
               <SubcategoryCards key={`${active}:mobile`} options={availableSubcategories} value={subcategoryFilter} onChange={(value) => { setSubcategoryFilter(value); setShowAll(false); }} />
               <p aria-live="polite" className="mt-3 text-xs text-slate-500">{filteredProducts.length} of {categoryProducts.length} products{subcategoryFilter ? "" : " · Showing all subcategories"}</p>
@@ -323,18 +317,12 @@ export default function Products({
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={mainImage} alt={`${product.name} - ${categoryLabel} at GameX Pakistan`} loading="lazy" className="h-full w-full object-contain object-center transition-transform duration-500 ease-out group-hover:scale-[1.03]" />
                           <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-brand/[0.035] via-transparent to-transparent" />
-                          <div className="absolute left-3 top-3 z-20">
-                            <span className="inline-flex rounded-full border border-brand/20 bg-white/95 px-3 py-1.5 text-[9px] font-bold uppercase tracking-wider text-brand shadow-sm backdrop-blur-md">{product.tag}</span>
-                          </div>
-                          {productImages.length > 1 && (
-                            <div className="absolute right-3 top-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-black/70 px-2.5 py-1.5 text-[9px] font-bold text-white backdrop-blur-md"><Images className="h-3 w-3" />{productImages.length}</div>
-                          )}
+                          <div className="absolute left-3 top-3 z-20"><span className="inline-flex rounded-full border border-brand/20 bg-white/95 px-3 py-1.5 text-[9px] font-bold uppercase tracking-wider text-brand shadow-sm backdrop-blur-md">{product.tag}</span></div>
+                          {productImages.length > 1 && <div className="absolute right-3 top-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-black/70 px-2.5 py-1.5 text-[9px] font-bold text-white backdrop-blur-md"><Images className="h-3 w-3" />{productImages.length}</div>}
                         </div>
                         <div className="flex min-w-0 flex-1 flex-col p-4">
                           <p className="text-[9px] font-extrabold uppercase tracking-[0.18em] text-brand">{categoryLabel}</p>
-                          <div className="mt-1.5 min-h-[2.8rem]">
-                            <h3 className="line-clamp-2 font-display text-base font-extrabold leading-[1.25] text-brand-deep transition-colors">{product.name}</h3>
-                          </div>
+                          <div className="mt-1.5 min-h-[2.8rem]"><h3 className="line-clamp-2 font-display text-base font-extrabold leading-[1.25] text-brand-deep transition-colors">{product.name}</h3></div>
                           <div className="mt-3 w-full min-w-0 rounded-lg bg-brand px-3 py-2.5">
                             <p className="font-sans text-[10px] font-semibold leading-4 text-white/80">Price</p>
                             <p className="mt-0.5 break-words font-sans text-lg font-bold leading-6 tracking-tight text-white tabular-nums">{formatPrice(product.price)}</p>
@@ -352,7 +340,7 @@ export default function Products({
                             <button type="button" onClick={(event) => {
                               event.stopPropagation();
                               router.push(`/product/${encodeURIComponent(product.id)}`);
-                            }} className="flex min-h-11 w-full min-w-0 items-center justify-between gap-2 whitespace-normal rounded-xl border border-black/[0.08] bg-[#fff8f8] px-3 py-2.5 text-left text-[10px] font-bold uppercase leading-snug tracking-wider text-brand-deep transition-all duration-300 hover:border-brand hover:bg-brand hover:text-white">
+                            }} className="flex min-h-11 w-full min-w-0 items-center justify-between gap-2 whitespace-normal rounded-xl border border-black/[0.08] bg-white px-3 py-2.5 text-left text-[10px] font-bold uppercase leading-snug tracking-wider text-brand-deep transition-all duration-300 hover:border-brand hover:bg-brand hover:text-white">
                               View Details<ArrowUpRight className="h-3.5 w-3.5 shrink-0" />
                             </button>
                             <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" onClick={(event) => event.stopPropagation()} onKeyDown={(event) => event.stopPropagation()} aria-label={`Order ${product.name} on WhatsApp`} className="flex min-h-11 w-full min-w-0 items-center justify-between gap-2 whitespace-normal rounded-xl bg-[#25D366] px-3 py-2.5 text-left text-[10px] font-bold uppercase leading-snug tracking-wider text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#20bd5a]">
@@ -366,7 +354,7 @@ export default function Products({
                 })}
               </div>
               {filteredProducts.length === 0 && (
-                <div className="mt-8 rounded-2xl border border-dashed border-brand/20 bg-[#fff8f8] px-6 py-12 text-center">
+                <div className="mt-8 rounded-2xl border border-dashed border-brand/20 bg-white px-6 py-12 text-center">
                   <p className="font-display text-lg font-extrabold uppercase text-brand-deep">No Products Found</p>
                   <p className="mt-2 text-sm text-slate-500">{filtersActive ? "No products match these filters. Try adjusting the price range or subcategory." : "There are no visible products in this category yet."}</p>
                   {filtersActive && <button type="button" onClick={resetFilters} className="mt-4 rounded-xl bg-brand px-5 py-3 font-sans text-sm font-semibold text-white">Reset filters</button>}
