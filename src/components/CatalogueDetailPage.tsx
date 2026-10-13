@@ -42,7 +42,7 @@ export async function CatalogueDetailPage({ item, related }: {
   return (
     <>
       <Navbar settings={chrome.navbar} links={chrome.navLinks} />
-      <main id="page-top" className="min-h-screen bg-[#fff8f8] pt-16 md:pt-20">
+      <main id="page-top" className="min-h-screen bg-white pt-16 md:pt-20">
         <div className="border-b border-brand/10 bg-white">
           <nav aria-label="Breadcrumb" className="mx-auto flex max-w-7xl flex-wrap items-center gap-2 px-5 py-4 font-sans text-xs text-slate-500 md:px-8">
             <Link href="/" className="hover:text-brand">Home</Link>
@@ -58,14 +58,10 @@ export async function CatalogueDetailPage({ item, related }: {
               <div className="relative h-[320px] sm:h-[420px] lg:h-[460px] [&>div]:h-full [&_img]:object-center">
                 <PhotoGallery key={item.id} images={galleryImages(item.image, item.images)} title={item.name} />
                 {item.badge && (
-                  <span className="pointer-events-none absolute left-3 top-3 z-20 rounded-full border border-brand/20 bg-white/95 px-3 py-1.5 font-sans text-[10px] font-bold uppercase tracking-wide text-brand shadow-sm">
-                    {item.badge}
-                  </span>
+                  <span className="pointer-events-none absolute left-3 top-3 z-20 rounded-full border border-brand/20 bg-white/95 px-3 py-1.5 font-sans text-[10px] font-bold uppercase tracking-wide text-brand shadow-sm">{item.badge}</span>
                 )}
               </div>
-              <p className="mt-2 text-center font-sans text-[11px] text-slate-400">
-                Tap an image to zoom · Browse the thumbnails for more views
-              </p>
+              <p className="mt-2 text-center font-sans text-[11px] text-slate-400">Tap an image to zoom · Browse the thumbnails for more views</p>
             </section>
             <section className="min-w-0 rounded-2xl border border-brand/10 bg-white p-5 shadow-sm sm:p-7">
               <div className="flex flex-wrap items-center gap-2">
@@ -75,9 +71,7 @@ export async function CatalogueDetailPage({ item, related }: {
               {item.secondaryLabel && <p className="mt-2 font-sans text-sm text-slate-500">{item.secondaryLabel}</p>}
               <p className="mt-5 inline-flex max-w-full rounded-xl bg-brand px-4 py-2.5 font-sans text-2xl font-bold text-white tabular-nums">{formatPrice(item.price)}</p>
               <p className="mt-2 font-sans text-xs leading-5 text-slate-500">
-                {item.kind === "build"
-                  ? "Starting price. Contact GameX for configuration and availability."
-                  : "Contact GameX to confirm current availability."}
+                {item.kind === "build" ? "Starting price. Contact GameX for configuration and availability." : "Contact GameX to confirm current availability."}
               </p>
               <div className="mt-5 border-t border-slate-100 pt-5">
                 <h2 className="font-sans text-sm font-bold text-slate-900">{item.kind === "build" ? "About this rig" : "Product description"}</h2>
@@ -100,8 +94,7 @@ export async function CatalogueDetailPage({ item, related }: {
               <ul className="mt-4 grid gap-3 sm:grid-cols-2">
                 {item.specs.map((spec, index) => (
                   <li key={`${item.id}-${index}`} className="flex min-w-0 items-start gap-2 rounded-xl border border-slate-100 bg-slate-50 px-3 py-3 font-sans text-sm leading-6 text-slate-600">
-                    <Check className="mt-1 h-4 w-4 shrink-0 text-brand" />
-                    <span className="min-w-0 break-words">{spec}</span>
+                    <Check className="mt-1 h-4 w-4 shrink-0 text-brand" /><span className="min-w-0 break-words">{spec}</span>
                   </li>
                 ))}
               </ul>
@@ -114,9 +107,7 @@ export async function CatalogueDetailPage({ item, related }: {
                   <p className="font-sans text-[10px] font-bold uppercase tracking-widest text-brand">Keep exploring</p>
                   <h2 id="related-items-title" className="mt-1 font-sans text-xl font-bold text-slate-900">{item.kind === "build" ? "Similar rigs" : "Similar products & more"}</h2>
                 </div>
-                <Link href={item.kind === "build" ? "/#builds" : "/#products"} className="inline-flex items-center gap-1 font-sans text-xs font-semibold text-brand">
-                  View catalogue<ArrowUpRight className="h-4 w-4" />
-                </Link>
+                <Link href={item.kind === "build" ? "/#builds" : "/#products"} className="inline-flex items-center gap-1 font-sans text-xs font-semibold text-brand">View catalogue<ArrowUpRight className="h-4 w-4" /></Link>
               </div>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
                 {related.map((entry) => (
@@ -138,9 +129,7 @@ export async function CatalogueDetailPage({ item, related }: {
             </section>
           )}
           <section className="mt-8 rounded-2xl border border-brand/10 bg-white p-5 sm:p-7">
-            <h2 className="font-sans text-lg font-bold text-slate-900">
-              {item.kind === "build" ? `${item.name} Gaming PC Build in Pakistan` : `Buy ${item.name} in Pakistan`}
-            </h2>
+            <h2 className="font-sans text-lg font-bold text-slate-900">{item.kind === "build" ? `${item.name} Gaming PC Build in Pakistan` : `Buy ${item.name} in Pakistan`}</h2>
             <p className="mt-3 font-sans text-sm leading-7 text-slate-600">
               Review the full specifications and {item.kind === "build" ? "starting price" : "price"} of {item.name},
               then contact GameX for current availability, {item.kind === "build" ? "component options and customization" : "purchase information"}.
