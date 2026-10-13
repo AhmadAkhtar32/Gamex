@@ -55,8 +55,13 @@ export async function CatalogueDetailPage({ item, related }: {
         <div className="mx-auto max-w-7xl px-5 py-6 md:px-8 md:py-10">
           <div className="grid items-start gap-6 lg:grid-cols-2 lg:gap-10">
             <section aria-label={`${item.name} photos`} className="min-w-0 overflow-hidden rounded-2xl border border-brand/10 bg-white p-3 shadow-sm sm:p-4">
-              <div className="lg:h-[460px]">
+              <div className="relative h-[320px] sm:h-[420px] lg:h-[460px] [&>div]:h-full [&_img]:object-center">
                 <PhotoGallery key={item.id} images={galleryImages(item.image, item.images)} title={item.name} />
+                {item.badge && (
+                  <span className="pointer-events-none absolute left-3 top-3 z-20 rounded-full border border-brand/20 bg-white/95 px-3 py-1.5 font-sans text-[10px] font-bold uppercase tracking-wide text-brand shadow-sm">
+                    {item.badge}
+                  </span>
+                )}
               </div>
               <p className="mt-2 text-center font-sans text-[11px] text-slate-400">
                 Tap an image to zoom · Browse the thumbnails for more views
@@ -65,9 +70,6 @@ export async function CatalogueDetailPage({ item, related }: {
             <section className="min-w-0 rounded-2xl border border-brand/10 bg-white p-5 shadow-sm sm:p-7">
               <div className="flex flex-wrap items-center gap-2">
                 <Link href={item.categoryHref} className="font-sans text-xs font-semibold text-brand">{item.categoryName}</Link>
-                {item.badge && (
-                  <span className="rounded-full border border-brand/15 bg-red-50 px-2.5 py-1 font-sans text-[10px] font-semibold text-brand">{item.badge}</span>
-                )}
               </div>
               <h1 className="mt-3 break-words font-display text-2xl font-extrabold leading-snug text-brand-deep sm:text-3xl">{item.name}</h1>
               {item.secondaryLabel && <p className="mt-2 font-sans text-sm text-slate-500">{item.secondaryLabel}</p>}
