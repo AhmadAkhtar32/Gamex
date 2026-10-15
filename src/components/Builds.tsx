@@ -1,8 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { ArrowRight, Check, ChevronDown, ChevronUp, Images } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { ArrowRight, Check, ChevronDown, ChevronUp, Images } from "lucide-react";
+import { FaWhatsapp } from "react-icons/fa";
+import { createWhatsAppUrl } from "@/lib/whatsapp";
+import { createBuildPaths } from "@/lib/build-paths";
 import { formatPrice } from "@/lib/price";
 import { BlurReveal, ScrollSkew } from "./fx";
 
@@ -28,13 +30,14 @@ function getBuildImages(build: PublicBuild) {
 function getBuildLimit(
   width = typeof window === "undefined" ? 0 : window.innerWidth
 ) {
-  if (width >= 1024) return 3;
+  if (width >= 1024) return 4;
   if (width >= 768) return 2;
   return 1;
 }
 
 export function Builds({ builds }: { builds: PublicBuild[] }) {
   const router = useRouter();
+  const buildPaths = createBuildPaths(builds);
   const [showAll, setShowAll] = useState(false);
   const [initialLimit, setInitialLimit] = useState(1);
 
@@ -71,10 +74,6 @@ export function Builds({ builds }: { builds: PublicBuild[] }) {
       <div className="relative mx-auto max-w-7xl px-5 md:px-8">
         <header className="text-center">
           <div className="inline-flex max-w-full items-center gap-3 rounded-2xl border border-brand/20 bg-white px-5 py-3 shadow-[0_3px_14px_-5px_rgba(230,0,0,0.18)] sm:px-6">
-            {/* <span
-              aria-hidden="true"
-              className="h-8 w-1 shrink-0 rounded-full bg-brand shadow-[0_0_8px_rgba(230,0,0,0.25)] sm:h-10"
-            /> */}
             <h2
               id="custom-builds-heading"
               className="min-w-0 break-words font-display text-2xl font-extrabold uppercase leading-tight text-brand-deep sm:text-3xl"
@@ -94,11 +93,17 @@ export function Builds({ builds }: { builds: PublicBuild[] }) {
           <>
             <ScrollSkew
               amount={2}
-              className="mt-4 grid gap-5 md:grid-cols-2 lg:grid-cols-3"
+              className="mt-4 grid gap-5 md:grid-cols-2 lg:grid-cols-4"
             >
               {visibleBuilds.map((build, index) => {
                 const buildImages = getBuildImages(build);
                 const mainImage = buildImages[0] ?? build.image;
+                const buildPath = buildPaths.get(build.id)!;
+                const whatsappUrl = createWhatsAppUrl([
+                  `Hi GameX, I am interested in ${build.name}.`,
+                  `Price: ${formatPrice(build.price)}`,
+                  `https://gamex.pk${buildPath}`,
+                ].join("\n"));
                 return (
                   <BlurReveal
                     key={build.id}
@@ -109,16 +114,12 @@ export function Builds({ builds }: { builds: PublicBuild[] }) {
                       role="button"
                       tabIndex={0}
                       aria-label={`View details for ${build.name}`}
-                      onClick={() =>
-                        router.push(`/build/${encodeURIComponent(build.id)}`)
-                      }
+                      onClick={() => router.push(buildPath)}
                       onKeyDown={(event) => {
                         if (event.target !== event.currentTarget) return;
                         if (event.key === "Enter" || event.key === " ") {
                           event.preventDefault();
-                          router.push(
-                            `/build/${encodeURIComponent(build.id)}`
-                          );
+                          router.push(buildPath);
                         }
                       }}
                       className="h-full min-w-0 cursor-pointer rounded-2xl focus:outline-none focus-visible:ring-4 focus-visible:ring-brand/15"
@@ -186,24 +187,24 @@ export function Builds({ builds }: { builds: PublicBuild[] }) {
                               type="button"
                               onClick={(event) => {
                                 event.stopPropagation();
-                                router.push(
-                                  `/build/${encodeURIComponent(build.id)}`
-                                );
+                                router.push(buildPath);
                               }}
                               className="inline-flex min-h-11 w-full min-w-0 items-center justify-between gap-2 whitespace-normal rounded-xl border border-brand/15 bg-white px-4 py-3 text-left text-xs font-bold uppercase leading-snug tracking-wider text-brand-deep transition-all hover:border-brand hover:bg-brand hover:text-white"
                             >
                               View Details
                               <ArrowRight className="h-4 w-4 shrink-0" />
                             </button>
-                            <Link
-                              href={`/build/${build.id}`}
+                            <a
+                              href={whatsappUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
                               onClick={(event) => event.stopPropagation()}
                               onKeyDown={(event) => event.stopPropagation()}
-                              className="inline-flex min-h-11 w-full min-w-0 items-center justify-between gap-2 whitespace-normal rounded-xl bg-brand px-4 py-3 text-left text-xs font-bold uppercase leading-snug tracking-wider text-white transition-all hover:-translate-y-0.5 hover:bg-brand-soft"
+                              className="inline-flex min-h-11 w-full min-w-0 items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3 font-sans text-sm font-bold leading-snug text-white transition-colors hover:bg-[#1ebe5d] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#25D366]"
                             >
-                              Build Page
-                              <ArrowRight className="h-4 w-4 shrink-0" />
-                            </Link>
+                              <FaWhatsapp className="h-5 w-5 shrink-0" />
+                              WhatsApp
+                            </a>
                           </div>
                         </div>
                       </div>
