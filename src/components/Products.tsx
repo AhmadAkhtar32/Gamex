@@ -1,12 +1,23 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ArrowUpRight, Check, ChevronDown, ChevronUp, Images, Package, Plus, Minus, SlidersHorizontal } from "lucide-react";
+import {
+  ArrowUpRight,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Images,
+  Package,
+  Plus,
+  Minus,
+  SlidersHorizontal,
+} from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 import { balancedCatalogue } from "@/lib/catalogue-order";
 import { formatPrice } from "@/lib/price";
 import { createWhatsAppUrl } from "@/lib/whatsapp";
+
 export type PublicCategory = {
   id: string;
   label: string;
@@ -28,6 +39,7 @@ export type PublicProduct = {
   images?: string[];
   subcategoryIds?: number[];
 };
+
 function getProductImages(product: PublicProduct) {
   return Array.from(new Set(
     [product.image, ...(product.images ?? [])]
@@ -35,6 +47,7 @@ function getProductImages(product: PublicProduct) {
       .filter((value): value is string => Boolean(value))
   ));
 }
+
 function getProductLimit(hasSidebar = false) {
   if (typeof window === "undefined") return hasSidebar ? 8 : 10;
   if (window.innerWidth >= 1280) return hasSidebar ? 8 : 10;
@@ -42,12 +55,14 @@ function getProductLimit(hasSidebar = false) {
   if (window.innerWidth >= 640) return 4;
   return 2;
 }
+
 function getCondition(tag: string): "new" | "used" | "other" {
   const normalized = tag.trim().toLowerCase();
   if (normalized === "new") return "new";
   if (normalized === "used") return "used";
   return "other";
 }
+
 function SubcategoryCards({ options, value, onChange }: {
   options: PublicSubcategory[];
   value: string;
@@ -56,27 +71,45 @@ function SubcategoryCards({ options, value, onChange }: {
   const [expanded, setExpanded] = useState(false);
   const selected = options.find((option) => String(option.id) === value);
   const firstOptions = options.slice(0, 3);
-  const collapsedOptions = selected && !firstOptions.some((option) => option.id === selected.id)
+  const collapsedOptions = selected &&
+    !firstOptions.some((option) => option.id === selected.id)
     ? [...firstOptions.slice(0, 2), selected]
     : firstOptions;
   const visibleOptions = expanded ? options : collapsedOptions;
-  const cardClass = (isSelected: boolean) => `inline-flex max-w-full items-center justify-center rounded-full border px-2.5 py-1.5 text-center text-[11px] font-semibold leading-4 tracking-normal transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${isSelected ? "border-brand bg-brand text-white shadow-sm" : "border-slate-200 bg-white text-slate-600 hover:border-brand/40 hover:bg-brand/[0.04] hover:text-brand"}`;
+  const cardClass = (isSelected: boolean) =>
+    `inline-flex max-w-full items-center justify-center rounded-full border px-2.5 py-1.5 text-center text-[11px] font-semibold leading-4 tracking-normal transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
+      isSelected
+        ? "border-brand bg-brand text-white shadow-sm"
+        : "border-slate-200 bg-white text-slate-600 hover:border-brand/40 hover:bg-brand/[0.04] hover:text-brand"
+    }`;
   return (
     <div role="group" aria-label="Filter by subcategory" className="flex flex-wrap items-center gap-1.5">
-      <button type="button" aria-pressed={!value} onClick={() => onChange("")} className={cardClass(!value)}>All</button>
+      <button type="button" aria-pressed={!value} onClick={() => onChange("")} className={cardClass(!value)}>
+        All
+      </button>
       {visibleOptions.map((option) => (
         <button key={option.id} type="button" aria-pressed={value === String(option.id)} onClick={() => onChange(String(option.id))} className={cardClass(value === String(option.id))}>
           <span className="min-w-0 break-words">{option.label}</span>
         </button>
       ))}
       {options.length > 3 && (
-        <button type="button" aria-expanded={expanded} aria-label={expanded ? "Show fewer subcategories" : `Show ${options.length - collapsedOptions.length} more subcategories`} title={expanded ? "Show fewer" : "Show more"} onClick={() => setExpanded((previous) => !previous)} className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-brand/20 bg-brand/[0.04] text-brand transition-colors hover:border-brand/40 hover:bg-brand/[0.08] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
-          {expanded ? <Minus aria-hidden="true" className="h-3.5 w-3.5" /> : <Plus aria-hidden="true" className="h-3.5 w-3.5" />}
+        <button
+          type="button"
+          aria-expanded={expanded}
+          aria-label={expanded ? "Show fewer subcategories" : `Show ${options.length - collapsedOptions.length} more subcategories`}
+          title={expanded ? "Show fewer" : "Show more"}
+          onClick={() => setExpanded((previous) => !previous)}
+          className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-brand/20 bg-brand/[0.04] text-brand transition-colors hover:border-brand/40 hover:bg-brand/[0.08] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+        >
+          {expanded
+            ? <Minus aria-hidden="true" className="h-3.5 w-3.5" />
+            : <Plus aria-hidden="true" className="h-3.5 w-3.5" />}
         </button>
       )}
     </div>
   );
 }
+
 export default function Products({
   products,
   categories,
@@ -104,12 +137,14 @@ export default function Products({
   const [priceSort, setPriceSort] = useState("featured");
   const [conditionFilter, setConditionFilter] = useState("all");
   const hasSidebar = active !== "all";
+
   useEffect(() => {
     const updateLimit = () => setInitialLimit(getProductLimit(hasSidebar));
     updateLimit();
     window.addEventListener("resize", updateLimit);
     return () => window.removeEventListener("resize", updateLimit);
   }, [hasSidebar]);
+
   useEffect(() => {
     if (active === "all") return;
     if (!categories.some((category) => category.id === active)) {
@@ -122,36 +157,75 @@ export default function Products({
       setConditionFilter("all");
     }
   }, [active, categories]);
+
   const categoryProducts = active === "all"
     ? mixedProducts
     : products.filter((product) => product.category === active);
   const prices = categoryProducts
     .map((product) => product.price)
-    .filter((price): price is number => typeof price === "number" && Number.isFinite(price));
+    .filter((price): price is number =>
+      typeof price === "number" && Number.isFinite(price)
+    );
   const priceFloor = prices.length ? Math.min(...prices) : 0;
   const priceCeiling = prices.length ? Math.max(...prices) : 0;
-  const selectedMinimum = Math.min(priceCeiling, Math.max(priceFloor, minimumPrice ?? priceFloor));
-  const selectedMaximum = Math.max(selectedMinimum, Math.min(priceCeiling, maximumPrice ?? priceCeiling));
-  const priceRangeActive = selectedMinimum > priceFloor || selectedMaximum < priceCeiling;
-  const availableSubcategories = subcategories.filter((subcategory) => subcategory.category === active);
-  const filtersActive = Boolean(subcategoryFilter || priceRangeActive || priceSort !== "featured" || conditionFilter !== "all");
-  const activeLabel = categories.find((category) => category.id === active)?.label ?? active;
+  const selectedMinimum = Math.min(
+    priceCeiling,
+    Math.max(priceFloor, minimumPrice ?? priceFloor)
+  );
+  const selectedMaximum = Math.max(
+    selectedMinimum,
+    Math.min(priceCeiling, maximumPrice ?? priceCeiling)
+  );
+  const priceRangeActive =
+    selectedMinimum > priceFloor || selectedMaximum < priceCeiling;
+  const availableSubcategories = subcategories.filter(
+    (subcategory) => subcategory.category === active
+  );
+  const filtersActive = Boolean(
+    subcategoryFilter ||
+    priceRangeActive ||
+    priceSort !== "featured" ||
+    conditionFilter !== "all"
+  );
+  const activeLabel = categories.find(
+    (category) => category.id === active
+  )?.label ?? active;
   const filteredProducts = categoryProducts.filter((product) => {
-    if (subcategoryFilter && !product.subcategoryIds?.includes(Number(subcategoryFilter))) return false;
-    if (categoryPage && conditionFilter !== "all" && getCondition(product.tag) !== conditionFilter) return false;
-    if (priceRangeActive && (product.price === null || product.price < selectedMinimum || product.price > selectedMaximum)) return false;
+    if (
+      subcategoryFilter &&
+      !product.subcategoryIds?.includes(Number(subcategoryFilter))
+    ) return false;
+    if (
+      categoryPage &&
+      conditionFilter !== "all" &&
+      getCondition(product.tag) !== conditionFilter
+    ) return false;
+    if (
+      priceRangeActive &&
+      (
+        product.price === null ||
+        product.price < selectedMinimum ||
+        product.price > selectedMaximum
+      )
+    ) return false;
     return true;
   });
+
   if (priceSort !== "featured") {
     filteredProducts.sort((left, right) => {
       if (left.price === null && right.price !== null) return 1;
       if (left.price !== null && right.price === null) return -1;
       const difference = (left.price ?? 0) - (right.price ?? 0);
-      return (priceSort === "high" ? -difference : difference) || left.name.localeCompare(right.name);
+      return (priceSort === "high" ? -difference : difference) ||
+        left.name.localeCompare(right.name);
     });
   }
-  const visibleProducts = showAll ? filteredProducts : filteredProducts.slice(0, initialLimit);
+
+  const visibleProducts = showAll
+    ? filteredProducts
+    : filteredProducts.slice(0, initialLimit);
   const canToggle = filteredProducts.length > initialLimit;
+
   function resetFilters() {
     setSubcategoryFilter("");
     setMinimumPrice(null);
@@ -160,21 +234,28 @@ export default function Products({
     setConditionFilter("all");
     setShowAll(false);
   }
+
   function changeCategory(categoryId: string) {
     setActive(categoryId);
     resetFilters();
   }
+
   function toggleProducts() {
     if (showAll) {
       setShowAll(false);
       window.setTimeout(() => {
-        document.getElementById("products")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        document.getElementById("products")?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
       }, 50);
       return;
     }
     setShowAll(true);
   }
+
   const inputClass = "min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 font-sans text-sm text-slate-700 outline-none focus:border-brand focus:ring-2 focus:ring-brand/10";
+
   return (
     <section id="products" className="relative overflow-hidden bg-white pb-8 pt-5 md:pb-10 md:pt-6">
       <div className="relative mx-auto max-w-[1480px] px-5 md:px-8">
@@ -197,9 +278,15 @@ export default function Products({
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               {categories.filter((category) => category.id !== "all").map((category) => {
-                const items = products.filter((product) => product.category === category.id);
-                const representative = items.find((product) => getProductImages(product).length > 0);
-                const image = representative ? getProductImages(representative)[0] : undefined;
+                const items = products.filter(
+                  (product) => product.category === category.id
+                );
+                const representative = items.find(
+                  (product) => getProductImages(product).length > 0
+                );
+                const image = representative
+                  ? getProductImages(representative)[0]
+                  : undefined;
                 return (
                   <Link key={category.id} href={`/category/${encodeURIComponent(category.id)}`} className="flex min-w-0 items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
                     <div className="grid h-24 w-24 shrink-0 place-items-center overflow-hidden rounded-xl bg-slate-50 p-2">
@@ -211,7 +298,7 @@ export default function Products({
                     <div className="min-w-0 flex-1">
                       <h3 className="break-words text-base font-bold text-brand-deep">{category.label}</h3>
                       <p className="mt-1 font-sans text-xs text-slate-500">{items.length} {items.length === 1 ? "product" : "products"}</p>
-                      <span className="mt-3 inline-flex items-center gap-1.5 font-sans text-xs font-semibold text-brand">Explore category<ArrowUpRight className="h-3.5 w-3.5" /></span>
+                      <span className="mt-3 inline-flex items-center gap-1.5 font-sans text-xs font-semibold text-brand">Explore category <ArrowUpRight className="h-3.5 w-3.5" /></span>
                     </div>
                   </Link>
                 );
@@ -235,8 +322,12 @@ export default function Products({
           {categoryPage && availableSubcategories.length > 0 && (
             <div className="mb-5 rounded-2xl border border-slate-200 bg-white p-4 font-sans shadow-sm lg:hidden">
               <div className="mb-3 flex items-center justify-between gap-3">
-                <h2 className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900"><SlidersHorizontal className="h-4 w-4 text-brand" />Filter by subcategory</h2>
-                {subcategoryFilter && <button type="button" onClick={() => { setSubcategoryFilter(""); setShowAll(false); }} className="min-h-11 px-2 text-xs font-semibold text-brand">Clear</button>}
+                <h2 className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900">
+                  <SlidersHorizontal className="h-4 w-4 text-brand" /> Filter by subcategory
+                </h2>
+                {subcategoryFilter && (
+                  <button type="button" onClick={() => { setSubcategoryFilter(""); setShowAll(false); }} className="min-h-11 px-2 text-xs font-semibold text-brand">Clear</button>
+                )}
               </div>
               <SubcategoryCards key={`${active}:mobile`} options={availableSubcategories} value={subcategoryFilter} onChange={(value) => { setSubcategoryFilter(value); setShowAll(false); }} />
               <p aria-live="polite" className="mt-3 text-xs text-slate-500">{filteredProducts.length} of {categoryProducts.length} products{subcategoryFilter ? "" : " · Showing all subcategories"}</p>
@@ -246,7 +337,7 @@ export default function Products({
             {hasSidebar && (
               <aside aria-label={`${activeLabel} filters`} className="hidden min-w-0 rounded-2xl border border-slate-200 bg-white p-5 font-sans shadow-sm lg:block">
                 <div className="flex items-center justify-between gap-2">
-                  <h2 className="inline-flex items-center gap-2 text-sm font-bold text-slate-900"><SlidersHorizontal className="h-4 w-4 text-brand" />Filters</h2>
+                  <h2 className="inline-flex items-center gap-2 text-sm font-bold text-slate-900"><SlidersHorizontal className="h-4 w-4 text-brand" /> Filters</h2>
                   {filtersActive && <button type="button" onClick={resetFilters} className="text-xs font-semibold text-brand hover:underline">Reset</button>}
                 </div>
                 <p className="mt-2 text-xs leading-5 text-slate-500">{filteredProducts.length} of {categoryProducts.length} products</p>
@@ -290,8 +381,13 @@ export default function Products({
             <div className="min-w-0">
               <div className={`grid auto-rows-fr gap-4 sm:grid-cols-2 ${hasSidebar ? "lg:grid-cols-2 xl:grid-cols-4" : "lg:grid-cols-3 xl:grid-cols-5"}`}>
                 {visibleProducts.map((product) => {
-                  const categoryLabel = categories.find((category) => category.id === product.category)?.label ?? product.category;
-                  const whatsappUrl = createWhatsAppUrl(`Hi GameX, I want to order ${product.name}. Product link: https://gamex.pk/product/${product.id}`);
+                  const categoryLabel = categories.find(
+                    (category) => category.id === product.category
+                  )?.label ?? product.category;
+                  const productPath = `/product/${encodeURIComponent(product.id)}`;
+                  const whatsappUrl = createWhatsAppUrl(
+                    `Hi GameX, I want to order ${product.name}. Product link: https://gamex.pk/product/${product.id}`
+                  );
                   const visibleSpecs = product.specs.slice(0, 3);
                   const remainingSpecs = Math.max(product.specs.length - 3, 0);
                   const productImages = getProductImages(product);
@@ -302,12 +398,12 @@ export default function Products({
                       role="button"
                       tabIndex={0}
                       aria-label={`View details for ${product.name}`}
-                      onClick={() => router.push(`/product/${encodeURIComponent(product.id)}`)}
+                      onClick={() => router.push(productPath)}
                       onKeyDown={(event) => {
                         if (event.target !== event.currentTarget) return;
                         if (event.key === "Enter" || event.key === " ") {
                           event.preventDefault();
-                          router.push(`/product/${encodeURIComponent(product.id)}`);
+                          router.push(productPath);
                         }
                       }}
                       className="h-full min-w-0 cursor-pointer rounded-2xl focus:outline-none focus-visible:ring-4 focus-visible:ring-brand/15"
@@ -317,12 +413,18 @@ export default function Products({
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={mainImage} alt={`${product.name} - ${categoryLabel} at GameX Pakistan`} loading="lazy" className="h-full w-full object-contain object-center transition-transform duration-500 ease-out group-hover:scale-[1.03]" />
                           <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-brand/[0.035] via-transparent to-transparent" />
-                          <div className="absolute left-3 top-3 z-20"><span className="inline-flex rounded-full border border-brand/20 bg-white/95 px-3 py-1.5 text-[9px] font-bold uppercase tracking-wider text-brand shadow-sm backdrop-blur-md">{product.tag}</span></div>
-                          {productImages.length > 1 && <div className="absolute right-3 top-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-black/70 px-2.5 py-1.5 text-[9px] font-bold text-white backdrop-blur-md"><Images className="h-3 w-3" />{productImages.length}</div>}
+                          <div className="absolute left-3 top-3 z-20">
+                            <span className="inline-flex rounded-full border border-brand/20 bg-white/95 px-3 py-1.5 text-[9px] font-bold uppercase tracking-wider text-brand shadow-sm backdrop-blur-md">{product.tag}</span>
+                          </div>
+                          {productImages.length > 1 && (
+                            <div className="absolute right-3 top-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-black/70 px-2.5 py-1.5 text-[9px] font-bold text-white backdrop-blur-md"><Images className="h-3 w-3" />{productImages.length}</div>
+                          )}
                         </div>
                         <div className="flex min-w-0 flex-1 flex-col p-4">
                           <p className="text-[9px] font-extrabold uppercase tracking-[0.18em] text-brand">{categoryLabel}</p>
-                          <div className="mt-1.5 min-h-[2.8rem]"><h3 className="line-clamp-2 font-display text-base font-extrabold leading-[1.25] text-brand-deep transition-colors">{product.name}</h3></div>
+                          <div className="mt-1.5 min-h-[2.8rem]">
+                            <h3 className="line-clamp-2 font-display text-base font-extrabold leading-[1.25] text-brand-deep transition-colors">{product.name}</h3>
+                          </div>
                           <div className="mt-3 w-full min-w-0 rounded-lg bg-brand px-3 py-2.5">
                             <p className="font-sans text-[10px] font-semibold leading-4 text-white/80">Price</p>
                             <p className="mt-0.5 break-words font-sans text-lg font-bold leading-6 tracking-tight text-white tabular-nums">{formatPrice(product.price)}</p>
@@ -337,14 +439,12 @@ export default function Products({
                           </div>
                           <div className="h-5">{remainingSpecs > 0 && <p className="text-[9px] font-bold uppercase tracking-wider text-brand/70">+{remainingSpecs} more specifications</p>}</div>
                           <div className="mt-auto grid gap-2 pt-2">
-                            <button type="button" onClick={(event) => {
-                              event.stopPropagation();
-                              router.push(`/product/${encodeURIComponent(product.id)}`);
-                            }} className="flex min-h-11 w-full min-w-0 items-center justify-between gap-2 whitespace-normal rounded-xl border border-black/[0.08] bg-white px-3 py-2.5 text-left text-[10px] font-bold uppercase leading-snug tracking-wider text-brand-deep transition-all duration-300 hover:border-brand hover:bg-brand hover:text-white">
-                              View Details<ArrowUpRight className="h-3.5 w-3.5 shrink-0" />
-                            </button>
+                            <Link href={productPath} onClick={(event) => event.stopPropagation()} onKeyDown={(event) => event.stopPropagation()} className="flex min-h-11 w-full min-w-0 items-center justify-between gap-2 whitespace-normal rounded-xl border border-black/[0.08] bg-white px-3 py-2.5 text-left text-[10px] font-bold uppercase leading-snug tracking-wider text-brand-deep transition-all duration-300 hover:border-brand hover:bg-brand hover:text-white">
+                              View Details <ArrowUpRight className="h-3.5 w-3.5 shrink-0" />
+                            </Link>
                             <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" onClick={(event) => event.stopPropagation()} onKeyDown={(event) => event.stopPropagation()} aria-label={`Order ${product.name} on WhatsApp`} className="flex min-h-11 w-full min-w-0 items-center justify-between gap-2 whitespace-normal rounded-xl bg-[#25D366] px-3 py-2.5 text-left text-[10px] font-bold uppercase leading-snug tracking-wider text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#20bd5a]">
-                              <span className="inline-flex items-center gap-2"><FaWhatsapp className="h-4 w-4 shrink-0" />Order Now</span><ArrowUpRight className="h-3.5 w-3.5 shrink-0" />
+                              <span className="inline-flex items-center gap-2"><FaWhatsapp className="h-4 w-4 shrink-0" />Order Now</span>
+                              <ArrowUpRight className="h-3.5 w-3.5 shrink-0" />
                             </a>
                           </div>
                         </div>
@@ -363,7 +463,8 @@ export default function Products({
               {canToggle && (
                 <div className="mt-8 flex justify-center">
                   <button type="button" onClick={toggleProducts} className="group inline-flex min-w-[175px] items-center justify-center gap-2.5 rounded-xl border border-brand/20 bg-white px-6 py-3.5 font-display text-xs font-bold uppercase tracking-[0.14em] text-brand shadow-[0_12px_32px_-22px_rgba(230,0,0,0.5)] transition-all duration-300 hover:-translate-y-0.5 hover:border-brand hover:bg-brand hover:text-white">
-                    {showAll ? "Show Less" : "View More"}{showAll ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    {showAll ? "Show Less" : "View More"}
+                    {showAll ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                   </button>
                 </div>
               )}
